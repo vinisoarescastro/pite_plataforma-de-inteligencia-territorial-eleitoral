@@ -1,0 +1,29 @@
+services:
+
+  # Banco de dados principal: PostgreSQL com extensão PostGIS para dados geográficos
+  banco_dados:
+    image: postgis/postgis:16-3.4
+    container_name: pite_banco_dados
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: pite_db
+      POSTGRES_USER: pite_usuario
+      POSTGRES_PASSWORD: pite_senha_local
+    ports:
+      - "5432:5432"       # porta_do_seu_windows:porta_dentro_do_container
+    volumes:
+      - dados_postgres:/var/lib/postgresql/data   # persiste os dados entre reinicializações
+
+  # Cache: Redis para consultas frequentes e sessões JWT
+  cache:
+    image: redis:7-alpine
+    container_name: pite_cache
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - dados_redis:/data
+
+volumes:
+  dados_postgres:
+  dados_redis:
