@@ -93,6 +93,8 @@
 |---|---|---|---|
 | RF-U01 | O sistema deve autenticar usuários via e-mail e senha | MVP | — |
 | RF-U02 | O sistema deve implementar controle de acesso por perfil (RBAC): administrador, analista, visualizador | MVP | — |
-| RF-U03 | O sistema deve suportar múltiplas organizações isoladas (multi-tenant) | MVP | HU-CE05 |
+| RF-U03 | O sistema deve operar em modelo **single-tenant** — uma única organização por instalação | MVP | — |
 | RF-U04 | O sistema deve registrar log de ações sensíveis por usuário | MVP | — |
 | RF-U05 | O sistema deve implementar JWT com access token (15 min) e refresh token (7 dias) | MVP | — |
+
+> **Nota:** O sistema não suporta múltiplas organizações isoladas (multi-tenant). Cada instalação serve uma única organização. Isso simplifica significativamente a autenticação, o banco de dados e as queries.

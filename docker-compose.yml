@@ -15,6 +15,7 @@ services:
       - dados_postgres:/var/lib/postgresql/data   # persiste os dados entre reinicializações
 
   # Cache: Redis para consultas frequentes e sessões JWT
+  # Opcional no MVP — pode ser habilitado conforme necessário
   cache:
     image: redis:7-alpine
     container_name: pite_cache
@@ -27,3 +28,22 @@ services:
 volumes:
   dados_postgres:
   dados_redis:
+
+# ---------------------------------------------------------------------------
+# COMO USAR:
+#
+#   Subir tudo:          docker compose up -d
+#   Parar tudo:          docker compose down
+#   Ver logs:            docker compose logs -f
+#   Resetar banco:       docker compose down -v  (APAGA TODOS OS DADOS)
+#
+# O backend Python e o frontend React rodam fora do Docker durante o
+# desenvolvimento — veja as instruções no README.md.
+#
+# Conexão com o banco (use DBeaver ou outro cliente):
+#   Host:     localhost
+#   Porta:    5432
+#   Banco:    pite_db
+#   Usuário:  pite_usuario
+#   Senha:    pite_senha_local
+# ---------------------------------------------------------------------------

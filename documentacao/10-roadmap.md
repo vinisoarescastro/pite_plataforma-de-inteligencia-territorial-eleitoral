@@ -17,13 +17,14 @@
 
 ## Fase 0 — Fundação (Semanas 1–2)
 
-- [ ] Revisar e aprovar o plano estratégico e técnico com os stakeholders.
-- [ ] Criar os 12 documentos de suporte listados na Seção 4 do plano inicial.
-- [ ] Validar histórias de usuário com representantes de cada perfil.
-- [ ] Confirmar stack tecnológica: React + TypeScript + Node.js + Leaflet + PostgreSQL/PostGIS.
+- [x] Revisar e aprovar o plano estratégico e técnico com os stakeholders.
+- [x] Criar os 13 documentos de suporte listados no plano inicial.
+- [x] Validar histórias de usuário com representantes de cada perfil.
+- [x] Definir stack tecnológica: React + JavaScript + Python + FastAPI + Leaflet + PostgreSQL/PostGIS.
+- [x] Definir arquitetura single-tenant (uma organização por instalação).
 - [ ] Configurar repositório Git com estrutura de pastas definida.
 - [ ] Configurar ambiente de desenvolvimento local com Docker.
-- [ ] Criar migrações iniciais do banco de dados.
+- [ ] Criar migrações iniciais do banco de dados com Alembic.
 - [ ] Definir e documentar o modelo de dados final.
 
 ---
@@ -39,11 +40,13 @@
 - Painéis e Indicadores — parcial (T49–T53)
 
 **Entregas:**
-- [ ] Importar dados do TSE para as eleições selecionadas como referência.
+- [ ] Configurar projeto FastAPI com estrutura de módulos e Alembic.
+- [ ] Configurar projeto React + Vite + Leaflet.
+- [ ] Implementar autenticação JWT (python-jose) e controle de acesso RBAC (single-tenant).
+- [ ] Importar dados do TSE para as eleições selecionadas (Python + Pandas).
 - [ ] Implementar módulo de candidatos e pré-candidatos.
 - [ ] Implementar visualização de histórico eleitoral com filtros.
 - [ ] Implementar mapa interativo com Leaflet e classificação territorial automática.
-- [ ] Implementar autenticação JWT e controle de acesso RBAC.
 - [ ] Implementar painel analítico principal com indicadores.
 - [ ] Implementar exportação de dados em CSV.
 - [ ] Testes com usuários representativos dos perfis definidos.

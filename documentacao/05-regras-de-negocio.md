@@ -129,12 +129,14 @@ A classificação de espectro político de partidos e candidatos deve ser basead
 
 ---
 
-## 6. Regras de Acesso e Isolamento de Dados
+## 6. Regras de Acesso
 
-- Cada organização acessa apenas seus próprios dados e os dados públicos do TSE.
-- Dados de candidatos de uma organização não são acessíveis a outras organizações.
-- Dados públicos do TSE são compartilhados entre todas as organizações.
+O sistema opera em modelo **single-tenant** — uma única organização por instalação. Não há isolamento de dados entre organizações porque cada instalação pertence a uma única organização.
+
+- Todos os dados da instalação pertencem à única organização configurada.
+- Dados públicos do TSE são compartilhados entre todos os usuários da instalação.
 - Perfis de acesso: `administrador` (CRUD completo), `analista` (leitura e importação), `visualizador` (somente leitura).
+- O isolamento de dados, quando necessário, é feito por perfil de acesso (RBAC), não por organização.
 
 ---
 

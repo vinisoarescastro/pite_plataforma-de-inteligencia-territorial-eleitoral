@@ -54,8 +54,8 @@
 
 | ID | Requisito |
 |---|---|
-| RNF-E01 | Arquitetura deve suportar múltiplas organizações (multi-tenant) sem degradação de desempenho |
-| RNF-E02 | Processamento de importações pesadas deve ser assíncrono (BullMQ ou equivalente) |
+| RNF-E01 | Arquitetura single-tenant - uma organização por instalação, sem isolamento de dados entre organizações |
+| RNF-E02 | Importações do TSE processadas de forma síncrona no MVP; assíncrona (Celery + Redis) em versões futuras |
 | RNF-E03 | Banco de dados com suporte a índices otimizados para consultas geoespaciais (PostGIS) |
 | RNF-E04 | Disponibilidade mínima de 99% em horário comercial (MVP) |
 | RNF-E05 | Suporte a deploy containerizado via Docker |
@@ -78,9 +78,9 @@
 
 | ID | Requisito |
 |---|---|
-| RNF-M01 | Toda a base de código em TypeScript (front-end e back-end) |
+| RNF-M01 | Backend em Python 3.12 + FastAPI; frontend em React 18 + JavaScript |
 | RNF-M02 | Nomenclatura integralmente em português do Brasil (conforme guia de nomenclatura) |
-| RNF-M03 | Documentação OpenAPI (Swagger) para todos os endpoints da API |
+| RNF-M03 | Documentação OpenAPI (Swagger) gerada automaticamente pelo FastAPI em `/docs` |
 | RNF-M04 | Cobertura de testes unitários mínima de 60% para lógicas de negócio críticas (MVP) |
-| RNF-M05 | Migrações de banco de dados versionadas e rastreáveis |
+| RNF-M05 | Migrações de banco de dados versionadas com Alembic |
 | RNF-M06 | Logs estruturados em JSON para facilitar análise e monitoramento |

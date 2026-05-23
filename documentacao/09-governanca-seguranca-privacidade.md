@@ -59,15 +59,17 @@
 
 | Perfil | Permissões |
 |---|---|
-| `administrador` | CRUD completo, gestão de usuários e organizações, acesso a logs de auditoria |
+| `administrador` | CRUD completo, gestão de usuários, acesso a logs de auditoria |
 | `analista` | Leitura de todos os dados, importação de dados, cadastro de candidatos e pesquisas |
 | `visualizador` | Somente leitura — sem permissão de cadastro, importação ou exportação |
 
-### Isolamento Multi-Tenant
+### Modelo Single-Tenant
 
-- Cada organização acessa apenas seus próprios dados e os dados públicos do TSE.
-- Dados de candidatos de uma organização **não são acessíveis** a outras organizações.
-- Dados públicos do TSE são compartilhados entre todas as organizações.
+O sistema opera com **uma única organização por instalação**. Não há isolamento de dados entre organizações porque cada instalação é independente.
+
+- Todos os usuários da instalação acessam os mesmos dados (respeitados os perfis de acesso).
+- Dados públicos do TSE são compartilhados entre todos os usuários da instalação.
+- O controle de acesso é feito exclusivamente por perfil (RBAC), não por organização.
 
 ---
 

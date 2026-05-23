@@ -1,7 +1,8 @@
 # 07 — Modelo de Dados
 
 > Descreve as entidades, campos, tipos, relacionamentos e índices do banco de dados.  
-> Banco: **PostgreSQL 15+ com PostGIS**. Coordenadas em **WGS84 (EPSG:4326)**.
+> Banco: **PostgreSQL 16 com PostGIS**. ORM: **SQLAlchemy + GeoAlchemy2**. Migrations: **Alembic**.  
+> Coordenadas em **WGS84 (EPSG:4326)**. Arquitetura **single-tenant**.
 
 ---
 
@@ -358,12 +359,11 @@
 | `email` | VARCHAR | E-mail (único) |
 | `senha_hash` | VARCHAR | Hash bcrypt da senha |
 | `perfil_acesso` | ENUM | administrador, analista, visualizador |
-| `organizacao_id` | UUID (FK) | Organização à qual pertence |
 | `ativo` | BOOLEAN | Status ativo |
 | `ultimo_acesso_em` | TIMESTAMP | Data do último acesso |
 | `criado_em` | TIMESTAMP | Data de criação |
 
-**Observações:** Senha nunca em texto puro. E-mail recomendado com criptografia em repouso.
+**Observações:** Senha nunca em texto puro. O campo `organizacao_id` foi **removido** — o sistema é single-tenant (uma organização por instalação), então não há separação de dados por organização. Todos os usuários da instalação pertencem à mesma organização implicitamente.
 
 ---
 

@@ -59,10 +59,17 @@ Fornecer uma plataforma SPA de inteligência territorial eleitoral que permita a
 
 | Camada | Decisão |
 |---|---|
-| Front-end | React (SPA, JavaScript/TypeScript) |
-| Back-end | Node.js (JavaScript/TypeScript) |
-| Mapas | Leaflet |
-| Banco de dados | PostgreSQL + PostGIS |
+| Front-end | React 18 + JavaScript + Vite |
+| Back-end | Python 3.12 + FastAPI |
+| Validação | Pydantic (incluso no FastAPI) |
+| ORM | SQLAlchemy + GeoAlchemy2 |
+| Migrations | Alembic |
+| Mapas | Leaflet + React-Leaflet |
+| Banco de dados | PostgreSQL 16 + PostGIS |
+| Cache | Redis (opcional no MVP) |
+| Autenticação | JWT — python-jose + passlib |
+| Scripts de dados | Python + Pandas + GeoPandas |
+| Arquitetura | Single-tenant (uma organização por instalação) |
 | Linguagem e nomenclatura | Português do Brasil em toda a base de código |
 
 ---

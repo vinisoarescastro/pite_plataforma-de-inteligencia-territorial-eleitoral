@@ -9,16 +9,16 @@
 
 | ID | Tarefa | Prioridade | HU Relacionada |
 |---|---|---|---|
-| T01 | Configurar repositório, estrutura e padrões de código | MVP | — |
-| T02 | Configurar PostgreSQL + PostGIS | MVP | — |
-| T03 | Criar migrações iniciais do banco de dados | MVP | — |
-| T04 | Configurar API Node.js / Fastify em TypeScript | MVP | — |
-| T05 | Configurar SPA React + Vite + TypeScript | MVP | — |
-| T06 | Implementar autenticação JWT (access + refresh token) | MVP | — |
-| T07 | Implementar RBAC (perfis: administrador, analista, visualizador) | MVP | — |
-| T08 | Configurar Docker e ambiente de desenvolvimento | MVP | — |
-| T09 | Configurar pipeline CI/CD básico | Importante | — |
-| T10 | Configurar Redis para cache e sessões | Importante | — |
+| T01 | Configurar repositório, estrutura de pastas e padrões de código | MVP | — |
+| T02 | Configurar PostgreSQL + PostGIS via Docker Compose | MVP | — |
+| T03 | Criar migrações iniciais do banco de dados com Alembic | MVP | — |
+| T04 | Configurar API Python + FastAPI com SQLAlchemy e estrutura de módulos | MVP | — |
+| T05 | Configurar SPA React + Vite + Leaflet (JavaScript) | MVP | — |
+| T06 | Implementar autenticação JWT com python-jose e passlib (bcrypt) | MVP | — |
+| T07 | Implementar RBAC single-tenant (perfis: administrador, analista, visualizador) | MVP | — |
+| T08 | Configurar Docker Compose e ambiente de desenvolvimento | MVP | — |
+| T09 | Configurar pipeline CI/CD básico (GitHub Actions) | Importante | — |
+| T10 | Configurar Redis para cache (opcional no MVP) | Importante | — |
 
 ---
 
@@ -26,12 +26,12 @@
 
 | ID | Tarefa | Prioridade | HU Relacionada |
 |---|---|---|---|
-| T11 | Desenvolver `servico_importacao_tse` (CSV do TSE) | MVP | HU-PQ01, HU-A05 |
-| T12 | Desenvolver normalizador e validador de dados TSE | MVP | — |
+| T11 | Desenvolver `servico_importacao_tse` em Python + Pandas (CSV do TSE) | MVP | HU-PQ01, HU-A05 |
+| T12 | Desenvolver normalizador e validador de dados TSE com Pandas | MVP | — |
 | T13 | Importar municípios, zonas eleitorais e seções | MVP | — |
 | T14 | Importar candidaturas, partidos e cargos históricos | MVP | — |
 | T15 | Importar locais de votação | MVP | HU-CC06 |
-| T16 | Importar dados geográficos (GeoJSON/Shapefile) para Leaflet | MVP | — |
+| T16 | Importar dados geográficos (GeoJSON/Shapefile) com GeoPandas para Leaflet | MVP | — |
 | T17 | Implementar rastreabilidade via `importacao_dados` | MVP | HU-A05 |
 | T18 | Tela de gerenciamento e histórico de importações | Importante | HU-A05 |
 

@@ -69,11 +69,20 @@ Fornecer uma plataforma SPA de inteligência territorial eleitoral que permita a
 
 | Camada | Decisão |
 |---|---|
-| Front-end | React (SPA, JavaScript/TypeScript) |
-| Back-end | Node.js (JavaScript/TypeScript) |
-| Mapas | Leaflet |
-| Banco de dados | PostgreSQL + PostGIS |
+| Front-end | React 18 + JavaScript + Vite |
+| Back-end | Python 3.12 + FastAPI |
+| Validação | Pydantic v2 (incluso no FastAPI) |
+| ORM | SQLAlchemy + GeoAlchemy2 |
+| Migrations | Alembic |
+| Mapas | Leaflet + React-Leaflet |
+| Banco de dados | PostgreSQL 16 + PostGIS |
+| Cache | Redis (opcional no MVP) |
+| Autenticação | JWT — python-jose + passlib |
+| Scripts de dados | Python + Pandas + GeoPandas |
+| Arquitetura | Single-tenant (uma organização por instalação) |
 | Linguagem e nomenclatura | Português do Brasil em toda a base de código |
+
+> **Por que Python no backend?** Python é mais legível para iniciantes, tem o melhor ecossistema para processamento de dados (Pandas, GeoPandas) e o FastAPI gera documentação Swagger automaticamente. O modelo single-tenant elimina toda a complexidade de isolamento de dados entre organizações.
 
 ---
 

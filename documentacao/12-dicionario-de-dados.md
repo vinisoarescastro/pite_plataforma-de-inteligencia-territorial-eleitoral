@@ -74,7 +74,8 @@
 | `WGS84` | Sistema de coordenadas geográficas padrão (EPSG:4326) utilizado pelo Leaflet |
 | `PostGIS` | Extensão do PostgreSQL para dados geoespaciais |
 | `GeoJSON` | Formato de dados geográficos baseado em JSON |
-| `multi-tenant` | Arquitetura onde múltiplas organizações compartilham a plataforma com dados isolados |
+| `single-tenant` | Arquitetura onde cada instalação serve uma única organização — sem isolamento entre organizações |
+| `multi-tenant` | Arquitetura onde múltiplas organizações compartilham a plataforma com dados isolados — **não adotada neste projeto** |
 | `RBAC` | Role-Based Access Control — controle de acesso baseado em perfis de usuário |
 | `JWT` | JSON Web Token — padrão de autenticação sem estado |
 | `SPA` | Single Page Application — aplicação web de página única |

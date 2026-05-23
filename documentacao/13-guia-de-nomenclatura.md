@@ -2,26 +2,31 @@
 
 > Padrão de nomeação para pastas, arquivos, variáveis, funções, tabelas, endpoints e commits.  
 > Objetivo: garantir consistência no código e na documentação, facilitar manutenção e onboarding.
+>
+> **Stack:** Backend em Python + FastAPI | Frontend em React + JavaScript
 
 ---
 
 ## 1. Princípios Gerais
 
 - Toda a base de código em **português do Brasil**.
-- **Exceções aceitas:** termos técnicos sem equivalente consolidado em PT-BR: `id`, `hash`, `token`, `url`, `uuid`, `boolean`, `timestamp`.
+- **Exceções aceitas:** termos técnicos sem equivalente consolidado em PT-BR: `id`, `hash`, `token`, `url`, `uuid`, `boolean`, `timestamp`, `schema`, `status`.
 - Convenções por contexto:
 
-| Contexto | Convenção |
-|---|---|
-| Banco de dados (tabelas, colunas) | `snake_case` |
-| Variáveis de back-end | `snake_case` |
-| Nomes de arquivos | `snake_case` |
-| Componentes React | `PascalCase` |
-| Variáveis JavaScript/TypeScript | `camelCase` |
-| Funções e métodos TypeScript | `camelCase` |
-| Rotas HTTP | `kebab-case` |
-| Constantes e Enums | `UPPER_CASE` |
-| Hooks React | `camelCase` com prefixo `usar` |
+| Contexto | Convenção | Exemplo |
+|---|---|---|
+| Banco de dados (tabelas, colunas) | `snake_case` | `resultado_eleitoral`, `zona_eleitoral_id` |
+| Variáveis Python (backend) | `snake_case` | `candidato_id`, `total_votos` |
+| Funções Python (backend) | `snake_case` | `listar_candidatos()`, `calcular_indice_forca()` |
+| Classes Python | `PascalCase` | `EsquemaCandidato`, `ModeloCandidato` |
+| Nomes de arquivos Python | `snake_case` | `servico_candidato.py`, `roteador_eleicao.py` |
+| Nomes de arquivos React | `snake_case` ou `PascalCase` | `mapa_territorial.jsx` ou `MapaTerritorial.jsx` |
+| Componentes React | `PascalCase` | `MapaTerritorial`, `PainelPrincipal` |
+| Variáveis JavaScript | `camelCase` | `totalVotos`, `candidatoId` |
+| Funções JavaScript | `camelCase` | `listarCandidatos()`, `calcularIndiceForca()` |
+| Rotas HTTP | `kebab-case` | `/candidatos`, `/zonas-eleitorais` |
+| Constantes Python | `UPPER_CASE` | `CLASSIFICACAO_ZONA_FORCA` |
+| Hooks React | `camelCase` com prefixo `usar` | `usarCandidato()`, `usarMapa()` |
 
 ---
 
@@ -78,44 +83,131 @@ calculado_em
 
 ---
 
-## 4. Funções e Métodos TypeScript (camelCase)
+## 4. Funções e Métodos Python — Backend (snake_case)
 
-```typescript
-// Candidato
-listarCandidatos()
-obterCandidatoPorId(candidatoId: string)
-criarCandidato(dadosCandidato: TipoCandidato)
-atualizarCandidato(candidatoId: string, dados: Partial<TipoCandidato>)
-excluirCandidato(candidatoId: string)
+```python
+# Candidato
+def listar_candidatos() -> list[EsquemaCandidato]: ...
+def obter_candidato_por_id(candidato_id: str) -> EsquemaCandidato: ...
+def criar_candidato(dados: EsquemaCriarCandidato) -> EsquemaCandidato: ...
+def atualizar_candidato(candidato_id: str, dados: EsquemaAtualizarCandidato): ...
+def excluir_candidato(candidato_id: str): ...
 
-// Resultados eleitorais
-obterResultadoEleitoral(filtros: FiltroResultadoEleitoral)
-obterResultadoEleitoralPorZona(eleicaoId: string, zonaEleitoralId: string)
-agregarResultadoPorMunicipio(eleicaoId: string, municipioId: string)
-calcularVariacaoEntreEleicoes(candidatoId: string, eleicaoIdA: string, eleicaoIdB: string)
+# Resultados eleitorais
+def obter_resultado_eleitoral(filtros: FiltroResultadoEleitoral): ...
+def obter_resultado_por_zona(eleicao_id: str, zona_eleitoral_id: str): ...
+def agregar_resultado_por_municipio(eleicao_id: str, municipio_id: str): ...
+def calcular_variacao_entre_eleicoes(candidato_id: str, eleicao_id_a: str, eleicao_id_b: str): ...
 
-// Território e classificação
-classificarTerritorio(territorioId: string, candidatoId: string, eleicaoId: string)
-calcularIndiceForcaTerritorial(candidatoId: string, eleicaoId: string, territorioId: string)
-calcularIndiceForcaPartidaria(partidoId: string, eleicaoId: string, territorioId: string)
-calcularPotencialEleitoral(candidatoId: string, territorioId: string)
-obterClassificacaoTerritorial(territorioId: string, candidatoId: string)
+# Território e classificação
+def classificar_territorio(territorio_id: str, candidato_id: str, eleicao_id: str): ...
+def calcular_indice_forca_territorial(candidato_id: str, eleicao_id: str, territorio_id: str): ...
+def calcular_indice_forca_partidaria(partido_id: str, eleicao_id: str, territorio_id: str): ...
+def calcular_potencial_eleitoral(candidato_id: str, territorio_id: str): ...
+def obter_classificacao_territorial(territorio_id: str, candidato_id: str): ...
 
-// Pesquisa
-importarPesquisaCsv(caminhoArquivo: string, pesquisaId: string)
-cruzarPesquisaComHistorico(pesquisaId: string, eleicaoId: string, territorioId: string)
+# Pesquisa
+def importar_pesquisa_csv(caminho_arquivo: str, pesquisa_id: str): ...
+def cruzar_pesquisa_com_historico(pesquisa_id: str, eleicao_id: str, territorio_id: str): ...
 
-// Importação
-importarResultadoTse(caminhoArquivo: string)
-normalizarDadoEleitoral(registroBruto: RegistroTse)
-validarDadoImportacao(registro: unknown)
+# Importação TSE
+def importar_resultado_tse(caminho_arquivo: str): ...
+def normalizar_dado_eleitoral(registro_bruto: dict): ...
+def validar_dado_importacao(registro: dict): ...
 ```
 
 ---
 
-## 5. Componentes React (PascalCase)
+## 5. Esquemas Pydantic — Validação (PascalCase)
+
+```python
+# Padrão: Esquema + Nome + Ação
+class EsquemaCandidato(BaseModel): ...          # resposta padrão
+class EsquemaCriarCandidato(BaseModel): ...     # criação (POST)
+class EsquemaAtualizarCandidato(BaseModel): ... # atualização (PUT)
+class EsquemaListaCandidatos(BaseModel): ...    # listagem paginada
+
+class EsquemaEleicao(BaseModel): ...
+class EsquemaResultadoEleitoral(BaseModel): ...
+class EsquemaTerritorio(BaseModel): ...
+class EsquemaClassificacaoTerritorial(BaseModel): ...
+class EsquemaPesquisaEleitoral(BaseModel): ...
+class EsquemaUsuario(BaseModel): ...
+class EsquemaLogin(BaseModel): ...
+class EsquemaTokenJWT(BaseModel): ...
+```
+
+---
+
+## 6. Modelos SQLAlchemy — Banco de Dados (PascalCase)
+
+```python
+# Padrão: Modelo + Nome
+class ModeloCandidato(Base): ...
+class ModeloEleicao(Base): ...
+class ModeloCandidatura(Base): ...
+class ModeloResultadoEleitoral(Base): ...
+class ModeloTerritorio(Base): ...
+class ModeloClassificacaoTerritorial(Base): ...
+class ModeloPesquisaEleitoral(Base): ...
+class ModeloUsuario(Base): ...
+class ModeloImportacaoDados(Base): ...
+```
+
+---
+
+## 7. Arquivos e Módulos Python (snake_case)
 
 ```
+api/
+├── main.py
+├── configuracoes.py
+├── banco_dados.py
+├── dependencias.py
+├── modulos/
+│   ├── candidato/
+│   │   ├── roteador.py        → rotas FastAPI
+│   │   ├── esquemas.py        → modelos Pydantic
+│   │   ├── servico.py         → lógica de negócio
+│   │   └── repositorio.py     → acesso ao banco
+│   ├── eleicao/
+│   │   ├── roteador.py
+│   │   ├── esquemas.py
+│   │   ├── servico.py
+│   │   └── repositorio.py
+│   └── usuario/
+│       ├── roteador.py
+│       ├── esquemas.py
+│       ├── servico.py
+│       └── repositorio.py
+├── processamento/
+│   ├── calcular_indice_forca.py
+│   └── classificar_territorio.py
+
+banco_dados/
+├── modelos/
+│   ├── candidato.py
+│   ├── eleicao.py
+│   └── usuario.py
+├── migracoes/
+│   ├── env.py
+│   └── versoes/
+│       └── 001_criar_tabelas_iniciais.py
+
+importacao/
+├── tse/
+│   ├── importar_resultados.py
+│   ├── importar_candidaturas.py
+│   └── normalizar_dados.py
+└── geografico/
+    └── importar_geojson.py
+```
+
+---
+
+## 8. Componentes React (PascalCase)
+
+```jsx
 MapaTerritorial
 CamadaZonaEleitoral
 CamadaSecaoEleitoral
@@ -145,9 +237,9 @@ BotaoExportarCsv
 
 ---
 
-## 6. Hooks React (camelCase, prefixo `usar`)
+## 9. Hooks React (camelCase, prefixo `usar`)
 
-```typescript
+```javascript
 usarCandidato()
 usarEleicao()
 usarTerritorio()
@@ -164,91 +256,78 @@ usarComparativoEleicoes()
 
 ---
 
-## 7. Serviços Back-end (snake_case)
-
-```typescript
-servico_candidato
-servico_eleicao
-servico_territorio
-servico_resultado_eleitoral
-servico_pesquisa_eleitoral
-servico_importacao_tse
-servico_importacao_pesquisa
-servico_classificacao_territorial
-servico_indicador_eleitoral
-servico_autenticacao
-servico_auditoria
-```
-
----
-
-## 8. Endpoints da API (kebab-case)
+## 10. Endpoints da API (kebab-case)
 
 ```
 GET    /candidatos
-GET    /candidatos/:candidato_id
+GET    /candidatos/{candidato_id}
 POST   /candidatos
-PUT    /candidatos/:candidato_id
-DELETE /candidatos/:candidato_id
+PUT    /candidatos/{candidato_id}
+DELETE /candidatos/{candidato_id}
 
 GET    /eleicoes
-GET    /eleicoes/:eleicao_id
-GET    /eleicoes/:eleicao_id/candidaturas
-GET    /eleicoes/:eleicao_id/resultados
+GET    /eleicoes/{eleicao_id}
+GET    /eleicoes/{eleicao_id}/candidaturas
+GET    /eleicoes/{eleicao_id}/resultados
 
 GET    /resultados-eleitorais
-GET    /resultados-eleitorais/por-candidato/:candidato_id
-GET    /resultados-eleitorais/por-partido/:partido_id
-GET    /resultados-eleitorais/por-municipio/:municipio_id
-GET    /resultados-eleitorais/por-zona/:zona_eleitoral_id
+GET    /resultados-eleitorais/por-candidato/{candidato_id}
+GET    /resultados-eleitorais/por-partido/{partido_id}
+GET    /resultados-eleitorais/por-municipio/{municipio_id}
+GET    /resultados-eleitorais/por-zona/{zona_eleitoral_id}
 
 GET    /territorios
-GET    /territorios/:territorio_id
-GET    /territorios/:territorio_id/classificacao
-POST   /territorios/:territorio_id/classificar
-GET    /territorios/:territorio_id/indicadores
+GET    /territorios/{territorio_id}
+GET    /territorios/{territorio_id}/classificacao
+POST   /territorios/{territorio_id}/classificar
+GET    /territorios/{territorio_id}/indicadores
 
 GET    /municipios
-GET    /municipios/:municipio_id
-GET    /municipios/:municipio_id/zonas-eleitorais
+GET    /municipios/{municipio_id}
+GET    /municipios/{municipio_id}/zonas-eleitorais
 
-GET    /zonas-eleitorais/:zona_id
-GET    /zonas-eleitorais/:zona_id/secoes
+GET    /zonas-eleitorais/{zona_id}
+GET    /zonas-eleitorais/{zona_id}/secoes
 
 GET    /pesquisas-eleitorais
-GET    /pesquisas-eleitorais/:pesquisa_id
+GET    /pesquisas-eleitorais/{pesquisa_id}
 POST   /pesquisas-eleitorais
-POST   /pesquisas-eleitorais/:pesquisa_id/importar
+POST   /pesquisas-eleitorais/{pesquisa_id}/importar
 
 GET    /importacoes
 POST   /importacoes/tse
 POST   /importacoes/pesquisa-csv
-GET    /importacoes/:importacao_id/status
+GET    /importacoes/{importacao_id}/status
 
 GET    /indicadores-eleitorais
 POST   /indicadores-eleitorais/calcular-indice-forca-territorial
 POST   /indicadores-eleitorais/calcular-indice-forca-partidaria
-POST   /indicadores-eleitorais/calcular-potencial-eleitoral
+
+POST   /autenticacao/login
+POST   /autenticacao/refresh
+POST   /autenticacao/logout
 ```
+
+> **Nota:** No FastAPI, os parâmetros de rota usam `{chaves}` em vez de `:dois-pontos` do Node.js/Express.
 
 ---
 
-## 9. Rotas do Front-end
+## 11. Rotas do Front-end
 
 ```
 /painel
 /candidatos
 /candidatos/novo
-/candidatos/:candidato_id
-/candidatos/:candidato_id/historico-eleitoral
+/candidatos/:candidatoId
+/candidatos/:candidatoId/historico-eleitoral
 /eleicoes
-/eleicoes/:eleicao_id
+/eleicoes/:eleicaoId
 /eleicoes/comparar
 /mapa-territorial
-/mapa-territorial/:territorio_id
+/mapa-territorial/:territorioId
 /pesquisas-eleitorais
 /pesquisas-eleitorais/nova
-/pesquisas-eleitorais/:pesquisa_id
+/pesquisas-eleitorais/:pesquisaId
 /importacoes
 /importacoes/historico
 /configuracoes
@@ -258,80 +337,100 @@ POST   /indicadores-eleitorais/calcular-potencial-eleitoral
 
 ---
 
-## 10. Commits (Conventional Commits em português)
+## 12. Commits (Conventional Commits em português)
 
 ```
 feat: adicionar mapa territorial com camadas Leaflet por classificação
-feat: implementar cálculo do índice de força territorial
-feat: adicionar importação de pesquisa eleitoral via CSV
+feat: implementar cálculo do índice de força territorial em Python
+feat: adicionar importação de pesquisa eleitoral via CSV com Pandas
 feat: criar tela de detalhe do candidato com histórico eleitoral
+feat: implementar autenticação JWT com FastAPI e python-jose
+feat: configurar Alembic com migração inicial do banco de dados
 fix: corrigir cálculo de percentual de votos válidos por zona
 fix: corrigir sobreposição de camadas no mapa Leaflet
-refactor: extrair lógica de classificação territorial para servico_classificacao_territorial
+refactor: extrair lógica de classificação territorial para calcular_indice_forca.py
 docs: documentar fórmula do índice de força territorial
-test: adicionar testes para calcular_indice_forca_territorial
-chore: configurar serviço de importação do TSE
+test: adicionar testes pytest para calcular_indice_forca_territorial
+chore: configurar serviço de importação do TSE com Pandas
 style: padronizar nomenclatura das variáveis em português no módulo candidato
 ```
 
 ---
 
-## 11. Constantes e Enums (UPPER_CASE)
+## 13. Constantes Python (UPPER_CASE)
 
-```typescript
-const CLASSIFICACAO_TERRITORIO = {
-  ZONA_FORCA: 'zona_forca',
-  ZONA_DISPUTA: 'zona_disputa',
-  ZONA_EXPANSAO: 'zona_expansao',
-  TERRITORIO_ADVERSARIO: 'territorio_adversario',
-  TERRITORIO_NEUTRO: 'territorio_neutro',
-  TERRITORIO_CONSOLIDADO: 'territorio_consolidado',
-  TERRITORIO_VOLATIL: 'territorio_volatil',
-} as const
+```python
+# classificacao_territorial.py
 
-const ESPECTRO_POLITICO = {
-  ESQUERDA: 'esquerda',
-  CENTRO_ESQUERDA: 'centro_esquerda',
-  CENTRO: 'centro',
-  CENTRO_DIREITA: 'centro_direita',
-  DIREITA: 'direita',
-} as const
+CLASSIFICACAO_ZONA_FORCA = "zona_forca"
+CLASSIFICACAO_ZONA_DISPUTA = "zona_disputa"
+CLASSIFICACAO_ZONA_EXPANSAO = "zona_expansao"
+CLASSIFICACAO_TERRITORIO_ADVERSARIO = "territorio_adversario"
+CLASSIFICACAO_TERRITORIO_NEUTRO = "territorio_neutro"
+CLASSIFICACAO_TERRITORIO_CONSOLIDADO = "territorio_consolidado"
+CLASSIFICACAO_TERRITORIO_VOLATIL = "territorio_volatil"
 
-const PERFIL_ACESSO = {
-  ADMINISTRADOR: 'administrador',
-  ANALISTA: 'analista',
-  VISUALIZADOR: 'visualizador',
-} as const
+ESPECTRO_ESQUERDA = "esquerda"
+ESPECTRO_CENTRO_ESQUERDA = "centro_esquerda"
+ESPECTRO_CENTRO = "centro"
+ESPECTRO_CENTRO_DIREITA = "centro_direita"
+ESPECTRO_DIREITA = "direita"
 
-const TIPO_ELEICAO = {
-  MUNICIPAL: 'municipal',
-  ESTADUAL_FEDERAL: 'estadual_federal',
-  SUPLEMENTAR: 'suplementar',
-} as const
+PERFIL_ADMINISTRADOR = "administrador"
+PERFIL_ANALISTA = "analista"
+PERFIL_VISUALIZADOR = "visualizador"
 
-const TIPO_PESQUISA = {
-  INTENCAO_VOTO: 'intencao_voto',
-  REJEICAO: 'rejeicao',
-  APROVACAO: 'aprovacao',
-  ESPONTANEA: 'espontanea',
-  ESTIMULADA: 'estimulada',
-} as const
+TIPO_ELEICAO_MUNICIPAL = "municipal"
+TIPO_ELEICAO_ESTADUAL_FEDERAL = "estadual_federal"
+TIPO_ELEICAO_SUPLEMENTAR = "suplementar"
 
-const NIVEL_TERRITORIO = {
-  MUNICIPIO: 'municipio',
-  ZONA_ELEITORAL: 'zona_eleitoral',
-  SECAO_ELEITORAL: 'secao_eleitoral',
-  BAIRRO: 'bairro',
-  REGIAO_PERSONALIZADA: 'regiao_personalizada',
-} as const
+TIPO_PESQUISA_INTENCAO_VOTO = "intencao_voto"
+TIPO_PESQUISA_REJEICAO = "rejeicao"
+TIPO_PESQUISA_APROVACAO = "aprovacao"
+TIPO_PESQUISA_ESPONTANEA = "espontanea"
+TIPO_PESQUISA_ESTIMULADA = "estimulada"
 
-const COR_CLASSIFICACAO_TERRITORIAL = {
-  ZONA_FORCA: '#1a7a4a',
-  TERRITORIO_CONSOLIDADO: '#0d5c37',
-  ZONA_EXPANSAO: '#5aab61',
-  ZONA_DISPUTA: '#f5a623',
-  TERRITORIO_ADVERSARIO: '#c0392b',
-  TERRITORIO_NEUTRO: '#bdc3c7',
-  TERRITORIO_VOLATIL: '#9b59b6',
-} as const
+COR_ZONA_FORCA = "#1a7a4a"
+COR_TERRITORIO_CONSOLIDADO = "#0d5c37"
+COR_ZONA_EXPANSAO = "#5aab61"
+COR_ZONA_DISPUTA = "#f5a623"
+COR_TERRITORIO_ADVERSARIO = "#c0392b"
+COR_TERRITORIO_NEUTRO = "#bdc3c7"
+COR_TERRITORIO_VOLATIL = "#9b59b6"
+```
+
+---
+
+## 14. Exemplo de Roteador FastAPI
+
+```python
+# api/modulos/candidato/roteador.py
+from fastapi import APIRouter, Depends
+from . import servico, esquemas
+from api.dependencias import obter_sessao_db, obter_usuario_atual
+
+roteador = APIRouter(prefix="/candidatos", tags=["Candidatos"])
+
+@roteador.get("/", response_model=list[esquemas.EsquemaCandidato])
+def listar_candidatos(
+    db=Depends(obter_sessao_db),
+    usuario=Depends(obter_usuario_atual)
+):
+    return servico.listar_candidatos(db)
+
+@roteador.get("/{candidato_id}", response_model=esquemas.EsquemaCandidato)
+def obter_candidato(
+    candidato_id: str,
+    db=Depends(obter_sessao_db),
+    usuario=Depends(obter_usuario_atual)
+):
+    return servico.obter_candidato_por_id(db, candidato_id)
+
+@roteador.post("/", response_model=esquemas.EsquemaCandidato, status_code=201)
+def criar_candidato(
+    dados: esquemas.EsquemaCriarCandidato,
+    db=Depends(obter_sessao_db),
+    usuario=Depends(obter_usuario_atual)
+):
+    return servico.criar_candidato(db, dados)
 ```

@@ -26,27 +26,34 @@ Todas as análises são de natureza **territorial, estatística e agregada** —
 
 ---
 
-## Principais Diferenciais
-
-- Visão territorial integrada: da seção eleitoral ao estado, em mapa interativo (Leaflet).
-- Classificação automática e objetiva de territórios com critérios documentados.
-- Suporte nativo a pré-candidatos sem histórico eleitoral próprio.
-- Integração entre dados públicos do TSE e pesquisas eleitorais próprias.
-- Análise agregada e territorial — sem microdirecionamento individual de eleitores.
-- Interface e nomenclatura integralmente em português do Brasil.
-
----
-
 ## Stack Tecnológica
 
 | Camada | Tecnologia |
 |---|---|
-| Front-end | React 18 + TypeScript + Vite |
+| Front-end | React 18 + JavaScript + Vite |
 | Mapas | Leaflet + React-Leaflet |
-| Back-end | Node.js + TypeScript (Fastify) |
-| Banco de dados | PostgreSQL 15+ + PostGIS |
-| Cache | Redis |
-| Autenticação | JWT (RBAC) |
+| Back-end | Python 3.12 + FastAPI |
+| Validação | Pydantic (incluso no FastAPI) |
+| ORM | SQLAlchemy + GeoAlchemy2 |
+| Migrations | Alembic |
+| Banco de dados | PostgreSQL 16 + PostGIS |
+| Cache | Redis (opcional no MVP) |
+| Autenticação | JWT (python-jose + passlib) |
+| Scripts de dados | Python + Pandas + GeoPandas |
+
+---
+
+## Arquitetura
+
+O sistema é **single-tenant** (uma organização por instalação) e organizado em dois projetos separados:
+
+```
+NAVEGADOR (SPA React)
+       ↕ HTTP / REST / JSON
+API REST (Python + FastAPI)
+       ↕
+PostgreSQL + PostGIS
+```
 
 ---
 
@@ -72,6 +79,55 @@ Toda a documentação do projeto está na pasta [`documentacao/`](documentacao/)
 
 ---
 
+## Como Rodar o Projeto Localmente
+
+### Pré-requisitos
+
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) instalado e rodando
+- [Python 3.12+](https://www.python.org/) instalado
+- [Node.js 20+](https://nodejs.org/) instalado
+
+### 1. Subir banco de dados e cache
+
+```bash
+docker compose up -d
+```
+
+Isso sobe:
+- **PostgreSQL + PostGIS** na porta `5432`
+- **Redis** na porta `6379`
+
+### 2. Rodar o backend (API Python)
+
+```bash
+cd api
+python -m venv .venv
+# Windows:
+.venv\Scripts\activate
+# Linux/Mac:
+source .venv/bin/activate
+
+pip install -r requirements.txt
+alembic upgrade head      # cria as tabelas no banco
+uvicorn main:app --reload  # inicia o servidor
+```
+
+A API estará disponível em: http://localhost:8000
+
+Documentação automática: http://localhost:8000/docs
+
+### 3. Rodar o frontend (SPA React)
+
+```bash
+cd aplicacao
+npm install
+npm run dev
+```
+
+O frontend estará disponível em: http://localhost:5173
+
+---
+
 ## Módulos do Sistema
 
 | Módulo | Descrição |
@@ -82,14 +138,13 @@ Toda a documentação do projeto está na pasta [`documentacao/`](documentacao/)
 | `modulo_pesquisa` | Cadastro, importação e cruzamento de pesquisas eleitorais |
 | `modulo_importacao` | Importação e normalização de dados do TSE |
 | `modulo_painel` | Painéis analíticos, gráficos e indicadores |
-| `modulo_usuario` | Autenticação, perfis e controle de acesso |
-| `modulo_configuracao` | Configurações da plataforma |
+| `modulo_usuario` | Autenticação e controle de acesso |
 
 ---
 
 ## Status do Projeto
 
-> **Fase 0 — Fundação** — Documentação estratégica e técnica em elaboração.
+> **Fase 0 — Fundação** — Documentação estratégica e técnica concluída. Início do desenvolvimento.
 
 ---
 
