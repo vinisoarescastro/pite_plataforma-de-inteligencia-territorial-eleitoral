@@ -22,9 +22,9 @@
 ┌───────▼──────┐   ┌───────▼──────┐   ┌──────▼───────┐
 │  PostgreSQL  │   │ Processamento│   │  Importação  │
 │  + PostGIS   │   │  e Cálculo   │   │  de Dados    │
-│              │   │  de Índices  │   │  (TSE, CSV)  │
-│  Redis Cache │   └──────────────┘   │  Pandas +    │
-│  (opcional)  │                      │  GeoPandas   │
+│  (local no   │   │  de Índices  │   │  (TSE, CSV)  │
+│  dev; nuvem  │   └──────────────┘   │  Pandas +    │
+│  em produção)│                      │  GeoPandas   │
 └──────────────┘                      └──────────────┘
 ```
 
@@ -101,10 +101,13 @@ api/modulos/candidato/
 | Consultas geoespaciais | PostGIS (ST_Contains, ST_Intersects, ST_Within) |
 | ORM | SQLAlchemy + GeoAlchemy2 |
 | Migrations | Alembic (versionadas e rastreáveis) |
-| Cache | Redis (opcional no MVP — habilitar conforme necessidade) |
+
+**Estratégia de banco por ambiente:**
+- **Desenvolvimento:** PostgreSQL instalado localmente na máquina (sem containers). Instalação via [postgresql.org/download](https://www.postgresql.org/download/) + extensão PostGIS via Stack Builder.
+- **Produção:** banco gerenciado em nuvem. Opção recomendada: **Neon.tech** (PostgreSQL serverless com PostGIS, plano gratuito até 0,5 GB, migração simples alterando a string de conexão no `.env`).
 
 **Por que PostgreSQL + PostGIS?**
-O PostGIS é uma extensão do PostgreSQL que permite guardar polígonos geográficos (shapes de municípios, zonas, seções) e fazer consultas espaciais como "quais seções estão dentro deste município". É essencial para o funcionamento do mapa.
+O PostGIS é uma extensão do PostgreSQL que permite guardar polígonos geográficos (shapes de municípios, zonas, seções) e fazer consultas espaciais como "quais seções estão dentro deste município". É essencial para o funcionamento do mapa. Não há alternativa equivalente em outros bancos relacionais.
 
 ---
 
@@ -175,12 +178,11 @@ def listar_candidatos(usuario_atual = Depends(obter_usuario_atual)):
 ```
 pite/
 │
-├── documentacao/           # Todos os documentos do projeto
+├── docs/                   # toda a documentação do projeto
 │
-├── aplicacao/              # SPA React (front-end)
-│   ├── publico/
+├── frontend/               # SPA React + Vite
 │   └── src/
-│       ├── ativos/
+│       ├── ativos/         # imagens, ícones, fontes
 │       ├── componentes/
 │       │   ├── comuns/
 │       │   ├── mapa/
@@ -195,11 +197,11 @@ pite/
 │       │   ├── importacao/
 │       │   └── usuario/
 │       ├── nucleo/         # autenticação, contextos, hooks globais
+│       ├── servicos/       # chamadas HTTP para a API
 │       ├── utilitarios/
-│       ├── configuracoes/
-│       └── paginas/        # uma pasta por página/rota
+│       └── configuracoes/
 │
-├── api/                    # Back-end Python + FastAPI
+├── backend/                # API Python + FastAPI
 │   ├── main.py             # ponto de entrada da API
 │   ├── configuracoes.py    # variáveis de ambiente
 │   ├── banco_dados.py      # conexão com PostgreSQL via SQLAlchemy
@@ -217,22 +219,22 @@ pite/
 │   │   ├── pesquisa/
 │   │   ├── importacao/
 │   │   └── usuario/
-│   └── processamento/      # cálculos: índice de força, classificação
-│
-├── banco_dados/
-│   ├── migracoes/          # migrações Alembic
-│   │   ├── env.py
-│   │   └── versoes/        # arquivos de migração versionados
 │   ├── modelos/            # modelos SQLAlchemy (tabelas)
-│   └── sementes/           # dados iniciais (partidos, cargos)
+│   ├── migracoes/          # migrações Alembic
+│   │   └── versoes/        # arquivos de migração versionados
+│   ├── sementes/           # dados iniciais (partidos, cargos)
+│   ├── processamento/      # cálculos: índice de força, classificação
+│   └── testes/
+│       └── modulos/
 │
 ├── importacao/             # scripts de importação de dados externos
 │   ├── tse/                # scripts para CSVs do TSE (Pandas)
 │   └── geografico/         # scripts para GeoJSON/Shapefile (GeoPandas)
 │
-├── docker-compose.yml      # sobe PostgreSQL + PostGIS + Redis
+├── data/                   # dados brutos do TSE (não versionar arquivos grandes)
+│
 ├── .gitignore
-├── .editorconfig
+├── .env.exemplo            # variáveis de ambiente de exemplo (sem valores reais)
 └── README.md
 ```
 
@@ -267,7 +269,7 @@ Pandas (limpeza) → Staging → Validação → PostgreSQL/PostGIS
 | SQLAlchemy + GeoAlchemy2 | ORM maduro com suporte nativo a PostGIS; consultas geoespaciais integradas |
 | Alembic | Migrações versionadas, padrão do ecossistema SQLAlchemy |
 | PostgreSQL + PostGIS | Banco relacional com suporte nativo a dados geoespaciais — sem alternativa equivalente |
-| Redis (opcional MVP) | Cache para consultas frequentes; pode ser ativado quando o volume de dados justificar |
+| Sem Redis no MVP | Cache adiciona complexidade de configuração sem necessidade no início; incluir em V2 se necessário |
 | Pandas + GeoPandas | Padrão da indústria para processamento de CSV e dados geográficos em Python |
 | JWT + RBAC | Padrão amplamente adotado; perfis granulares sem complexidade de multi-tenant |
 | Single-tenant | Elimina toda a complexidade de isolamento de dados entre organizações; cada instalação é uma implantação independente |
@@ -288,3 +290,6 @@ Pandas (limpeza) → Staging → Validação → PostgreSQL/PostGIS
 | Importação CSV | TypeScript/Node.js | Python + Pandas | Pandas é muito superior para este caso |
 | Migrations | Knex migrations / Flyway | Alembic | Padrão do ecossistema Python/SQLAlchemy |
 | Documentação API | OpenAPI manual | Gerada automaticamente pelo FastAPI | Menos trabalho, sempre atualizada |
+| Infraestrutura | Docker / containers | Sem containers | Instalação direta simplifica o desenvolvimento; sem overhead de configuração |
+| Banco (dev) | Container PostgreSQL | PostgreSQL local instalado na máquina | Mais simples, sem dependência de Docker |
+| Banco (produção) | Container / auto-hospedado | Neon.tech (banco gerenciado na nuvem) | Sem gerenciamento de servidor; plano gratuito para MVP |

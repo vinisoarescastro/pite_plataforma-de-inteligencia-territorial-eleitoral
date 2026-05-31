@@ -36,8 +36,7 @@ Todas as análises são de natureza **territorial, estatística e agregada** —
 | Validação | Pydantic (incluso no FastAPI) |
 | ORM | SQLAlchemy + GeoAlchemy2 |
 | Migrations | Alembic |
-| Banco de dados | PostgreSQL 16 + PostGIS |
-| Cache | Redis (opcional no MVP) |
+| Banco de dados | PostgreSQL 16 + PostGIS (local no dev; Neon.tech em produção) |
 | Autenticação | JWT (python-jose + passlib) |
 | Scripts de dados | Python + Pandas + GeoPandas |
 
@@ -59,23 +58,23 @@ PostgreSQL + PostGIS
 
 ## Documentação
 
-Toda a documentação do projeto está na pasta [`documentacao/`](documentacao/).
+Toda a documentação do projeto está na pasta [`docs/`](docs/).
 
 | Documento | Descrição |
 |---|---|
-| [01 — Visão do Produto](documentacao/01-visao-do-produto.md) | Propósito, público-alvo, problemas resolvidos e escopo |
-| [02 — Histórias de Usuário](documentacao/02-historias-de-usuario.md) | HUs por perfil com critérios de aceitação |
-| [03 — Requisitos Funcionais](documentacao/03-requisitos-funcionais.md) | O que o sistema deve fazer |
-| [04 — Requisitos Não Funcionais](documentacao/04-requisitos-nao-funcionais.md) | Desempenho, segurança, escalabilidade |
-| [05 — Regras de Negócio](documentacao/05-regras-de-negocio.md) | Classificação territorial e fórmulas de cálculo |
-| [06 — Arquitetura](documentacao/06-arquitetura.md) | Camadas, tecnologias e fluxo de dados |
-| [07 — Modelo de Dados](documentacao/07-modelo-de-dados.md) | Entidades, campos e relacionamentos |
-| [08 — Fontes de Dados](documentacao/08-fontes-de-dados.md) | Catálogo de fontes (TSE, IBGE, pesquisas) |
-| [09 — Governança, Segurança e Privacidade](documentacao/09-governanca-seguranca-privacidade.md) | LGPD, segurança da informação e ética |
-| [10 — Roadmap](documentacao/10-roadmap.md) | Fases e marcos do desenvolvimento |
-| [11 — Backlog Inicial](documentacao/11-backlog-inicial.md) | Épicos e tarefas por prioridade |
-| [12 — Dicionário de Dados](documentacao/12-dicionario-de-dados.md) | Glossário técnico de entidades e termos |
-| [13 — Guia de Nomenclatura](documentacao/13-guia-de-nomenclatura.md) | Padrões de código em português do Brasil |
+| [01 — Visão do Produto](docs/01-visao-do-produto.md) | Propósito, público-alvo, problemas resolvidos e escopo |
+| [02 — Histórias de Usuário](docs/02-historias-de-usuario.md) | HUs por perfil com critérios de aceitação |
+| [03 — Requisitos Funcionais](docs/03-requisitos-funcionais.md) | O que o sistema deve fazer |
+| [04 — Requisitos Não Funcionais](docs/04-requisitos-nao-funcionais.md) | Desempenho, segurança, escalabilidade |
+| [05 — Regras de Negócio](docs/05-regras-de-negocio.md) | Classificação territorial e fórmulas de cálculo |
+| [06 — Arquitetura](docs/06-arquitetura.md) | Camadas, tecnologias e fluxo de dados |
+| [07 — Modelo de Dados](docs/07-modelo-de-dados.md) | Entidades, campos e relacionamentos |
+| [08 — Fontes de Dados](docs/08-fontes-de-dados.md) | Catálogo de fontes (TSE, IBGE, pesquisas) |
+| [09 — Governança, Segurança e Privacidade](docs/09-governanca-seguranca-privacidade.md) | LGPD, segurança da informação e ética |
+| [10 — Roadmap](docs/10-roadmap.md) | Fases e marcos do desenvolvimento |
+| [11 — Backlog Inicial](docs/11-backlog-inicial.md) | Épicos e tarefas por prioridade |
+| [12 — Dicionário de Dados](docs/12-dicionario-de-dados.md) | Glossário técnico de entidades e termos |
+| [13 — Guia de Nomenclatura](docs/13-guia-de-nomenclatura.md) | Padrões de código em português do Brasil |
 
 ---
 
@@ -83,24 +82,31 @@ Toda a documentação do projeto está na pasta [`documentacao/`](documentacao/)
 
 ### Pré-requisitos
 
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/) instalado e rodando
+- [PostgreSQL 16+](https://www.postgresql.org/download/) instalado localmente com a extensão **PostGIS** (disponível via Stack Builder durante a instalação)
 - [Python 3.12+](https://www.python.org/) instalado
 - [Node.js 20+](https://nodejs.org/) instalado
 
-### 1. Subir banco de dados e cache
+### 1. Configurar o banco de dados local
 
-```bash
-docker compose up -d
+Após instalar o PostgreSQL, crie o banco e habilite o PostGIS:
+
+```sql
+CREATE DATABASE pite;
+\c pite
+CREATE EXTENSION postgis;
 ```
 
-Isso sobe:
-- **PostgreSQL + PostGIS** na porta `5432`
-- **Redis** na porta `6379`
+Copie o arquivo de exemplo e ajuste as credenciais:
+
+```bash
+cp .env.exemplo .env
+# edite o .env com seu usuário e senha do PostgreSQL local
+```
 
 ### 2. Rodar o backend (API Python)
 
 ```bash
-cd api
+cd backend
 python -m venv .venv
 # Windows:
 .venv\Scripts\activate
@@ -119,7 +125,7 @@ Documentação automática: http://localhost:8000/docs
 ### 3. Rodar o frontend (SPA React)
 
 ```bash
-cd aplicacao
+cd frontend
 npm install
 npm run dev
 ```
@@ -155,4 +161,4 @@ O frontend estará disponível em: http://localhost:5173
 - Conformidade com a **LGPD** e legislação eleitoral brasileira.
 - Proibição absoluta de microdirecionamento de eleitores.
 
-Veja o documento completo: [09 — Governança, Segurança e Privacidade](documentacao/09-governanca-seguranca-privacidade.md).
+Veja o documento completo: [09 — Governança, Segurança e Privacidade](docs/09-governanca-seguranca-privacidade.md).

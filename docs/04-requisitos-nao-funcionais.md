@@ -12,7 +12,7 @@
 | RNF-D02 | Tempo de atualização do mapa ao mudar filtros | ≤ 3 segundos |
 | RNF-D03 | Tempo de carregamento do painel principal | ≤ 3 segundos |
 | RNF-D04 | Tempo de importação de arquivo CSV de até 50MB | ≤ 5 minutos (assíncrono) |
-| RNF-D05 | Suporte a cache Redis para consultas frequentes | Obrigatório |
+| RNF-D05 | Suporte a cache Redis para consultas frequentes | Planejado para V2 (não obrigatório no MVP) |
 | RNF-D06 | Paginação obrigatória em listagens com mais de 50 registros | Obrigatório |
 
 ---
@@ -55,10 +55,11 @@
 | ID | Requisito |
 |---|---|
 | RNF-E01 | Arquitetura single-tenant - uma organização por instalação, sem isolamento de dados entre organizações |
-| RNF-E02 | Importações do TSE processadas de forma síncrona no MVP; assíncrona (Celery + Redis) em versões futuras |
+| RNF-E02 | Importações do TSE processadas de forma síncrona no MVP; assíncrona (Celery) em versões futuras |
 | RNF-E03 | Banco de dados com suporte a índices otimizados para consultas geoespaciais (PostGIS) |
 | RNF-E04 | Disponibilidade mínima de 99% em horário comercial (MVP) |
-| RNF-E05 | Suporte a deploy containerizado via Docker |
+| RNF-E05 | Banco local (PostgreSQL instalado diretamente na máquina) em desenvolvimento; banco gerenciado em nuvem (Neon.tech) em produção |
+| RNF-E06 | Deploy sem containers — API FastAPI executada diretamente via Uvicorn; frontend React hospedado na Vercel |
 
 ---
 

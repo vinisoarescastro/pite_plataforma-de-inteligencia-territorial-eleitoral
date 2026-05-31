@@ -24,6 +24,14 @@ npm-debug.log*
 .DS_Store
 Thumbs.db
 
+# Dados brutos (arquivos grandes do TSE — não versionar)
+data/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+
 # Temporários
 *.tmp
 *.temp
