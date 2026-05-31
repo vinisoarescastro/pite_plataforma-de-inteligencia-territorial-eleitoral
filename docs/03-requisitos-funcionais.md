@@ -107,9 +107,20 @@
 | ID | Requisito | Prioridade | HU Relacionada |
 |---|---|---|---|
 | RF-U01 | O sistema deve autenticar usuários via e-mail e senha | MVP | — |
-| RF-U02 | O sistema deve implementar controle de acesso por perfil (RBAC): administrador, analista, visualizador | MVP | — |
+| RF-U02 | O sistema deve implementar controle de acesso por 4 perfis: `administrador`, `gestor`, `analista`, `assessor` | MVP | — |
 | RF-U03 | O sistema deve operar em modelo **single-tenant** — uma única organização por instalação | MVP | — |
-| RF-U04 | O sistema deve registrar log de ações sensíveis por usuário | MVP | — |
+| RF-U04 | O sistema deve registrar log de ações sensíveis por usuário (login, exportação, edição) | MVP | — |
 | RF-U05 | O sistema deve implementar JWT com access token (15 min) e refresh token (7 dias) | MVP | — |
+| RF-U06 | O sistema deve obrigar vínculo de candidato no cadastro de usuários com perfil `gestor`, `analista` ou `assessor` | MVP | — |
+| RF-U07 | O sistema deve filtrar automaticamente todos os dados pelo candidato vinculado para perfis não-administradores | MVP | — |
+| RF-U08 | O sistema deve exibir o nome e cargo do candidato vinculado na tela de boas-vindas | MVP | — |
+| RF-U09 | O sistema deve exibir o candidato vinculado em destaque na barra lateral para perfis não-administradores | MVP | — |
+| RF-U10 | O sistema deve pré-selecionar o candidato vinculado automaticamente em todos os filtros de análise | MVP | — |
+| RF-U11 | O perfil `analista` deve poder acessar a tela de comparação e visualizar dados de outros candidatos em modo leitura | MVP | — |
+| RF-U12 | O perfil `assessor` não deve ter acesso à função de exportação em nenhuma tela | MVP | — |
+| RF-U13 | O perfil `gestor` deve poder exportar qualquer dado que consiga visualizar | MVP | — |
+| RF-U14 | Somente o `administrador` pode criar, editar e desativar usuários | MVP | — |
+| RF-U15 | Somente o `administrador` pode importar dados do TSE e gerenciar eleições e candidaturas | MVP | — |
+| RF-U16 | Toda exportação deve ser registrada em log com usuário, data, escopo e formato | MVP | — |
 
-> **Nota:** O sistema não suporta múltiplas organizações isoladas (multi-tenant). Cada instalação serve uma única organização. Isso simplifica significativamente a autenticação, o banco de dados e as queries.
+> **Nota:** O sistema não suporta múltiplas organizações isoladas (multi-tenant). Cada instalação serve uma única organização. O isolamento de dados é feito por vínculo de candidato, não por organização.

@@ -131,12 +131,37 @@ A classificação de espectro político de partidos e candidatos deve ser basead
 
 ## 6. Regras de Acesso
 
-O sistema opera em modelo **single-tenant** — uma única organização por instalação. Não há isolamento de dados entre organizações porque cada instalação pertence a uma única organização.
+O sistema opera em modelo **single-tenant** — uma única organização por instalação.
 
-- Todos os dados da instalação pertencem à única organização configurada.
-- Dados públicos do TSE são compartilhados entre todos os usuários da instalação.
-- Perfis de acesso: `administrador` (CRUD completo), `analista` (leitura e importação), `visualizador` (somente leitura).
-- O isolamento de dados, quando necessário, é feito por perfil de acesso (RBAC), não por organização.
+### 6.1 Perfis de Acesso
+
+| Perfil | Vinculado a candidato | Dados visíveis | Comparação | Exportar | Administrar |
+|---|---|---|---|---|---|
+| `administrador` | Não | Todos os candidatos e dados | ✅ | ✅ | ✅ |
+| `gestor` | Sim (1 candidato) | Somente o candidato vinculado | ❌ | ✅ | ❌ |
+| `analista` | Sim (1 candidato) | Candidato vinculado + comparação (leitura) | ✅ | ✅ | ❌ |
+| `assessor` | Sim (1 candidato) | Somente o candidato vinculado | ❌ | ❌ | ❌ |
+
+### 6.2 Regras de Isolamento de Dados
+
+- **Administrador:** acesso irrestrito. Único perfil que pode gerenciar usuários, importar dados do TSE, cadastrar eleições e candidaturas.
+- **Gestor, Analista e Assessor:** obrigatoriamente vinculados a um candidato no cadastro. Toda consulta é automaticamente filtrada para exibir apenas dados do candidato vinculado.
+- **Analista:** exceção ao isolamento — pode visualizar dados de outros candidatos **apenas para fins de comparação**. Não pode editar, importar ou gerenciar dados de candidatos alheios.
+- Dados do TSE (resultados brutos) são compartilhados entre todos os perfis, mas somente o administrador pode importá-los.
+- O vínculo candidato–usuário é definido pelo administrador e não pode ser alterado pelo próprio usuário.
+
+### 6.3 Regras de Exportação
+
+- **Administrador e Gestor e Analista:** podem exportar qualquer dado que consigam visualizar, em formato CSV.
+- **Assessor:** não pode exportar dados — apenas consultar na interface.
+- Toda exportação é registrada no log de auditoria com usuário, data e escopo exportado.
+
+### 6.4 Exibição do Candidato Vinculado
+
+- Na tela de boas-vindas, o sistema deve exibir o nome e foto do candidato ao qual o usuário está vinculado.
+- Na barra lateral (sidebar), o nome do candidato vinculado deve estar visível em destaque abaixo do nome do usuário.
+- Em todas as telas de análise, o candidato vinculado é pré-selecionado automaticamente nos filtros.
+- O usuário não-administrador não pode alterar o filtro de candidato para outro candidato (exceto o analista na tela de comparação).
 
 ---
 

@@ -590,9 +590,10 @@ ul{list-style:none}
       <div class="lf-err" id="l-err"><i class="fas fa-circle-exclamation"></i><span id="l-err-msg">Credenciais inválidas.</span></div>
       <div class="login-demos">
         <p>Acessos de demonstração</p>
-        <button class="demo-btn" onclick="fillLogin('admin@pite.com','Admin@2025')"><i class="fas fa-shield-halved" style="color:var(--brand-400);margin-right:5px"></i><strong>Administrador</strong> · admin@pite.com</button>
-        <button class="demo-btn" onclick="fillLogin('analista@pite.com','Ana@123')"><i class="fas fa-chart-bar" style="color:#60a5fa;margin-right:5px"></i><strong>Analista</strong> · analista@pite.com</button>
-        <button class="demo-btn" onclick="fillLogin('visualizador@pite.com','Vis@123')"><i class="fas fa-eye" style="color:#f97316;margin-right:5px"></i><strong>Visualizador</strong> · visualizador@pite.com</button>
+        <button class="demo-btn" onclick="fillLogin('admin@pite.com','Admin@2025')"><i class="fas fa-shield-halved" style="color:var(--brand-400);margin-right:5px"></i><strong>Administrador</strong> · acesso total</button>
+        <button class="demo-btn" onclick="fillLogin('gestor@pite.com','Ges@123')"><i class="fas fa-user-tie" style="color:#22c55e;margin-right:5px"></i><strong>Gestor</strong> · João Ferreira · pode exportar</button>
+        <button class="demo-btn" onclick="fillLogin('analista@pite.com','Ana@123')"><i class="fas fa-chart-bar" style="color:#60a5fa;margin-right:5px"></i><strong>Analista</strong> · João Ferreira · vê comparação</button>
+        <button class="demo-btn" onclick="fillLogin('assessor@pite.com','Ass@123')"><i class="fas fa-eye" style="color:#f97316;margin-right:5px"></i><strong>Assessor</strong> · João Ferreira · somente leitura</button>
       </div>
       <div class="login-footer">PITE © 2025 · Acesso restrito e monitorado · LGPD</div>
     </div>
@@ -606,7 +607,18 @@ ul{list-style:none}
     <div class="wc-greet">Bem-vindo ao portal</div>
     <div class="wc-name" id="wc-name">Olá, Vinícius</div>
     <div class="wc-role" id="wc-role">Administrador · PITE</div>
-    <div class="wc-desc">Você tem acesso completo à plataforma. Analise territórios, gerencie candidatos e importe dados do TSE.</div>
+    <!-- Card do candidato vinculado (visível para não-admins) -->
+    <div id="wc-candidato-card" style="display:none;background:linear-gradient(135deg,var(--brand-50),var(--brand-100));border:1px solid var(--brand-200);border-radius:var(--r-lg);padding:14px 20px;margin-bottom:20px;text-align:left;display:none">
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--brand-600);margin-bottom:6px">Seu candidato</div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,var(--brand-600),var(--brand-900));display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#fff;flex-shrink:0" id="wc-cand-av">JF</div>
+        <div>
+          <div style="font-size:14px;font-weight:700;color:var(--brand-900)" id="wc-cand-nome">João Ferreira da Silva</div>
+          <div style="font-size:12px;color:var(--brand-600)" id="wc-cand-cargo">PT · Deputado Federal · GO</div>
+        </div>
+      </div>
+    </div>
+    <div class="wc-desc" id="wc-desc">Você tem acesso completo à plataforma. Analise territórios, gerencie candidatos e importe dados do TSE.</div>
     <div class="wc-chips" id="wc-chips">
       <span class="wc-chip"><i class="fas fa-users"></i> 48 candidatos</span>
       <span class="wc-chip"><i class="fas fa-map"></i> 246 territórios</span>
@@ -641,6 +653,17 @@ ul{list-style:none}
       <div class="sb-sec">Sistema</div>
       <div class="sb-link" data-page="usuarios"><div class="sb-icon"><i class="fas fa-users"></i></div><span class="sb-lbl">Usuários</span></div>
     </nav>
+    <!-- Candidato vinculado na sidebar (visível apenas para não-admins) -->
+    <div id="sb-candidato-wrap" style="display:none;padding:8px 6px;border-bottom:1px solid var(--sb-border)">
+      <div style="display:flex;align-items:center;gap:0;padding:8px 6px;border-radius:var(--r-md);background:rgba(96,144,248,.1);overflow:hidden;white-space:nowrap">
+        <div style="width:36px;height:36px;flex-shrink:0;border-radius:9px;background:linear-gradient(135deg,var(--brand-600),var(--brand-900));display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff" id="sb-cand-av">JF</div>
+        <div style="margin-left:10px;overflow:hidden">
+          <div style="font-size:9px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--brand-400)">Candidato</div>
+          <div style="font-size:12px;font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis" id="sb-cand-nome">João Ferreira</div>
+          <div style="font-size:10px;color:rgba(255,255,255,.4)" id="sb-cand-cargo">PT · Dep. Federal</div>
+        </div>
+      </div>
+    </div>
     <div class="sb-ft">
       <div class="sb-user" onclick="toast('Configurações de perfil','success')">
         <div class="sb-av" id="sb-av">VS</div>
@@ -661,6 +684,11 @@ ul{list-style:none}
       </div>
       <div class="tb-search"><i class="fas fa-search"></i><input type="text" placeholder="Buscar candidato, território..."></div>
       <div class="tb-acts">
+        <!-- Badge candidato vinculado (não-admins) -->
+        <div id="tb-cand-badge" style="display:none;align-items:center;gap:6px;padding:4px 10px;background:linear-gradient(135deg,var(--brand-50),var(--brand-100));border:1px solid var(--brand-200);border-radius:6px">
+          <i class="fas fa-user-tie" style="font-size:11px;color:var(--brand-600)"></i>
+          <span style="font-size:11px;font-weight:700;color:var(--brand-700)" id="tb-cand-nome">João Ferreira</span>
+        </div>
         <div style="display:flex;align-items:center;gap:6px;padding:4px 10px;background:var(--brand-50);border:1px solid var(--brand-100);border-radius:6px">
           <span style="font-size:11px;font-weight:700;color:var(--brand-700)">Goiás — GO</span>
         </div>
@@ -991,49 +1019,126 @@ ul{list-style:none}
       <!-- ═══ USUÁRIOS ══════════════════════════════════════════ -->
       <div class="page" id="page-usuarios">
         <div class="ph">
-          <div><div class="ph-title">Usuários</div><div class="ph-sub">Controle de acesso e perfis · instalação single-tenant</div></div>
+          <div><div class="ph-title">Usuários</div><div class="ph-sub">Controle de acesso e perfis · somente Administrador pode gerenciar</div></div>
           <div class="ph-r"><button class="btn btn-primary" onclick="toast('Abrir formulário de novo usuário','success')"><i class="fas fa-plus"></i> Novo Usuário</button></div>
         </div>
+
+        <!-- Legenda de perfis -->
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px">
+          <div class="card" style="padding:14px 16px">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+              <div style="width:28px;height:28px;border-radius:7px;background:var(--brand-50);color:var(--brand-600);display:flex;align-items:center;justify-content:center;font-size:12px"><i class="fas fa-shield-halved"></i></div>
+              <span style="font-size:13px;font-weight:700">Administrador</span>
+            </div>
+            <div style="font-size:11.5px;color:var(--gray-500);line-height:1.5">Acesso total. Gerencia tudo: candidatos, eleições, importações e usuários.</div>
+            <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:4px">
+              <span class="badge badge-green" style="font-size:10px"><i class="fas fa-check"></i>Exportar</span>
+              <span class="badge badge-green" style="font-size:10px"><i class="fas fa-check"></i>Comparar</span>
+              <span class="badge badge-green" style="font-size:10px"><i class="fas fa-check"></i>Importar</span>
+            </div>
+          </div>
+          <div class="card" style="padding:14px 16px">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+              <div style="width:28px;height:28px;border-radius:7px;background:#f0fdf4;color:#15803d;display:flex;align-items:center;justify-content:center;font-size:12px"><i class="fas fa-user-tie"></i></div>
+              <span style="font-size:13px;font-weight:700">Gestor</span>
+            </div>
+            <div style="font-size:11.5px;color:var(--gray-500);line-height:1.5">Vinculado a 1 candidato. Vê dados completos do seu candidato. Ex.: chefe de gabinete.</div>
+            <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:4px">
+              <span class="badge badge-green" style="font-size:10px"><i class="fas fa-check"></i>Exportar</span>
+              <span class="badge badge-red" style="font-size:10px"><i class="fas fa-times"></i>Comparar</span>
+              <span class="badge badge-red" style="font-size:10px"><i class="fas fa-times"></i>Importar</span>
+            </div>
+          </div>
+          <div class="card" style="padding:14px 16px">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+              <div style="width:28px;height:28px;border-radius:7px;background:var(--info-50);color:var(--info-700);display:flex;align-items:center;justify-content:center;font-size:12px"><i class="fas fa-chart-bar"></i></div>
+              <span style="font-size:13px;font-weight:700">Analista</span>
+            </div>
+            <div style="font-size:11.5px;color:var(--gray-500);line-height:1.5">Vinculado a 1 candidato. Vê dados do seu candidato + pode comparar com outros.</div>
+            <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:4px">
+              <span class="badge badge-green" style="font-size:10px"><i class="fas fa-check"></i>Exportar</span>
+              <span class="badge badge-green" style="font-size:10px"><i class="fas fa-check"></i>Comparar</span>
+              <span class="badge badge-red" style="font-size:10px"><i class="fas fa-times"></i>Importar</span>
+            </div>
+          </div>
+          <div class="card" style="padding:14px 16px">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+              <div style="width:28px;height:28px;border-radius:7px;background:#fffbeb;color:#b45309;display:flex;align-items:center;justify-content:center;font-size:12px"><i class="fas fa-eye"></i></div>
+              <span style="font-size:13px;font-weight:700">Assessor</span>
+            </div>
+            <div style="font-size:11.5px;color:var(--gray-500);line-height:1.5">Vinculado a 1 candidato. Somente leitura. Não exporta nem compara. Ex.: equipe operacional.</div>
+            <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:4px">
+              <span class="badge badge-red" style="font-size:10px"><i class="fas fa-times"></i>Exportar</span>
+              <span class="badge badge-red" style="font-size:10px"><i class="fas fa-times"></i>Comparar</span>
+              <span class="badge badge-red" style="font-size:10px"><i class="fas fa-times"></i>Importar</span>
+            </div>
+          </div>
+        </div>
+
         <div class="card">
           <div class="card-bd" style="padding:16px">
             <div class="toolbar">
               <div class="search-wrap"><i class="fas fa-search"></i><input class="search-inp" placeholder="Buscar usuário..."></div>
-              <select class="filter-sel"><option>Todos os perfis</option><option>Administrador</option><option>Analista</option><option>Visualizador</option></select>
+              <select class="filter-sel"><option>Todos os perfis</option><option>Administrador</option><option>Gestor</option><option>Analista</option><option>Assessor</option></select>
+              <select class="filter-sel"><option>Todos os candidatos</option><option>João Ferreira da Silva</option><option>Ana Paula Rodrigues</option></select>
             </div>
           </div>
           <div class="tbl-wrap">
             <table class="tbl">
-              <thead><tr><th>Usuário</th><th>E-mail</th><th>Perfil</th><th>Último acesso</th><th>Status</th><th>Ações</th></tr></thead>
+              <thead><tr><th>Usuário</th><th>E-mail</th><th>Perfil</th><th>Candidato vinculado</th><th>Exportar</th><th>Comparar</th><th>Último acesso</th><th>Status</th><th>Ações</th></tr></thead>
               <tbody>
                 <tr>
                   <td><div style="display:flex;align-items:center;gap:10px"><div style="width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,var(--brand-500),var(--brand-800));display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:700;flex-shrink:0">VS</div><span class="td-bold">Vinícius Soares</span></div></td>
-                  <td style="color:var(--gray-500)">vinicius@campanha.com.br</td>
+                  <td style="color:var(--gray-500);font-size:12px">admin@pite.com</td>
                   <td><span class="badge badge-blue"><i class="fas fa-shield-halved"></i>Administrador</span></td>
-                  <td style="color:var(--gray-400);font-size:12.5px">Agora</td>
+                  <td style="color:var(--gray-400);font-size:12px">— todos</td>
+                  <td><span class="badge badge-green" style="font-size:10px"><i class="fas fa-check"></i>Sim</span></td>
+                  <td><span class="badge badge-green" style="font-size:10px"><i class="fas fa-check"></i>Sim</span></td>
+                  <td style="color:var(--gray-400);font-size:12px">Agora</td>
                   <td><span class="badge badge-green"><i class="fas fa-circle" style="font-size:6px"></i>Ativo</span></td>
                   <td><button class="btn btn-ghost btn-sm">Editar</button></td>
                 </tr>
                 <tr>
-                  <td><div style="display:flex;align-items:center;gap:10px"><div style="width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,var(--brand-500),var(--brand-800));display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:700;flex-shrink:0">AP</div><span class="td-bold">Ana Paula</span></div></td>
-                  <td style="color:var(--gray-500)">ana@campanha.com.br</td>
+                  <td><div style="display:flex;align-items:center;gap:10px"><div style="width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#16a34a,#15803d);display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:700;flex-shrink:0">CN</div><span class="td-bold">Carlos Neto</span></div></td>
+                  <td style="color:var(--gray-500);font-size:12px">gestor@pite.com</td>
+                  <td><span class="badge badge-green"><i class="fas fa-user-tie"></i>Gestor</span></td>
+                  <td><div style="display:flex;align-items:center;gap:6px"><div style="width:20px;height:20px;border-radius:5px;background:linear-gradient(135deg,var(--brand-600),var(--brand-900));display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;color:#fff">JF</div><span style="font-size:12px;font-weight:600">João Ferreira</span></div></td>
+                  <td><span class="badge badge-green" style="font-size:10px"><i class="fas fa-check"></i>Sim</span></td>
+                  <td><span class="badge badge-red" style="font-size:10px"><i class="fas fa-times"></i>Não</span></td>
+                  <td style="color:var(--gray-400);font-size:12px">Ontem 09h14</td>
+                  <td><span class="badge badge-green"><i class="fas fa-circle" style="font-size:6px"></i>Ativo</span></td>
+                  <td><button class="btn btn-ghost btn-sm">Editar</button></td>
+                </tr>
+                <tr>
+                  <td><div style="display:flex;align-items:center;gap:10px"><div style="width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,var(--info-500),var(--info-700));display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:700;flex-shrink:0">AP</div><span class="td-bold">Ana Paula</span></div></td>
+                  <td style="color:var(--gray-500);font-size:12px">analista@pite.com</td>
                   <td><span class="badge badge-blue"><i class="fas fa-chart-bar"></i>Analista</span></td>
-                  <td style="color:var(--gray-400);font-size:12.5px">Ontem 14h32</td>
+                  <td><div style="display:flex;align-items:center;gap:6px"><div style="width:20px;height:20px;border-radius:5px;background:linear-gradient(135deg,var(--brand-600),var(--brand-900));display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;color:#fff">JF</div><span style="font-size:12px;font-weight:600">João Ferreira</span></div></td>
+                  <td><span class="badge badge-green" style="font-size:10px"><i class="fas fa-check"></i>Sim</span></td>
+                  <td><span class="badge badge-green" style="font-size:10px"><i class="fas fa-check"></i>Sim</span></td>
+                  <td style="color:var(--gray-400);font-size:12px">Ontem 14h32</td>
                   <td><span class="badge badge-green"><i class="fas fa-circle" style="font-size:6px"></i>Ativo</span></td>
                   <td><button class="btn btn-ghost btn-sm">Editar</button></td>
                 </tr>
                 <tr>
-                  <td><div style="display:flex;align-items:center;gap:10px"><div style="width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#64748b,#475569);display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:700;flex-shrink:0">CM</div><span class="td-bold">Carlos Monteiro</span></div></td>
-                  <td style="color:var(--gray-500)">carlos@campanha.com.br</td>
-                  <td><span class="badge badge-gray"><i class="fas fa-eye"></i>Visualizador</span></td>
-                  <td style="color:var(--gray-400);font-size:12.5px">03 mai 2024</td>
+                  <td><div style="display:flex;align-items:center;gap:10px"><div style="width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#d97706,#b45309);display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:700;flex-shrink:0">PL</div><span class="td-bold">Pedro Lima</span></div></td>
+                  <td style="color:var(--gray-500);font-size:12px">assessor@pite.com</td>
+                  <td><span class="badge badge-amber"><i class="fas fa-eye"></i>Assessor</span></td>
+                  <td><div style="display:flex;align-items:center;gap:6px"><div style="width:20px;height:20px;border-radius:5px;background:linear-gradient(135deg,var(--brand-600),var(--brand-900));display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;color:#fff">JF</div><span style="font-size:12px;font-weight:600">João Ferreira</span></div></td>
+                  <td><span class="badge badge-red" style="font-size:10px"><i class="fas fa-times"></i>Não</span></td>
+                  <td><span class="badge badge-red" style="font-size:10px"><i class="fas fa-times"></i>Não</span></td>
+                  <td style="color:var(--gray-400);font-size:12px">03 mai 2024</td>
                   <td><span class="badge badge-green"><i class="fas fa-circle" style="font-size:6px"></i>Ativo</span></td>
                   <td><button class="btn btn-ghost btn-sm">Editar</button></td>
                 </tr>
                 <tr>
                   <td><div style="display:flex;align-items:center;gap:10px"><div style="width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#64748b,#475569);display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:700;flex-shrink:0">SL</div><span class="td-bold">Sandra Lima</span></div></td>
-                  <td style="color:var(--gray-500)">sandra@campanha.com.br</td>
-                  <td><span class="badge badge-gray"><i class="fas fa-eye"></i>Visualizador</span></td>
-                  <td style="color:var(--gray-400);font-size:12.5px">—</td>
+                  <td style="color:var(--gray-500);font-size:12px">sandra@pite.com</td>
+                  <td><span class="badge badge-amber"><i class="fas fa-eye"></i>Assessor</span></td>
+                  <td><div style="display:flex;align-items:center;gap:6px"><div style="width:20px;height:20px;border-radius:5px;background:linear-gradient(135deg,var(--brand-600),var(--brand-900));display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;color:#fff">AP</div><span style="font-size:12px;font-weight:600">Ana Paula</span></div></td>
+                  <td><span class="badge badge-red" style="font-size:10px"><i class="fas fa-times"></i>Não</span></td>
+                  <td><span class="badge badge-red" style="font-size:10px"><i class="fas fa-times"></i>Não</span></td>
+                  <td style="color:var(--gray-400);font-size:12px">—</td>
                   <td><span class="badge badge-amber"><i class="fas fa-circle" style="font-size:6px"></i>Inativo</span></td>
                   <td><button class="btn btn-ghost btn-sm">Editar</button></td>
                 </tr>
@@ -1347,11 +1452,21 @@ ul{list-style:none}
 <div class="toast-wrap" id="toast-wrap"></div>
 
 <script>
+// ── Dados de demonstração ────────────────────────────────────────
+const CANDIDATOS = {
+  joao: { nome:'João Ferreira da Silva', cargo:'PT · Deputado Federal · GO', siglas:'JF' },
+  ana:  { nome:'Ana Paula Rodrigues',    cargo:'PSDB · Dep. Estadual · GO',  siglas:'AP' },
+};
 const CREDS = [
-  {email:'admin@pite.com',         pass:'Admin@2025',  name:'Vinícius Soares', role:'Administrador'},
-  {email:'analista@pite.com',      pass:'Ana@123',     name:'Ana Paula',       role:'Analista'},
-  {email:'visualizador@pite.com',  pass:'Vis@123',     name:'Carlos Monteiro', role:'Visualizador'},
+  { email:'admin@pite.com',    pass:'Admin@2025', name:'Vinícius Soares', perfil:'administrador', candidato:null },
+  { email:'gestor@pite.com',   pass:'Ges@123',    name:'Carlos Neto',     perfil:'gestor',         candidato: CANDIDATOS.joao },
+  { email:'analista@pite.com', pass:'Ana@123',    name:'Ana Paula',       perfil:'analista',       candidato: CANDIDATOS.joao },
+  { email:'assessor@pite.com', pass:'Ass@123',    name:'Pedro Lima',      perfil:'assessor',       candidato: CANDIDATOS.joao },
 ];
+
+const PERFIL_LABELS = { administrador:'Administrador', gestor:'Gestor', analista:'Analista', assessor:'Assessor' };
+const PERFIL_CORES  = { administrador:'var(--brand-600)', gestor:'#15803d', analista:'#1d4ed8', assessor:'#92400e' };
+
 const $ = id => document.getElementById(id);
 const ini = n => n.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
 let currentUser = null;
@@ -1379,11 +1494,7 @@ function doLogin(){
   if(found){
     currentUser=found; err.style.display='none';
     $('screen-login').style.display='none';
-    const ws=$('screen-welcome');
-    ws.style.display='flex';
-    $('wc-av').textContent=ini(found.name);
-    $('wc-name').textContent=`Olá, ${found.name.split(' ')[0]}`;
-    $('wc-role').textContent=`${found.role} · PITE`;
+    showWelcome(found);
   } else {
     err.style.display='flex';
     $('l-err-msg').textContent='Credenciais inválidas. Verifique e tente novamente.';
@@ -1393,20 +1504,127 @@ function doLogin(){
 $('l-btn').addEventListener('click',doLogin);
 $('l-pass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()});
 
+function showWelcome(user){
+  const ws=$('screen-welcome');
+  ws.style.display='flex';
+  $('wc-av').textContent=ini(user.name);
+  $('wc-name').textContent=`Olá, ${user.name.split(' ')[0]}`;
+  $('wc-role').textContent=`${PERFIL_LABELS[user.perfil]} · PITE`;
+
+  const isAdmin = user.perfil === 'administrador';
+  const candCard = $('wc-candidato-card');
+
+  if(!isAdmin && user.candidato){
+    candCard.style.display='flex';
+    $('wc-cand-av').textContent = user.candidato.siglas;
+    $('wc-cand-nome').textContent = user.candidato.nome;
+    $('wc-cand-cargo').textContent = user.candidato.cargo;
+
+    const descs = {
+      gestor:   `Você é gestor vinculado a ${user.candidato.nome.split(' ')[0]}. Acesse dados completos e exporte relatórios.`,
+      analista: `Você é analista vinculado a ${user.candidato.nome.split(' ')[0]}. Visualize dados e compare com outros candidatos.`,
+      assessor: `Você é assessor vinculado a ${user.candidato.nome.split(' ')[0]}. Consulte as informações eleitorais do candidato.`,
+    };
+    $('wc-desc').textContent = descs[user.perfil] || '';
+
+    const chips = {
+      gestor:   `<span class="wc-chip"><i class="fas fa-map"></i> 246 territórios</span><span class="wc-chip"><i class="fas fa-chart-bar"></i> 14 pesquisas</span><span class="wc-chip"><i class="fas fa-download"></i> Exportação liberada</span>`,
+      analista: `<span class="wc-chip"><i class="fas fa-map"></i> 246 territórios</span><span class="wc-chip"><i class="fas fa-scale-balanced"></i> Comparação liberada</span><span class="wc-chip"><i class="fas fa-download"></i> Exportação liberada</span>`,
+      assessor: `<span class="wc-chip"><i class="fas fa-map"></i> 246 territórios</span><span class="wc-chip"><i class="fas fa-chart-bar"></i> 14 pesquisas</span><span class="wc-chip"><i class="fas fa-eye"></i> Somente visualização</span>`,
+    };
+    $('wc-chips').innerHTML = chips[user.perfil] || '';
+  } else {
+    candCard.style.display='none';
+    $('wc-desc').textContent='Você tem acesso completo à plataforma. Analise territórios, gerencie candidatos e importe dados do TSE.';
+    $('wc-chips').innerHTML=`<span class="wc-chip"><i class="fas fa-users"></i> 48 candidatos</span><span class="wc-chip"><i class="fas fa-map"></i> 246 territórios</span><span class="wc-chip"><i class="fas fa-chart-bar"></i> 14 pesquisas</span>`;
+  }
+}
+
 $('wc-btn').addEventListener('click',()=>{
   $('screen-welcome').style.display='none';
   $('screen-app').classList.add('visible');
-  if(currentUser){
-    $('sb-av').textContent=ini(currentUser.name);
-    $('tb-av').textContent=ini(currentUser.name);
-    $('sb-name').textContent=currentUser.name.split(' ')[0]+' '+currentUser.name.split(' ').slice(-1)[0];
-    $('sb-role').textContent=currentUser.role;
-  }
+  initApp();
 });
+
+function initApp(){
+  const user = currentUser;
+  const isAdmin = user.perfil === 'administrador';
+  const podeComparar = ['administrador','analista'].includes(user.perfil);
+  const podeExportar = ['administrador','gestor','analista'].includes(user.perfil);
+  const podeAdmin   = user.perfil === 'administrador';
+
+  // Sidebar usuário
+  $('sb-av').textContent=ini(user.name);
+  $('tb-av').textContent=ini(user.name);
+  $('sb-name').textContent=user.name.split(' ')[0]+' '+user.name.split(' ').slice(-1)[0];
+  $('sb-role').textContent=PERFIL_LABELS[user.perfil];
+
+  // Candidato na sidebar e topbar
+  if(!isAdmin && user.candidato){
+    const wrap=$('sb-candidato-wrap');
+    wrap.style.display='block';
+    $('sb-cand-av').textContent=user.candidato.siglas;
+    $('sb-cand-nome').textContent=user.candidato.nome.split(' ')[0]+' '+user.candidato.nome.split(' ')[1];
+    $('sb-cand-cargo').textContent=user.candidato.cargo.split('·')[0].trim()+' · '+user.candidato.cargo.split('·')[1].trim();
+
+    const badge=$('tb-cand-badge');
+    badge.style.display='flex';
+    $('tb-cand-nome').textContent=user.candidato.nome.split(' ')[0]+' '+user.candidato.nome.split(' ')[1];
+  }
+
+  // Painel: adaptar para não-admin
+  if(!isAdmin){
+    // Ocultar botão de importar no painel
+    const importBtn = document.querySelector('#page-painel .ph-r .btn-primary');
+    if(importBtn) importBtn.style.display='none';
+    // Ajustar KPIs para mostrar dados do candidato vinculado
+    const kpiCand = document.querySelector('#page-painel .kpi-grid .kpi-card:first-child .kpi-val');
+    if(kpiCand) kpiCand.textContent='1';
+    const kpiLbl = document.querySelector('#page-painel .kpi-grid .kpi-card:first-child .kpi-lbl');
+    if(kpiLbl) kpiLbl.textContent='Candidato vinculado';
+  }
+
+  // Ocultar itens de navegação por perfil
+  const adminNavIds = ['eleicoes','candidaturas','importacao','geografia','usuarios'];
+  adminNavIds.forEach(id=>{
+    const el=document.querySelector(`[data-page="${id}"]`);
+    if(el && !podeAdmin) el.closest('.sb-link').style.display='none';
+  });
+
+  // Ocultar comparação para assessor e gestor
+  if(!podeComparar){
+    const compEl=document.querySelector('[data-page="comparacao"]');
+    if(compEl) compEl.style.display='none';
+  }
+
+  // Ocultar botões de exportar para assessor
+  if(!podeExportar){
+    document.querySelectorAll('.btn-secondary').forEach(btn=>{
+      if(btn.textContent.includes('Exportar')||btn.textContent.includes('CSV')){
+        btn.style.display='none';
+      }
+    });
+  }
+
+  // Painel: título personalizado
+  const painelSub = document.querySelector('#page-painel .ph-sub');
+  if(painelSub && !isAdmin && user.candidato){
+    painelSub.textContent=`${user.candidato.nome} · Goiás 2024`;
+  }
+}
 
 const PAGE_NAMES={painel:'Painel Principal',mapa:'Mapa Territorial',candidatos:'Candidatos',pesquisas:'Pesquisas Eleitorais',comparacao:'Comparação de Eleições',eleicoes:'Eleições',candidaturas:'Candidaturas',importacao:'Importação de Dados',geografia:'Geografia · Geocodificação',usuarios:'Usuários'};
 
 function navigateTo(id){
+  // Bloquear páginas restritas para não-admins
+  const adminOnly=['eleicoes','candidaturas','importacao','geografia','usuarios'];
+  const podeComparar=['administrador','analista'].includes(currentUser?.perfil);
+  if(adminOnly.includes(id) && currentUser?.perfil !== 'administrador'){
+    toast('Acesso restrito ao Administrador.','error');return;
+  }
+  if(id==='comparacao' && !podeComparar){
+    toast('Comparação disponível apenas para Analista e Administrador.','warning');return;
+  }
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.sb-link').forEach(l=>l.classList.remove('active'));
   const p=$('page-'+id); if(p)p.classList.add('active');
@@ -1419,10 +1637,14 @@ document.querySelectorAll('[data-page]').forEach(l=>{
 });
 
 $('logout-btn').addEventListener('click',()=>{
+  currentUser=null;
   $('screen-app').classList.remove('visible');
   $('screen-login').style.display='flex';
   $('l-user').value='';$('l-pass').value='';
   $('l-err').style.display='none';
+  // Resetar sidebar
+  $('sb-candidato-wrap').style.display='none';
+  $('tb-cand-badge').style.display='none';
   toast('Sessão encerrada com segurança.');
 });
 

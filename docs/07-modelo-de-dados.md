@@ -448,7 +448,7 @@ GROUP BY b.nome ORDER BY total_votos DESC
 
 ## 17. `usuario`
 
-**Objetivo:** Representa os usuários com acesso à plataforma.
+**Objetivo:** Representa os usuários com acesso à plataforma. Usuários não-administradores são obrigatoriamente vinculados a um candidato e enxergam apenas os dados desse candidato.
 
 | Campo | Tipo | Descrição |
 |---|---|---|
@@ -456,12 +456,42 @@ GROUP BY b.nome ORDER BY total_votos DESC
 | `nome` | VARCHAR | Nome do usuário |
 | `email` | VARCHAR | E-mail (único) |
 | `senha_hash` | VARCHAR | Hash bcrypt da senha |
-| `perfil_acesso` | ENUM | administrador, analista, visualizador |
+| `perfil_acesso` | ENUM | `administrador`, `gestor`, `analista`, `assessor` |
+| `candidato_id` | UUID (FK → candidato) | Candidato ao qual o usuário está vinculado — **obrigatório para gestor, analista e assessor; nulo para administrador** |
+| `pode_comparar` | BOOLEAN | Se o usuário pode ver dados de comparação com outros candidatos — `true` para administrador e analista; `false` para gestor e assessor |
 | `ativo` | BOOLEAN | Status ativo |
 | `ultimo_acesso_em` | TIMESTAMP | Data do último acesso |
 | `criado_em` | TIMESTAMP | Data de criação |
 
-**Observações:** Senha nunca em texto puro. O campo `organizacao_id` foi **removido** — o sistema é single-tenant (uma organização por instalação), então não há separação de dados por organização. Todos os usuários da instalação pertencem à mesma organização implicitamente.
+**Perfis de acesso:**
+
+| Perfil | Vínculo | Ver dados próprios | Comparar outros | Exportar | Gerenciar usuários | Importar TSE | Gerenciar eleições |
+|---|---|---|---|---|---|---|---|
+| `administrador` | Nenhum (acesso total) | ✅ todos | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `gestor` | 1 candidato | ✅ só o seu | ❌ | ✅ | ❌ | ❌ | ❌ |
+| `analista` | 1 candidato | ✅ só o seu | ✅ leitura | ✅ | ❌ | ❌ | ❌ |
+| `assessor` | 1 candidato | ✅ só o seu | ❌ | ❌ | ❌ | ❌ | ❌ |
+
+**Descrição dos perfis:**
+- **Administrador:** acesso irrestrito à plataforma. Gerencia todos os candidatos, eleições, importações e usuários. Tipicamente o responsável técnico da instalação.
+- **Gestor:** vinculado a um candidato específico (ex.: chefe de gabinete). Vê todos os dados do seu candidato e pode exportar relatórios. Não vê dados de outros candidatos.
+- **Analista:** vinculado a um candidato. Vê os dados completos do seu candidato e pode fazer comparações com outros candidatos (leitura apenas — sem editar dados alheios). Pode exportar. Indicado para consultores e analistas políticos que precisam de contexto comparativo.
+- **Assessor:** vinculado a um candidato. Acesso somente leitura dos dados do seu candidato. Não pode exportar nem comparar. Indicado para equipes operacionais que precisam consultar informações sem extrair dados.
+
+**Regra de isolamento de dados:**
+```python
+# Toda query de dados aplica o filtro de candidato quando o usuário não é administrador
+def aplicar_filtro_candidato(query, usuario):
+    if usuario.perfil_acesso == 'administrador':
+        return query  # sem filtro
+    return query.filter(candidatura.candidato_id == usuario.candidato_id)
+
+# Comparação: liberada apenas para administrador e analista
+def pode_ver_comparacao(usuario):
+    return usuario.perfil_acesso in ('administrador', 'analista')
+```
+
+**Observações:** Senha nunca em texto puro (bcrypt). O campo `candidato_id` é nulo para administrador e obrigatório para os demais perfis — o sistema deve validar isso na criação do usuário.
 
 ---
 
