@@ -1,0 +1,1481 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PITE — Plataforma de Inteligência Territorial Eleitoral</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+:root {
+  /* Brand — Azul Marinho */
+  --brand-50:  #eff4ff;
+  --brand-100: #dbe8fe;
+  --brand-200: #bfd3fe;
+  --brand-300: #93b4fd;
+  --brand-400: #6090f8;
+  --brand-500: #3b6ef2;
+  --brand-600: #2552e8;
+  --brand-700: #1d3fd5;
+  --brand-800: #1e35ae;
+  --brand-900: #1e318a;
+  --brand-950: #162054;
+
+  /* Neutrals */
+  --gray-0:   #ffffff;
+  --gray-25:  #fafafa;
+  --gray-50:  #f5f5f6;
+  --gray-100: #ececed;
+  --gray-200: #d8d8da;
+  --gray-300: #b8b8bc;
+  --gray-400: #8f8f96;
+  --gray-500: #6b6b74;
+  --gray-600: #4e4e57;
+  --gray-700: #35353e;
+  --gray-800: #232329;
+  --gray-900: #141418;
+
+  /* Classificação territorial */
+  --t-forca:       #1a7a4a;
+  --t-consolidado: #0d5c37;
+  --t-expansao:    #5aab61;
+  --t-disputa:     #f5a623;
+  --t-adversario:  #c0392b;
+  --t-neutro:      #bdc3c7;
+  --t-volatil:     #9b59b6;
+
+  /* Semantic */
+  --success-50: #f0faf2; --success-500: #22c55e; --success-700: #15803d;
+  --warning-50: #fffbeb; --warning-500: #f59e0b; --warning-700: #b45309;
+  --danger-50:  #fef2f2; --danger-500:  #ef4444; --danger-700:  #b91c1c;
+  --info-50:    #eff6ff; --info-500:    #3b82f6; --info-700:    #1d4ed8;
+
+  /* Sidebar */
+  --sb-bg:      #0f1c3f;
+  --sb-border:  rgba(255,255,255,.07);
+  --sb-hover:   rgba(255,255,255,.07);
+  --sb-active:  rgba(96,144,248,.18);
+  --sb-text:    rgba(255,255,255,.52);
+  --sb-active-t:#93b4fd;
+  --sb-w:       228px;
+  --sb-col:     60px;
+
+  --topbar-h: 58px;
+  --font: 'Plus Jakarta Sans', system-ui, sans-serif;
+  --r-sm: 6px; --r-md: 10px; --r-lg: 14px; --r-xl: 20px;
+  --shadow-xs: 0 1px 2px rgba(0,0,0,.05);
+  --shadow-sm: 0 1px 4px rgba(0,0,0,.07),0 1px 2px rgba(0,0,0,.04);
+  --shadow-md: 0 4px 12px rgba(0,0,0,.09),0 2px 4px rgba(0,0,0,.05);
+  --shadow-lg: 0 10px 32px rgba(0,0,0,.11),0 4px 8px rgba(0,0,0,.06);
+  --shadow-xl: 0 20px 60px rgba(0,0,0,.16);
+  --ease: cubic-bezier(.4,0,.2,1);
+  --t-fast: 150ms var(--ease); --t-base: 220ms var(--ease); --t-slow: 350ms var(--ease);
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:14px;height:100%}
+body{font-family:var(--font);background:var(--gray-50);color:var(--gray-800);line-height:1.5;-webkit-font-smoothing:antialiased;height:100%;overflow:hidden}
+a{color:inherit;text-decoration:none}
+button{font-family:var(--font);cursor:pointer;border:none;background:none}
+input,select,textarea{font-family:var(--font)}
+ul{list-style:none}
+
+/* ═══ LOGIN ═══════════════════════════════════════════════════ */
+#screen-login{
+  position:fixed;inset:0;z-index:1000;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--sb-bg);overflow:hidden;
+}
+.login-bg{
+  position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse 70% 55% at 15% 85%,rgba(59,110,242,.22) 0%,transparent 55%),
+    radial-gradient(ellipse 55% 45% at 85% 15%,rgba(30,53,174,.18) 0%,transparent 50%);
+}
+.login-grid{
+  position:absolute;inset:0;
+  background-image:linear-gradient(rgba(59,110,242,.05) 1px,transparent 1px),
+                   linear-gradient(90deg,rgba(59,110,242,.05) 1px,transparent 1px);
+  background-size:48px 48px;
+}
+.login-wrap{
+  position:relative;z-index:2;display:flex;
+  width:900px;max-width:calc(100vw - 40px);
+  background:rgba(255,255,255,.03);
+  border:1px solid rgba(255,255,255,.09);
+  border-radius:var(--r-xl);overflow:hidden;box-shadow:var(--shadow-xl);
+}
+.login-left{
+  flex:1;
+  background:linear-gradient(160deg,rgba(59,110,242,.28) 0%,rgba(15,28,63,.85) 100%);
+  padding:52px 44px;display:flex;flex-direction:column;justify-content:space-between;min-height:560px;
+}
+.ll-brand{display:flex;align-items:center;gap:12px}
+.ll-mark{
+  width:40px;height:40px;
+  background:linear-gradient(135deg,var(--brand-400),var(--brand-700));
+  border-radius:11px;display:flex;align-items:center;justify-content:center;
+  box-shadow:0 6px 20px rgba(59,110,242,.4);font-size:16px;font-weight:900;color:#fff;letter-spacing:-1px;
+}
+.ll-name{font-size:16px;font-weight:700;color:#fff}
+.ll-tag{font-size:9.5px;color:var(--brand-300);letter-spacing:1.4px;text-transform:uppercase;font-weight:600}
+.ll-tagline{font-size:30px;font-weight:800;color:#fff;line-height:1.2;letter-spacing:-.5px;margin-bottom:14px}
+.ll-desc{font-size:13.5px;color:rgba(255,255,255,.45);line-height:1.7}
+.ll-pills{display:flex;flex-wrap:wrap;gap:8px;margin-top:24px}
+.ll-pill{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:5px 12px;border-radius:99px;
+  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);
+  color:rgba(255,255,255,.6);font-size:11.5px;font-weight:500;
+}
+.ll-pill i{font-size:10px;color:var(--brand-300)}
+.login-right{
+  width:390px;flex-shrink:0;
+  background:rgba(255,255,255,.04);
+  padding:50px 42px;display:flex;flex-direction:column;justify-content:center;
+}
+.lr-title{font-size:22px;font-weight:700;color:#fff;margin-bottom:4px}
+.lr-sub{font-size:13px;color:rgba(255,255,255,.4);margin-bottom:32px}
+.lf-g{margin-bottom:16px}
+.lf-lbl{display:block;font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:rgba(255,255,255,.45);margin-bottom:7px}
+.lf-wrap{position:relative}
+.lf-wrap i.lf-ic{position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:13px;color:rgba(255,255,255,.25);pointer-events:none}
+.lf-inp{
+  width:100%;height:44px;padding:0 40px 0 38px;
+  background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.11);
+  border-radius:var(--r-md);color:#fff;font-size:14px;font-family:var(--font);outline:none;transition:all var(--t-base);
+}
+.lf-inp::placeholder{color:rgba(255,255,255,.2)}
+.lf-inp:focus{background:rgba(255,255,255,.1);border-color:var(--brand-400);box-shadow:0 0 0 3px rgba(59,110,242,.22)}
+.lf-eye{position:absolute;right:12px;top:50%;transform:translateY(-50%);color:rgba(255,255,255,.3);font-size:13px;cursor:pointer;transition:color var(--t-fast)}
+.lf-eye:hover{color:rgba(255,255,255,.6)}
+.btn-login{
+  width:100%;height:44px;margin-top:8px;
+  background:linear-gradient(135deg,var(--brand-500),var(--brand-800));
+  color:#fff;font-size:14px;font-weight:600;border-radius:var(--r-md);
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  box-shadow:0 4px 16px rgba(59,110,242,.4);transition:all var(--t-base);font-family:var(--font);
+}
+.btn-login:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(59,110,242,.5)}
+.lf-err{
+  display:none;margin-top:12px;padding:10px 14px;
+  background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.25);
+  border-radius:var(--r-sm);color:#fca5a5;font-size:12.5px;align-items:center;gap:8px;
+}
+.login-demos{margin-top:20px;padding:12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:var(--r-md)}
+.login-demos p{font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:rgba(255,255,255,.3);margin-bottom:8px}
+.demo-btn{
+  display:block;width:100%;text-align:left;
+  background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07);
+  border-radius:6px;padding:5px 9px;cursor:pointer;
+  color:rgba(255,255,255,.5);font-size:11px;font-family:var(--font);
+  transition:background var(--t-fast);margin-bottom:4px;
+}
+.demo-btn:last-child{margin-bottom:0}
+.demo-btn:hover{background:rgba(255,255,255,.1)}
+.demo-btn strong{color:rgba(255,255,255,.75)}
+.login-footer{font-size:11px;color:rgba(255,255,255,.18);text-align:center;margin-top:20px}
+
+/* ═══ WELCOME ══════════════════════════════════════════════════ */
+#screen-welcome{
+  display:none;position:fixed;inset:0;z-index:900;
+  background:var(--gray-50);align-items:center;justify-content:center;
+}
+.wc-card{text-align:center;max-width:480px;padding:20px;animation:wIn .5s var(--ease) both}
+@keyframes wIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+.wc-av{
+  width:80px;height:80px;border-radius:24px;
+  background:linear-gradient(135deg,var(--brand-500),var(--brand-800));
+  display:flex;align-items:center;justify-content:center;
+  font-size:26px;font-weight:800;color:#fff;margin:0 auto 24px;
+  box-shadow:0 12px 40px rgba(59,110,242,.35);
+}
+.wc-greet{font-size:13px;font-weight:600;color:var(--brand-600);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px}
+.wc-name{font-size:32px;font-weight:800;color:var(--gray-900);letter-spacing:-.5px;margin-bottom:8px}
+.wc-role{font-size:14px;color:var(--gray-400);margin-bottom:28px}
+.wc-desc{font-size:14px;color:var(--gray-500);line-height:1.7;margin-bottom:32px;max-width:380px;margin-left:auto;margin-right:auto}
+.wc-chips{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:32px}
+.wc-chip{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:7px 14px;border-radius:99px;
+  background:var(--brand-50);border:1px solid var(--brand-100);
+  color:var(--brand-700);font-size:12.5px;font-weight:600;
+}
+.btn-wc{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:0 28px;height:46px;border-radius:var(--r-md);
+  background:linear-gradient(135deg,var(--brand-500),var(--brand-800));
+  color:#fff;font-size:14px;font-weight:700;
+  box-shadow:0 6px 20px rgba(59,110,242,.35);cursor:pointer;border:none;
+  font-family:var(--font);transition:all var(--t-base);
+}
+.btn-wc:hover{transform:translateY(-1px);box-shadow:0 10px 28px rgba(59,110,242,.45)}
+
+/* ═══ APP SHELL ════════════════════════════════════════════════ */
+#screen-app{display:none;position:fixed;inset:0;flex-direction:row}
+#screen-app.visible{display:flex}
+
+/* Sidebar */
+.sidebar{
+  width:var(--sb-col);background:var(--sb-bg);
+  border-right:1px solid var(--sb-border);
+  display:flex;flex-direction:column;
+  transition:width var(--t-slow);flex-shrink:0;overflow:hidden;z-index:100;
+}
+.sidebar:hover{width:var(--sb-w)}
+.sb-hd{
+  height:var(--topbar-h);display:flex;align-items:center;
+  padding:0 12px;gap:10px;flex-shrink:0;
+  border-bottom:1px solid var(--sb-border);overflow:hidden;white-space:nowrap;
+}
+.sb-mark{
+  width:36px;height:36px;flex-shrink:0;
+  background:linear-gradient(135deg,var(--brand-500),var(--brand-800));
+  border-radius:10px;display:flex;align-items:center;justify-content:center;
+  box-shadow:0 4px 12px rgba(59,110,242,.35);font-size:13px;font-weight:900;color:#fff;letter-spacing:-1px;
+}
+.sb-brand{overflow:hidden}
+.sb-name{font-size:13.5px;font-weight:700;color:#fff;white-space:nowrap}
+.sb-tag{font-size:9.5px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:var(--brand-400)}
+.sb-nav{flex:1;overflow-y:auto;overflow-x:hidden;padding:10px 0}
+.sb-nav::-webkit-scrollbar{width:3px}
+.sb-nav::-webkit-scrollbar-thumb{background:rgba(255,255,255,.08);border-radius:99px}
+.sb-sec{font-size:9px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:rgba(255,255,255,.2);padding:14px 16px 4px;white-space:nowrap;opacity:0;transition:opacity var(--t-base)}
+.sidebar:hover .sb-sec{opacity:1}
+.sb-link{
+  display:flex;align-items:center;
+  padding:8px 12px;margin:1px 6px;
+  border-radius:var(--r-md);color:var(--sb-text);
+  font-size:13px;font-weight:500;cursor:pointer;
+  transition:all var(--t-fast);white-space:nowrap;overflow:hidden;
+  position:relative;border-left:3px solid transparent;
+}
+.sb-link:hover{background:var(--sb-hover);color:rgba(255,255,255,.85)}
+.sb-link.active{background:var(--sb-active);color:var(--sb-active-t);border-left-color:var(--brand-400)}
+.sb-icon{width:36px;height:36px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:14px;border-radius:8px}
+.sb-lbl{flex:1;overflow:hidden;text-overflow:ellipsis;margin-left:2px}
+.sb-ft{padding:10px 6px;border-top:1px solid var(--sb-border);flex-shrink:0}
+.sb-user{display:flex;align-items:center;padding:8px 6px;border-radius:var(--r-md);cursor:pointer;transition:background var(--t-fast);overflow:hidden;white-space:nowrap}
+.sb-user:hover{background:var(--sb-hover)}
+.sb-av{width:36px;height:36px;flex-shrink:0;border-radius:10px;background:linear-gradient(135deg,var(--brand-500),var(--brand-900));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff}
+.sb-ui{margin-left:10px;overflow:hidden}
+.sb-uname{font-size:12.5px;font-weight:600;color:rgba(255,255,255,.75);overflow:hidden;text-overflow:ellipsis}
+.sb-urole{font-size:11px;color:rgba(255,255,255,.3)}
+
+/* App body */
+.app-body{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.topbar{
+  height:var(--topbar-h);flex-shrink:0;
+  background:var(--gray-0);border-bottom:1px solid var(--gray-100);
+  display:flex;align-items:center;padding:0 24px;gap:12px;
+}
+.tb-bc{flex:1;display:flex;align-items:center;gap:6px;font-size:13px}
+.bc-it{color:var(--gray-400)}
+.bc-sep{color:var(--gray-200);font-size:10px}
+.bc-cur{color:var(--gray-800);font-weight:600}
+.tb-search{position:relative;width:220px}
+.tb-search i{position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--gray-300);pointer-events:none}
+.tb-search input{
+  width:100%;height:34px;padding:0 10px 0 32px;
+  background:var(--gray-50);border:1px solid var(--gray-100);
+  border-radius:var(--r-md);font-size:13px;color:var(--gray-700);
+  outline:none;transition:all var(--t-base);font-family:var(--font);
+}
+.tb-search input:focus{background:#fff;border-color:var(--brand-400);box-shadow:0 0 0 3px rgba(59,110,242,.12)}
+.tb-acts{display:flex;align-items:center;gap:6px}
+.tb-btn{
+  width:34px;height:34px;border-radius:var(--r-md);border:1px solid var(--gray-100);
+  display:flex;align-items:center;justify-content:center;
+  color:var(--gray-400);font-size:14px;cursor:pointer;position:relative;
+  transition:all var(--t-fast);background:transparent;
+}
+.tb-btn:hover{background:var(--gray-50);color:var(--gray-700);border-color:var(--gray-200)}
+.tb-notif{width:6px;height:6px;background:var(--brand-500);border-radius:50%;position:absolute;top:7px;right:7px;border:1.5px solid #fff}
+.tb-uav{
+  width:34px;height:34px;border-radius:10px;
+  background:linear-gradient(135deg,var(--brand-500),var(--brand-800));
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:700;color:#fff;cursor:pointer;flex-shrink:0;
+}
+
+/* Content */
+.content-area{flex:1;overflow-y:auto;overflow-x:hidden}
+.content-area::-webkit-scrollbar{width:6px}
+.content-area::-webkit-scrollbar-thumb{background:var(--gray-200);border-radius:99px}
+.page{display:none;padding:28px 32px;animation:pgIn .2s var(--ease) both}
+.page.active{display:block}
+@keyframes pgIn{from{opacity:0}to{opacity:1}}
+
+/* ═══ COMPONENTS ═══════════════════════════════════════════════ */
+/* Page header */
+.ph{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:24px}
+.ph-title{font-size:22px;font-weight:800;color:var(--gray-900);letter-spacing:-.3px}
+.ph-sub{font-size:13px;color:var(--gray-400);margin-top:3px}
+.ph-r{display:flex;gap:8px;align-items:center;flex-shrink:0}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:0 16px;height:36px;border-radius:var(--r-md);font-size:13px;font-weight:600;cursor:pointer;transition:all var(--t-fast);border:none;font-family:var(--font);white-space:nowrap}
+.btn-primary{background:linear-gradient(135deg,var(--brand-500),var(--brand-800));color:#fff;box-shadow:0 2px 8px rgba(59,110,242,.28)}
+.btn-primary:hover{box-shadow:0 4px 14px rgba(59,110,242,.4);transform:translateY(-1px)}
+.btn-secondary{background:var(--gray-0);color:var(--gray-700);border:1px solid var(--gray-200);box-shadow:var(--shadow-xs)}
+.btn-secondary:hover{background:var(--gray-50);border-color:var(--gray-300)}
+.btn-ghost{background:transparent;color:var(--gray-500)}
+.btn-ghost:hover{background:var(--gray-100);color:var(--gray-800)}
+.btn-sm{height:30px;padding:0 12px;font-size:12px}
+.btn-icon{width:32px;height:32px;padding:0;justify-content:center;border-radius:var(--r-md)}
+.btn i{font-size:12px}
+
+/* Card */
+.card{background:var(--gray-0);border:1px solid var(--gray-100);border-radius:var(--r-lg);box-shadow:var(--shadow-sm)}
+.card-hd{padding:18px 20px 14px;border-bottom:1px solid var(--gray-50);display:flex;align-items:center;justify-content:space-between;gap:10px}
+.card-title{font-size:14px;font-weight:700;color:var(--gray-900)}
+.card-sub{font-size:12px;color:var(--gray-400);margin-top:1px}
+.card-bd{padding:20px}
+
+/* KPI cards */
+.kpi-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;margin-bottom:20px}
+.kpi-card{
+  background:var(--gray-0);border:1px solid var(--gray-100);border-radius:var(--r-lg);
+  padding:20px 22px;box-shadow:var(--shadow-sm);transition:all var(--t-fast);cursor:pointer;
+  position:relative;overflow:hidden;
+}
+.kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:var(--r-lg) var(--r-lg) 0 0}
+.kpi-card:nth-child(1)::before{background:linear-gradient(90deg,var(--brand-500),var(--brand-300))}
+.kpi-card:nth-child(2)::before{background:linear-gradient(90deg,var(--t-forca),#4ade80)}
+.kpi-card:nth-child(3)::before{background:linear-gradient(90deg,var(--t-disputa),#fbbf24)}
+.kpi-card:nth-child(4)::before{background:linear-gradient(90deg,var(--t-volatil),#c084fc)}
+.kpi-card:nth-child(5)::before{background:linear-gradient(90deg,var(--info-500),#60a5fa)}
+.kpi-card:hover{border-color:var(--gray-200);box-shadow:var(--shadow-md);transform:translateY(-2px)}
+.kpi-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px}
+.kpi-ico{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.kpi-ico.blue{background:var(--brand-50);color:var(--brand-600)}
+.kpi-ico.green{background:#f0fdf4;color:var(--t-forca)}
+.kpi-ico.amber{background:#fffbeb;color:var(--warning-500)}
+.kpi-ico.purple{background:#faf5ff;color:var(--t-volatil)}
+.kpi-ico.teal{background:var(--info-50);color:var(--info-700)}
+.kpi-val{font-size:36px;font-weight:800;color:var(--gray-900);line-height:1;letter-spacing:-2px}
+.kpi-lbl{font-size:13px;color:var(--gray-500);font-weight:500;margin-top:4px}
+.kpi-trend{font-size:11.5px;display:inline-flex;align-items:center;gap:4px;margin-top:10px;padding:3px 8px;border-radius:99px;font-weight:600}
+.trend-up{background:var(--brand-50);color:var(--brand-700)}
+.trend-green{background:#f0fdf4;color:#15803d}
+.trend-neutral{background:var(--gray-100);color:var(--gray-600)}
+
+/* Table */
+.tbl-wrap{overflow-x:auto}
+.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl thead th{padding:10px 16px;text-align:left;font-size:11px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;color:var(--gray-400);background:var(--gray-50);border-bottom:1px solid var(--gray-100);white-space:nowrap}
+.tbl tbody tr{border-bottom:1px solid var(--gray-50);transition:background var(--t-fast)}
+.tbl tbody tr:last-child{border-bottom:none}
+.tbl tbody tr:hover{background:var(--gray-25)}
+.tbl td{padding:13px 16px;color:var(--gray-700);vertical-align:middle}
+.td-bold{font-weight:600;color:var(--gray-900)}
+
+/* Badge */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:99px;font-size:11.5px;font-weight:600;white-space:nowrap}
+.badge i{font-size:8px}
+.badge-blue{background:var(--brand-50);color:var(--brand-700)}
+.badge-green{background:#f0fdf4;color:#15803d}
+.badge-amber{background:#fffbeb;color:var(--warning-700)}
+.badge-red{background:var(--danger-50);color:var(--danger-700)}
+.badge-gray{background:var(--gray-100);color:var(--gray-500)}
+.badge-purple{background:#faf5ff;color:#6b21a8}
+
+/* Classificação territorial badges */
+.badge-forca{background:#f0fdf4;color:var(--t-forca)}
+.badge-consolidado{background:#f0fdf4;color:var(--t-consolidado)}
+.badge-expansao{background:#f0fdf4;color:var(--t-expansao)}
+.badge-disputa{background:#fffbeb;color:#92400e}
+.badge-adversario{background:var(--danger-50);color:var(--danger-700)}
+.badge-neutro{background:var(--gray-100);color:var(--gray-600)}
+.badge-volatil{background:#faf5ff;color:#6b21a8}
+
+/* Toolbar */
+.toolbar{display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.search-wrap{position:relative;flex:1;min-width:180px;max-width:280px}
+.search-wrap i{position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--gray-300);pointer-events:none}
+.search-inp{width:100%;height:34px;padding:0 10px 0 32px;background:var(--gray-0);border:1px solid var(--gray-200);border-radius:var(--r-md);font-size:13px;color:var(--gray-800);outline:none;font-family:var(--font);transition:all var(--t-base)}
+.search-inp:focus{border-color:var(--brand-400);box-shadow:0 0 0 3px rgba(59,110,242,.1)}
+.filter-sel{height:34px;padding:0 10px;background:var(--gray-0);border:1px solid var(--gray-200);border-radius:var(--r-md);font-size:13px;color:var(--gray-700);font-family:var(--font);outline:none;cursor:pointer}
+
+/* Grid helpers */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.three-col{display:grid;grid-template-columns:2fr 1fr 1fr;gap:16px}
+
+/* Activity list */
+.act-list{display:flex;flex-direction:column}
+.act-item{display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid var(--gray-50)}
+.act-item:last-child{border-bottom:none}
+.act-ico{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.act-info{flex:1;min-width:0}
+.act-title{font-size:13px;font-weight:600;color:var(--gray-800)}
+.act-sub{font-size:12px;color:var(--gray-400);margin-top:1px}
+.act-time{font-size:11.5px;color:var(--gray-400);white-space:nowrap;text-align:right;flex-shrink:0}
+
+/* Bar chart */
+.bar-row{margin-bottom:12px}
+.bar-row:last-child{margin-bottom:0}
+.bar-meta{display:flex;justify-content:space-between;margin-bottom:5px}
+.bar-name{font-size:13px;font-weight:600;color:var(--gray-700)}
+.bar-ct{font-size:12.5px;font-weight:700;color:var(--gray-500)}
+.bar-track{height:7px;background:var(--gray-100);border-radius:99px;overflow:hidden}
+.bar-fill{height:100%;border-radius:99px;transition:width .6s var(--ease)}
+
+/* Modal */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);backdrop-filter:blur(4px);z-index:800;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.open{display:flex}
+.modal{background:var(--gray-0);border-radius:var(--r-xl);box-shadow:var(--shadow-xl);width:100%;max-width:540px;max-height:90vh;overflow-y:auto;animation:mIn .2s var(--ease)}
+@keyframes mIn{from{opacity:0;transform:scale(.97) translateY(8px)}to{opacity:1;transform:none}}
+.modal-hd{padding:22px 24px 18px;border-bottom:1px solid var(--gray-100);display:flex;align-items:center;justify-content:space-between}
+.modal-title{font-size:17px;font-weight:800;color:var(--gray-900)}
+.modal-close{width:30px;height:30px;border-radius:8px;background:var(--gray-100);border:none;color:var(--gray-500);font-size:13px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all var(--t-fast)}
+.modal-close:hover{background:var(--gray-200);color:var(--gray-800)}
+.modal-bd{padding:22px 24px}
+.modal-ft{padding:14px 24px 22px;display:flex;justify-content:flex-end;gap:8px}
+
+/* Form */
+.form-g{display:flex;flex-direction:column;gap:5px;margin-bottom:14px}
+.form-lbl{font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--gray-500)}
+.form-inp,.form-sel{height:38px;padding:0 12px;background:var(--gray-0);border:1px solid var(--gray-200);border-radius:var(--r-md);font-size:13.5px;color:var(--gray-800);font-family:var(--font);outline:none;transition:all var(--t-base);width:100%}
+.form-inp:focus,.form-sel:focus{border-color:var(--brand-400);box-shadow:0 0 0 3px rgba(59,110,242,.1)}
+
+/* Toast */
+.toast-wrap{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px}
+.toast{display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--gray-0);border-radius:var(--r-md);box-shadow:var(--shadow-lg);border-left:3px solid var(--brand-500);font-size:13.5px;color:var(--gray-800);min-width:260px;max-width:360px;animation:tIn .25s var(--ease)}
+.toast.success{border-left-color:var(--success-500)}
+.toast.error{border-left-color:var(--danger-500)}
+.toast.warning{border-left-color:var(--warning-500)}
+.toast i{font-size:15px;flex-shrink:0}
+.toast.success i{color:var(--success-500)}
+.toast.error i{color:var(--danger-500)}
+.toast.warning i{color:var(--warning-500)}
+@keyframes tIn{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:none}}
+
+/* Index bar */
+.idx-bar{margin-bottom:16px}
+.idx-top{display:flex;justify-content:space-between;margin-bottom:5px;font-size:12px}
+.idx-track{height:8px;background:var(--gray-100);border-radius:99px;overflow:hidden}
+.idx-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--brand-500),var(--brand-300));transition:width .5s var(--ease)}
+
+/* Divider */
+.divider{height:1px;background:var(--gray-100);margin:16px 0}
+
+/* Upload area */
+.upload-area{
+  border:2px dashed var(--gray-200);border-radius:var(--r-lg);
+  padding:40px;text-align:center;color:var(--gray-400);
+  background:var(--gray-0);margin-bottom:20px;transition:all .2s;cursor:pointer;
+}
+.upload-area:hover{border-color:var(--brand-400);color:var(--brand-600);background:var(--brand-50)}
+.upload-area i{font-size:36px;margin-bottom:10px;display:block;opacity:.5}
+.upload-title{font-size:15px;font-weight:700;margin-bottom:4px}
+.upload-hint{font-size:12px}
+
+/* Import row */
+.imp-row{
+  background:var(--gray-0);border:1px solid var(--gray-100);
+  border-radius:var(--r-lg);padding:14px 18px;margin-bottom:10px;
+  display:flex;align-items:center;gap:14px;
+}
+.imp-ico{font-size:22px}
+.imp-info{flex:1}
+.imp-name{font-size:13px;font-weight:700;margin-bottom:2px}
+.imp-meta{font-size:11px;color:var(--gray-400)}
+.status-dot{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600}
+.status-dot::before{content:'';display:inline-block;width:7px;height:7px;border-radius:50%}
+.sd-ok::before{background:var(--success-500)}
+.sd-warn::before{background:var(--warning-500)}
+.sd-err::before{background:var(--danger-500)}
+
+/* Status pill */
+.st-pill{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:99px;font-size:12px;font-weight:600}
+.st-online{background:var(--brand-50);color:var(--brand-700);border:1px solid var(--brand-100)}
+.st-dot{width:7px;height:7px;border-radius:50%;background:var(--brand-500)}
+
+/* MAP PAGE */
+.map-layout{display:grid;grid-template-columns:1fr 320px;height:calc(100vh - var(--topbar-h) - 56px);gap:0}
+.map-cont{
+  background:#ccd9c4;border-radius:var(--r-lg) 0 0 var(--r-lg);
+  position:relative;overflow:hidden;border:1px solid var(--gray-100);border-right:none;
+}
+.map-cont svg{width:100%;height:100%}
+.map-tools{position:absolute;top:12px;left:12px;display:flex;gap:6px;flex-wrap:wrap}
+.map-tb{background:var(--gray-0);border:1px solid var(--gray-100);border-radius:6px;padding:5px 12px;font-size:12px;font-weight:600;box-shadow:var(--shadow-sm);transition:all var(--t-fast);cursor:pointer;font-family:var(--font)}
+.map-tb:hover{background:var(--brand-50)}
+.map-tb.active{background:var(--brand-600);color:#fff;border-color:var(--brand-600)}
+.map-filters{position:absolute;top:12px;right:12px;display:flex;gap:6px}
+.map-zoom{position:absolute;bottom:40px;right:12px;display:flex;flex-direction:column;gap:2px}
+.map-zoom button{background:var(--gray-0);border:1px solid var(--gray-100);width:30px;height:30px;border-radius:4px;font-size:16px;box-shadow:var(--shadow-sm);cursor:pointer;display:flex;align-items:center;justify-content:center}
+.map-attr{position:absolute;bottom:8px;left:8px;font-size:10px;color:var(--gray-400);background:rgba(255,255,255,.8);padding:2px 6px;border-radius:4px}
+.map-panel{background:var(--gray-0);border:1px solid var(--gray-100);border-radius:0 var(--r-lg) var(--r-lg) 0;display:flex;flex-direction:column;overflow:hidden}
+.map-panel-hd{padding:14px 16px;border-bottom:1px solid var(--gray-100);display:flex;align-items:center;justify-content:space-between}
+.map-panel-title{font-size:13px;font-weight:700}
+.map-panel-body{flex:1;overflow-y:auto;padding:14px 16px}
+.leg-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
+.leg-item{display:flex;align-items:center;gap:6px;font-size:11.5px}
+.leg-dot{width:10px;height:10px;border-radius:3px;flex-shrink:0}
+.terr-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.stat-box{background:var(--gray-50);border-radius:6px;padding:10px 12px;text-align:center}
+.stat-box .val{font-size:20px;font-weight:800;color:var(--brand-700)}
+.stat-box .lbl{font-size:10px;color:var(--gray-400);text-transform:uppercase;letter-spacing:.5px}
+.class-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:99px;font-size:12px;font-weight:700;color:#fff;margin-bottom:14px}
+.hist-tbl{width:100%;border-collapse:collapse;font-size:12px}
+.hist-tbl th{text-align:left;padding:5px 6px;color:var(--gray-400);font-weight:600;font-size:11px;border-bottom:1px solid var(--gray-100)}
+.hist-tbl td{padding:6px 6px;border-bottom:1px solid var(--gray-50)}
+.hist-tbl tr:last-child td{border-bottom:none}
+.tag-up{color:var(--t-forca);font-weight:700}
+.tag-dn{color:var(--danger-500);font-weight:700}
+
+/* Pesquisas */
+.pesq-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.pesq-card{background:var(--gray-0);border:1px solid var(--gray-100);border-radius:var(--r-lg);box-shadow:var(--shadow-sm);overflow:hidden}
+.pesq-hd{padding:12px 14px;border-bottom:1px solid var(--gray-100)}
+.pesq-title{font-size:13px;font-weight:700;margin-bottom:4px}
+.pesq-meta{font-size:11px;color:var(--gray-400);display:flex;gap:10px;flex-wrap:wrap}
+.pesq-bd{padding:12px 14px}
+.pesq-res{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.pesq-nome{width:110px;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:0}
+.pesq-track{flex:1;height:13px;background:var(--gray-100);border-radius:4px;overflow:hidden}
+.pesq-fill{height:100%;border-radius:4px}
+.pesq-pct{width:36px;font-size:12px;font-weight:700;text-align:right}
+.pesq-ft{padding:8px 14px;background:var(--gray-50);border-top:1px solid var(--gray-100);display:flex;gap:6px;justify-content:flex-end}
+</style>
+</head>
+<body>
+
+<!-- ═══ LOGIN ══════════════════════════════════════════════════ -->
+<div id="screen-login">
+  <div class="login-bg"></div>
+  <div class="login-grid"></div>
+  <div class="login-wrap">
+    <div class="login-left">
+      <div class="ll-brand">
+        <div class="ll-mark">PI</div>
+        <div>
+          <div class="ll-name">PITE</div>
+          <div class="ll-tag">Portal de Inteligência</div>
+        </div>
+      </div>
+      <div>
+        <div class="ll-tagline">Inteligência territorial<br>para decisões eleitorais</div>
+        <div class="ll-desc">Análise estratégica de dados eleitorais históricos do TSE, pesquisas próprias e classificação territorial — tudo em uma plataforma.</div>
+        <div class="ll-pills">
+          <span class="ll-pill"><i class="fas fa-map"></i> Mapa Interativo</span>
+          <span class="ll-pill"><i class="fas fa-chart-bar"></i> Índice de Força</span>
+          <span class="ll-pill"><i class="fas fa-database"></i> Dados do TSE</span>
+          <span class="ll-pill"><i class="fas fa-shield-halved"></i> LGPD Compliant</span>
+          <span class="ll-pill"><i class="fas fa-location-dot"></i> Classificação Territorial</span>
+        </div>
+      </div>
+    </div>
+    <div class="login-right">
+      <div class="lr-title">Bem-vindo</div>
+      <div class="lr-sub">Acesse com suas credenciais</div>
+      <div class="lf-g">
+        <label class="lf-lbl">E-mail</label>
+        <div class="lf-wrap">
+          <i class="fas fa-at lf-ic"></i>
+          <input type="text" class="lf-inp" id="l-user" placeholder="seu@email.com">
+        </div>
+      </div>
+      <div class="lf-g">
+        <label class="lf-lbl">Senha</label>
+        <div class="lf-wrap">
+          <i class="fas fa-lock lf-ic"></i>
+          <input type="password" class="lf-inp" id="l-pass" placeholder="••••••••">
+          <i class="fas fa-eye lf-eye" id="l-eye"></i>
+        </div>
+      </div>
+      <button class="btn-login" id="l-btn"><i class="fas fa-right-to-bracket"></i> Entrar na plataforma</button>
+      <div class="lf-err" id="l-err"><i class="fas fa-circle-exclamation"></i><span id="l-err-msg">Credenciais inválidas.</span></div>
+      <div class="login-demos">
+        <p>Acessos de demonstração</p>
+        <button class="demo-btn" onclick="fillLogin('admin@pite.com','Admin@2025')"><i class="fas fa-shield-halved" style="color:var(--brand-400);margin-right:5px"></i><strong>Administrador</strong> · admin@pite.com</button>
+        <button class="demo-btn" onclick="fillLogin('analista@pite.com','Ana@123')"><i class="fas fa-chart-bar" style="color:#60a5fa;margin-right:5px"></i><strong>Analista</strong> · analista@pite.com</button>
+        <button class="demo-btn" onclick="fillLogin('visualizador@pite.com','Vis@123')"><i class="fas fa-eye" style="color:#f97316;margin-right:5px"></i><strong>Visualizador</strong> · visualizador@pite.com</button>
+      </div>
+      <div class="login-footer">PITE © 2025 · Acesso restrito e monitorado · LGPD</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ WELCOME ═════════════════════════════════════════════════ -->
+<div id="screen-welcome" style="display:none;position:fixed;inset:0;z-index:900;background:var(--gray-50);align-items:center;justify-content:center">
+  <div class="wc-card">
+    <div class="wc-av" id="wc-av">AD</div>
+    <div class="wc-greet">Bem-vindo ao portal</div>
+    <div class="wc-name" id="wc-name">Olá, Vinícius</div>
+    <div class="wc-role" id="wc-role">Administrador · PITE</div>
+    <div class="wc-desc">Você tem acesso completo à plataforma. Analise territórios, gerencie candidatos e importe dados do TSE.</div>
+    <div class="wc-chips" id="wc-chips">
+      <span class="wc-chip"><i class="fas fa-users"></i> 48 candidatos</span>
+      <span class="wc-chip"><i class="fas fa-map"></i> 246 territórios</span>
+      <span class="wc-chip"><i class="fas fa-chart-bar"></i> 14 pesquisas</span>
+    </div>
+    <button class="btn-wc" id="wc-btn"><i class="fas fa-arrow-right"></i> Acessar o portal</button>
+  </div>
+</div>
+
+<!-- ═══ APP ══════════════════════════════════════════════════════ -->
+<div id="screen-app">
+  <aside class="sidebar" id="sidebar">
+    <div class="sb-hd">
+      <div class="sb-mark">PI</div>
+      <div class="sb-brand">
+        <div class="sb-name">PITE</div>
+        <div class="sb-tag">Inteligência Eleitoral</div>
+      </div>
+    </div>
+    <nav class="sb-nav">
+      <div class="sb-link active" data-page="painel"><div class="sb-icon"><i class="fas fa-house"></i></div><span class="sb-lbl">Painel</span></div>
+      <div class="sb-sec">Análise</div>
+      <div class="sb-link" data-page="mapa"><div class="sb-icon"><i class="fas fa-map"></i></div><span class="sb-lbl">Mapa Territorial</span></div>
+      <div class="sb-link" data-page="candidatos"><div class="sb-icon"><i class="fas fa-user-tie"></i></div><span class="sb-lbl">Candidatos</span></div>
+      <div class="sb-link" data-page="pesquisas"><div class="sb-icon"><i class="fas fa-clipboard-list"></i></div><span class="sb-lbl">Pesquisas</span></div>
+      <div class="sb-link" data-page="comparacao"><div class="sb-icon"><i class="fas fa-scale-balanced"></i></div><span class="sb-lbl">Comparação</span></div>
+      <div class="sb-link" data-page="eleicoes"><div class="sb-icon"><i class="fas fa-landmark"></i></div><span class="sb-lbl">Eleições</span></div>
+      <div class="sb-link" data-page="candidaturas"><div class="sb-icon"><i class="fas fa-link"></i></div><span class="sb-lbl">Candidaturas</span></div>
+      <div class="sb-sec">Dados</div>
+      <div class="sb-link" data-page="importacao"><div class="sb-icon"><i class="fas fa-file-import"></i></div><span class="sb-lbl">Importação</span></div>
+      <div class="sb-link" data-page="geografia"><div class="sb-icon"><i class="fas fa-globe"></i></div><span class="sb-lbl">Geografia</span></div>
+      <div class="sb-sec">Sistema</div>
+      <div class="sb-link" data-page="usuarios"><div class="sb-icon"><i class="fas fa-users"></i></div><span class="sb-lbl">Usuários</span></div>
+    </nav>
+    <div class="sb-ft">
+      <div class="sb-user" onclick="toast('Configurações de perfil','success')">
+        <div class="sb-av" id="sb-av">VS</div>
+        <div class="sb-ui">
+          <div class="sb-uname" id="sb-name">Vinícius S.</div>
+          <div class="sb-urole" id="sb-role">Administrador</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="app-body">
+    <header class="topbar">
+      <div class="tb-bc">
+        <span class="bc-it">PITE</span>
+        <span class="bc-sep"><i class="fas fa-chevron-right"></i></span>
+        <span class="bc-cur" id="bc-cur">Painel</span>
+      </div>
+      <div class="tb-search"><i class="fas fa-search"></i><input type="text" placeholder="Buscar candidato, território..."></div>
+      <div class="tb-acts">
+        <div style="display:flex;align-items:center;gap:6px;padding:4px 10px;background:var(--brand-50);border:1px solid var(--brand-100);border-radius:6px">
+          <span style="font-size:11px;font-weight:700;color:var(--brand-700)">Goiás — GO</span>
+        </div>
+        <select class="filter-sel" style="height:34px;font-size:12px">
+          <option>Eleição 2024</option><option>Eleição 2022</option>
+        </select>
+        <button class="tb-btn" title="Notificações"><i class="fas fa-bell"></i><span class="tb-notif"></span></button>
+        <button class="tb-btn" id="logout-btn" title="Sair"><i class="fas fa-right-from-bracket"></i></button>
+        <div class="tb-uav" id="tb-av">VS</div>
+      </div>
+    </header>
+
+    <div class="content-area">
+
+      <!-- ═══ PAINEL ══════════════════════════════════════════ -->
+      <div class="page active" id="page-painel">
+        <div class="ph">
+          <div><div class="ph-title">Painel Principal</div><div class="ph-sub">Visão geral do cenário eleitoral · Goiás 2024</div></div>
+          <div class="ph-r">
+            <button class="btn btn-secondary"><i class="fas fa-download"></i> Exportar</button>
+            <button class="btn btn-primary" onclick="navigateTo('importacao')"><i class="fas fa-file-import"></i> Importar dados</button>
+          </div>
+        </div>
+
+        <div class="kpi-grid">
+          <div class="kpi-card" onclick="navigateTo('candidatos')">
+            <div class="kpi-top"><div><div class="kpi-val">48</div><div class="kpi-lbl">Candidatos</div></div><div class="kpi-ico blue"><i class="fas fa-user-tie"></i></div></div>
+            <span class="kpi-trend trend-up"><i class="fas fa-arrow-up"></i> 12 pré-candidatos</span>
+          </div>
+          <div class="kpi-card" onclick="navigateTo('mapa')">
+            <div class="kpi-top"><div><div class="kpi-val">246</div><div class="kpi-lbl">Territórios</div></div><div class="kpi-ico green"><i class="fas fa-map"></i></div></div>
+            <span class="kpi-trend trend-green"><i class="fas fa-check"></i> 100% mapeados</span>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-top"><div><div class="kpi-val">61</div><div class="kpi-lbl">Zonas de Força</div></div><div class="kpi-ico amber"><i class="fas fa-location-dot"></i></div></div>
+            <span class="kpi-trend trend-up"><i class="fas fa-arrow-up"></i> +7 vs 2022</span>
+          </div>
+          <div class="kpi-card" onclick="navigateTo('pesquisas')">
+            <div class="kpi-top"><div><div class="kpi-val">14</div><div class="kpi-lbl">Pesquisas</div></div><div class="kpi-ico purple"><i class="fas fa-clipboard-list"></i></div></div>
+            <span class="kpi-trend trend-neutral"><i class="fas fa-clock"></i> Última: 12 mai</span>
+          </div>
+          <div class="kpi-card" onclick="navigateTo('importacao')">
+            <div class="kpi-top"><div><div class="kpi-val">9</div><div class="kpi-lbl">Importações</div></div><div class="kpi-ico teal"><i class="fas fa-database"></i></div></div>
+            <span class="kpi-trend trend-neutral"><i class="fas fa-clock"></i> Última: 02 jun</span>
+          </div>
+        </div>
+
+        <div class="three-col" style="margin-bottom:16px">
+          <div class="card">
+            <div class="card-hd"><div><div class="card-title">Evolução de Votos — Cand. Principal</div><div class="card-sub">2016 – 2024</div></div><span class="badge badge-blue">Dep. Federal</span></div>
+            <div class="card-bd">
+              <div class="bar-row"><div class="bar-meta"><span class="bar-name">2016</span><span class="bar-ct">42.890</span></div><div class="bar-track"><div class="bar-fill" style="width:46%;background:var(--t-expansao)"></div></div></div>
+              <div class="bar-row"><div class="bar-meta"><span class="bar-name">2018</span><span class="bar-ct">56.120</span></div><div class="bar-track"><div class="bar-fill" style="width:61%;background:var(--t-forca)"></div></div></div>
+              <div class="bar-row"><div class="bar-meta"><span class="bar-name">2020</span><span class="bar-ct">38.744</span></div><div class="bar-track"><div class="bar-fill" style="width:41%;background:var(--t-disputa)"></div></div></div>
+              <div class="bar-row"><div class="bar-meta"><span class="bar-name">2022</span><span class="bar-ct">68.391</span></div><div class="bar-track"><div class="bar-fill" style="width:74%;background:var(--t-forca)"></div></div></div>
+              <div class="bar-row"><div class="bar-meta"><span class="bar-name">2024</span><span class="bar-ct">79.840</span></div><div class="bar-track"><div class="bar-fill" style="width:86%;background:var(--t-consolidado)"></div></div></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-hd"><div class="card-title">Classificação Territorial</div></div>
+            <div class="card-bd">
+              <div class="bar-row"><div class="bar-meta"><span class="bar-name" style="font-size:12px">Consolidado</span><span class="bar-ct">22%</span></div><div class="bar-track"><div class="bar-fill" style="width:22%;background:var(--t-consolidado)"></div></div></div>
+              <div class="bar-row"><div class="bar-meta"><span class="bar-name" style="font-size:12px">Força</span><span class="bar-ct">25%</span></div><div class="bar-track"><div class="bar-fill" style="width:25%;background:var(--t-forca)"></div></div></div>
+              <div class="bar-row"><div class="bar-meta"><span class="bar-name" style="font-size:12px">Expansão</span><span class="bar-ct">15%</span></div><div class="bar-track"><div class="bar-fill" style="width:15%;background:var(--t-expansao)"></div></div></div>
+              <div class="bar-row"><div class="bar-meta"><span class="bar-name" style="font-size:12px">Disputa</span><span class="bar-ct">18%</span></div><div class="bar-track"><div class="bar-fill" style="width:18%;background:var(--t-disputa)"></div></div></div>
+              <div class="bar-row"><div class="bar-meta"><span class="bar-name" style="font-size:12px">Adversário</span><span class="bar-ct">12%</span></div><div class="bar-track"><div class="bar-fill" style="width:12%;background:var(--t-adversario)"></div></div></div>
+              <div class="bar-row"><div class="bar-meta"><span class="bar-name" style="font-size:12px">Volátil</span><span class="bar-ct">8%</span></div><div class="bar-track"><div class="bar-fill" style="width:8%;background:var(--t-volatil)"></div></div></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-hd"><div class="card-title">Atividade Recente</div></div>
+            <div class="card-bd" style="padding:4px 20px">
+              <div class="act-list">
+                <div class="act-item"><div class="act-ico" style="background:#f0fdf4;color:var(--t-forca)"><i class="fas fa-file-import"></i></div><div class="act-info"><div class="act-title">Importação TSE 2024</div><div class="act-sub">12.847 registros · GO</div></div><div class="act-time">2h</div></div>
+                <div class="act-item"><div class="act-ico" style="background:var(--brand-50);color:var(--brand-600)"><i class="fas fa-clipboard-list"></i></div><div class="act-info"><div class="act-title">Pesquisa #14 importada</div><div class="act-sub">Goiânia · mai 2024</div></div><div class="act-time">5h</div></div>
+                <div class="act-item"><div class="act-ico" style="background:#f0fdf4;color:var(--t-expansao)"><i class="fas fa-map-pin"></i></div><div class="act-info"><div class="act-title">3 territórios reclassificados</div><div class="act-sub">Zona de Expansão</div></div><div class="act-time">1d</div></div>
+                <div class="act-item"><div class="act-ico" style="background:#fffbeb;color:var(--warning-500)"><i class="fas fa-user-plus"></i></div><div class="act-info"><div class="act-title">Pré-candidata cadastrada</div><div class="act-sub">Maria L. · Anápolis</div></div><div class="act-time">2d</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-hd">
+            <div><div class="card-title">Top Municípios — Índice de Força Territorial · 2024</div><div class="card-sub">Calculado com base em votos, tendência e consistência histórica</div></div>
+            <button class="btn btn-secondary btn-sm"><i class="fas fa-download"></i> CSV</button>
+          </div>
+          <div class="tbl-wrap">
+            <table class="tbl">
+              <thead><tr><th>#</th><th>Município</th><th>Zona Eleitoral</th><th>Votos 2024</th><th>% Válidos</th><th>Var. 2022</th><th style="width:160px">Índice de Força</th><th>Classificação</th></tr></thead>
+              <tbody>
+                <tr><td style="color:var(--gray-400);font-weight:700">1</td><td class="td-bold">Goiânia</td><td>1ª–14ª zona</td><td>79.840</td><td>38,2%</td><td class="tag-up">+4,1 p.p.</td><td><div style="display:flex;align-items:center;gap:8px"><div style="flex:1;height:6px;background:var(--gray-100);border-radius:4px;overflow:hidden"><div style="width:82%;height:100%;background:linear-gradient(90deg,var(--brand-700),var(--brand-500));border-radius:4px"></div></div><span style="font-size:12px;font-weight:800;color:var(--brand-700)">82</span></div></td><td><span class="badge badge-consolidado"><i class="fas fa-circle" style="font-size:6px"></i>Consolidado</span></td></tr>
+                <tr><td style="color:var(--gray-400);font-weight:700">2</td><td class="td-bold">Anápolis</td><td>15ª–17ª zona</td><td>12.180</td><td>41,7%</td><td class="tag-up">+7,3 p.p.</td><td><div style="display:flex;align-items:center;gap:8px"><div style="flex:1;height:6px;background:var(--gray-100);border-radius:4px;overflow:hidden"><div style="width:79%;height:100%;background:linear-gradient(90deg,var(--brand-600),var(--brand-400));border-radius:4px"></div></div><span style="font-size:12px;font-weight:800;color:var(--brand-700)">79</span></div></td><td><span class="badge badge-forca"><i class="fas fa-circle" style="font-size:6px"></i>Zona de Força</span></td></tr>
+                <tr><td style="color:var(--gray-400);font-weight:700">3</td><td class="td-bold">Rio Verde</td><td>42ª zona</td><td>8.920</td><td>35,4%</td><td class="tag-up">+12,8 p.p.</td><td><div style="display:flex;align-items:center;gap:8px"><div style="flex:1;height:6px;background:var(--gray-100);border-radius:4px;overflow:hidden"><div style="width:71%;height:100%;background:linear-gradient(90deg,var(--t-expansao),#86efac);border-radius:4px"></div></div><span style="font-size:12px;font-weight:800;color:#16a34a">71</span></div></td><td><span class="badge badge-expansao"><i class="fas fa-circle" style="font-size:6px"></i>Zona de Expansão</span></td></tr>
+                <tr><td style="color:var(--gray-400);font-weight:700">4</td><td class="td-bold">Aparecida de Goiânia</td><td>2ª–3ª zona</td><td>7.340</td><td>29,1%</td><td class="tag-dn">–2,4 p.p.</td><td><div style="display:flex;align-items:center;gap:8px"><div style="flex:1;height:6px;background:var(--gray-100);border-radius:4px;overflow:hidden"><div style="width:54%;height:100%;background:linear-gradient(90deg,var(--t-disputa),#fcd34d);border-radius:4px"></div></div><span style="font-size:12px;font-weight:800;color:var(--warning-700)">54</span></div></td><td><span class="badge badge-disputa"><i class="fas fa-circle" style="font-size:6px"></i>Zona em Disputa</span></td></tr>
+                <tr><td style="color:var(--gray-400);font-weight:700">5</td><td class="td-bold">Caldas Novas</td><td>53ª zona</td><td>3.120</td><td>22,6%</td><td class="tag-dn">–5,1 p.p.</td><td><div style="display:flex;align-items:center;gap:8px"><div style="flex:1;height:6px;background:var(--gray-100);border-radius:4px;overflow:hidden"><div style="width:38%;height:100%;background:linear-gradient(90deg,var(--t-adversario),#f87171);border-radius:4px"></div></div><span style="font-size:12px;font-weight:800;color:var(--danger-700)">38</span></div></td><td><span class="badge badge-adversario"><i class="fas fa-circle" style="font-size:6px"></i>Adversário</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ MAPA ══════════════════════════════════════════════ -->
+      <div class="page" id="page-mapa">
+        <div class="ph" style="margin-bottom:16px">
+          <div><div class="ph-title">Mapa Territorial</div><div class="ph-sub">Clique em um município para ver os detalhes · Goiás</div></div>
+          <div class="ph-r"><button class="btn btn-secondary"><i class="fas fa-download"></i> Exportar</button></div>
+        </div>
+        <div class="map-layout">
+          <div class="map-cont">
+            <svg viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
+              <rect width="800" height="600" fill="#d4e5c0"/>
+              <polygon points="120,80 200,60 280,90 260,160 180,180 110,150" fill="#0d5c37" stroke="#fff" stroke-width="1.5" opacity=".9" onclick="selectTerr('Goiânia','Território Consolidado','#0d5c37',79840,38.2,82)" style="cursor:pointer"/>
+              <polygon points="280,90 370,70 420,110 400,180 320,200 260,160" fill="#1a7a4a" stroke="#fff" stroke-width="1.5" opacity=".9" onclick="selectTerr('Anápolis','Zona de Força','#1a7a4a',12180,41.7,79)" style="cursor:pointer"/>
+              <polygon points="420,110 510,80 570,120 550,200 460,220 400,180" fill="#5aab61" stroke="#fff" stroke-width="1.5" opacity=".9" onclick="selectTerr('Rio Verde','Zona de Expansão','#5aab61',8920,35.4,71)" style="cursor:pointer"/>
+              <polygon points="110,150 180,180 200,260 120,290 70,240" fill="#f5a623" stroke="#fff" stroke-width="1.5" opacity=".9" onclick="selectTerr('Aparecida de Goiânia','Zona em Disputa','#f5a623',7340,29.1,54)" style="cursor:pointer"/>
+              <polygon points="180,180 260,160 320,200 300,280 220,300 180,260 200,260" fill="#1a7a4a" stroke="#fff" stroke-width="1.5" opacity=".9" onclick="selectTerr('Senador Canedo','Zona de Força','#1a7a4a',4890,33.5,66)" style="cursor:pointer"/>
+              <polygon points="320,200 400,180 460,220 440,300 360,320 300,280" fill="#bdc3c7" stroke="#fff" stroke-width="1.5" opacity=".9" onclick="selectTerr('Jataí','Território Neutro','#bdc3c7',2340,18.2,31)" style="cursor:pointer"/>
+              <polygon points="460,220 550,200 600,250 580,330 490,350 440,300" fill="#9b59b6" stroke="#fff" stroke-width="1.5" opacity=".9" onclick="selectTerr('Itumbiara','Território Volátil','#9b59b6',3100,21.4,42)" style="cursor:pointer"/>
+              <polygon points="70,240 120,290 100,370 40,350" fill="#c0392b" stroke="#fff" stroke-width="1.5" opacity=".9" onclick="selectTerr('Caldas Novas','Território Adversário','#c0392b',3120,22.6,38)" style="cursor:pointer"/>
+              <polygon points="220,300 300,280 360,320 340,400 260,420 200,380" fill="#5aab61" stroke="#fff" stroke-width="1.5" opacity=".9" onclick="selectTerr('Catalão','Zona de Expansão','#5aab61',2870,28.9,58)" style="cursor:pointer"/>
+              <polygon points="490,350 580,330 630,380 610,460 520,480 470,430" fill="#0d5c37" stroke="#fff" stroke-width="1.5" opacity=".9" onclick="selectTerr('Mineiros','Território Consolidado','#0d5c37',4210,37.8,75)" style="cursor:pointer"/>
+              <polygon points="120,290 200,380 170,450 100,430" fill="#f5a623" stroke="#fff" stroke-width="1.5" opacity=".9" onclick="selectTerr('Formosa','Zona em Disputa','#f5a623',2650,25.1,47)" style="cursor:pointer"/>
+              <polygon points="200,380 260,420 280,500 200,520 150,480 170,450" fill="#1a7a4a" stroke="#fff" stroke-width="1.5" opacity=".9" onclick="selectTerr('Luziânia','Zona de Força','#1a7a4a',5430,31.4,62)" style="cursor:pointer"/>
+              <text x="185" y="128" text-anchor="middle" font-size="11" font-weight="700" fill="#fff" pointer-events="none" font-family="Plus Jakarta Sans,sans-serif">Goiânia</text>
+              <text x="342" y="132" text-anchor="middle" font-size="10" font-weight="700" fill="#fff" pointer-events="none" font-family="Plus Jakarta Sans,sans-serif">Anápolis</text>
+              <text x="490" y="148" text-anchor="middle" font-size="10" font-weight="700" fill="#fff" pointer-events="none" font-family="Plus Jakarta Sans,sans-serif">Rio Verde</text>
+              <text x="545" y="412" text-anchor="middle" font-size="9" font-weight="700" fill="#fff" pointer-events="none" font-family="Plus Jakarta Sans,sans-serif">Mineiros</text>
+            </svg>
+            <div class="map-tools">
+              <button class="map-tb active">Municípios</button>
+              <button class="map-tb">Bairros</button>
+              <button class="map-tb">Zonas Eleitorais</button>
+              <button class="map-tb">Locais de Votação</button>
+            </div>
+            <div class="map-filters">
+              <select class="filter-sel" style="font-size:12px"><option>Todos os candidatos</option><option>Cand. Principal</option></select>
+              <select class="filter-sel" style="font-size:12px"><option>Todas as eleições</option><option>2024</option><option>2022</option></select>
+            </div>
+            <div class="map-zoom"><button>+</button><button>−</button></div>
+            <div class="map-attr">© OpenStreetMap · Dados: TSE 2024</div>
+          </div>
+          <div class="map-panel">
+            <div class="map-panel-hd">
+              <span class="map-panel-title" id="mp-nome">Clique em um território</span>
+              <span class="st-pill st-online"><span class="st-dot"></span>246 municípios</span>
+            </div>
+            <div class="map-panel-body" id="mp-body">
+              <p style="font-size:12px;color:var(--gray-400);margin-bottom:12px;line-height:1.6">Classificação baseada em dados históricos objetivos do TSE. Clique em qualquer município para ver detalhes.</p>
+              <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--gray-400);margin-bottom:8px">Legenda</div>
+              <div class="leg-grid">
+                <div class="leg-item"><div class="leg-dot" style="background:#0d5c37"></div>Consolidado</div>
+                <div class="leg-item"><div class="leg-dot" style="background:#1a7a4a"></div>Zona de Força</div>
+                <div class="leg-item"><div class="leg-dot" style="background:#5aab61"></div>Expansão</div>
+                <div class="leg-item"><div class="leg-dot" style="background:#f5a623"></div>Em Disputa</div>
+                <div class="leg-item"><div class="leg-dot" style="background:#c0392b"></div>Adversário</div>
+                <div class="leg-item"><div class="leg-dot" style="background:#9b59b6"></div>Volátil</div>
+                <div class="leg-item"><div class="leg-dot" style="background:#bdc3c7"></div>Neutro</div>
+              </div>
+              <div class="divider"></div>
+              <div style="font-size:11px;color:var(--gray-400);line-height:1.6"><strong style="color:var(--gray-600)">Índice de Força</strong> = média votos (50%) + tendência (30%) + consistência (20%). Escala 0–100.</div>
+              <div class="divider"></div>
+              <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--gray-400);margin-bottom:10px">Votos por Bairro · Goiânia 2024</div>
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px"><span style="font-weight:600">Setor Bueno</span><span style="color:var(--gray-500)">4.820</span></div><div class="bar-track"><div class="bar-fill" style="width:88%;background:var(--brand-600)"></div></div></div>
+                <div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px"><span style="font-weight:600">Setor Central</span><span style="color:var(--gray-500)">3.910</span></div><div class="bar-track"><div class="bar-fill" style="width:72%;background:var(--brand-500)"></div></div></div>
+                <div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px"><span style="font-weight:600">Jardim América</span><span style="color:var(--gray-500)">3.120</span></div><div class="bar-track"><div class="bar-fill" style="width:57%;background:var(--t-forca)"></div></div></div>
+                <div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px"><span style="font-weight:600">Setor Marista</span><span style="color:var(--gray-500)">2.840</span></div><div class="bar-track"><div class="bar-fill" style="width:52%;background:var(--t-forca)"></div></div></div>
+                <div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px"><span style="font-weight:600">Vila Nova</span><span style="color:var(--gray-500)">1.240</span></div><div class="bar-track"><div class="bar-fill" style="width:23%;background:var(--t-disputa)"></div></div></div>
+              </div>
+              <button class="btn btn-ghost btn-sm" style="width:100%;margin-top:10px" onclick="navigateTo('candidaturas')"><i class="fas fa-external-link-alt"></i> Ver análise completa</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ CANDIDATOS ═══════════════════════════════════════ -->
+      <div class="page" id="page-candidatos">
+        <div class="ph">
+          <div><div class="ph-title">Candidatos</div><div class="ph-sub">Candidatos e pré-candidatos cadastrados na plataforma</div></div>
+          <div class="ph-r"><button class="btn btn-primary"><i class="fas fa-plus"></i> Novo Candidato</button></div>
+        </div>
+        <div class="toolbar">
+          <div class="search-wrap"><i class="fas fa-search"></i><input class="search-inp" placeholder="Buscar por nome, partido ou município..."></div>
+          <select class="filter-sel"><option>Todos</option><option>Candidatos</option><option>Pré-candidatos</option></select>
+          <select class="filter-sel"><option>Todos os partidos</option><option>PT</option><option>PL</option><option>PSDB</option><option>MDB</option></select>
+          <select class="filter-sel"><option>Todos os cargos</option><option>Dep. Federal</option><option>Dep. Estadual</option><option>Prefeito</option><option>Vereador</option></select>
+        </div>
+        <div class="card">
+          <div class="tbl-wrap">
+            <table class="tbl">
+              <thead><tr><th>Nome</th><th>Tipo</th><th>Partido</th><th>Cargo</th><th>Município Base</th><th>Eleições</th><th style="width:150px">Índice de Força</th><th>Ações</th></tr></thead>
+              <tbody>
+                <tr><td class="td-bold">João Ferreira da Silva</td><td><span class="badge badge-blue">Candidato</span></td><td>PT</td><td>Dep. Federal</td><td>Goiânia</td><td>4</td><td><div style="display:flex;align-items:center;gap:8px"><div style="flex:1;height:5px;background:var(--gray-100);border-radius:4px;overflow:hidden"><div style="width:82%;height:100%;background:linear-gradient(90deg,var(--brand-700),var(--brand-400));border-radius:4px"></div></div><span style="font-size:12px;font-weight:800;color:var(--brand-700)">82</span></div></td><td><button class="btn btn-ghost btn-sm">Ver perfil</button></td></tr>
+                <tr><td class="td-bold">Ana Paula Rodrigues</td><td><span class="badge badge-blue">Candidata</span></td><td>PSDB</td><td>Vereadora</td><td>Anápolis</td><td>2</td><td><div style="display:flex;align-items:center;gap:8px"><div style="flex:1;height:5px;background:var(--gray-100);border-radius:4px;overflow:hidden"><div style="width:64%;height:100%;background:linear-gradient(90deg,#22c55e,#86efac);border-radius:4px"></div></div><span style="font-size:12px;font-weight:800;color:#16a34a">64</span></div></td><td><button class="btn btn-ghost btn-sm">Ver perfil</button></td></tr>
+                <tr><td class="td-bold">Maria Luíza Conceição</td><td><span class="badge badge-amber">Pré-candidata</span></td><td>MDB</td><td>Prefeita</td><td>Rio Verde</td><td>—</td><td><span style="font-size:11px;color:var(--gray-400)">Baseado no partido</span></td><td><button class="btn btn-ghost btn-sm">Ver perfil</button></td></tr>
+                <tr><td class="td-bold">Carlos Alberto Nunes</td><td><span class="badge badge-blue">Candidato</span></td><td>PL</td><td>Senador</td><td>Goiânia</td><td>3</td><td><div style="display:flex;align-items:center;gap:8px"><div style="flex:1;height:5px;background:var(--gray-100);border-radius:4px;overflow:hidden"><div style="width:51%;height:100%;background:linear-gradient(90deg,var(--t-disputa),#fcd34d);border-radius:4px"></div></div><span style="font-size:12px;font-weight:800;color:var(--warning-700)">51</span></div></td><td><button class="btn btn-ghost btn-sm">Ver perfil</button></td></tr>
+                <tr><td class="td-bold">Sandra Lima</td><td><span class="badge badge-amber">Pré-candidata</span></td><td>Solidariedade</td><td>Dep. Estadual</td><td>Aparecida de Goiânia</td><td>—</td><td><span style="font-size:11px;color:var(--gray-400)">Baseado no partido</span></td><td><button class="btn btn-ghost btn-sm">Ver perfil</button></td></tr>
+                <tr><td class="td-bold">Roberto Monteiro</td><td><span class="badge badge-blue">Candidato</span></td><td>PDT</td><td>Prefeito</td><td>Caldas Novas</td><td>2</td><td><div style="display:flex;align-items:center;gap:8px"><div style="flex:1;height:5px;background:var(--gray-100);border-radius:4px;overflow:hidden"><div style="width:34%;height:100%;background:linear-gradient(90deg,var(--t-adversario),#f87171);border-radius:4px"></div></div><span style="font-size:12px;font-weight:800;color:var(--danger-700)">34</span></div></td><td><button class="btn btn-ghost btn-sm">Ver perfil</button></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <p style="font-size:11.5px;color:var(--gray-400);margin-top:8px">Exibindo 6 de 48 candidatos · Pré-candidatos sem índice próprio — avaliação baseada em dados do partido e candidatos de perfil similar.</p>
+      </div>
+
+      <!-- ═══ PESQUISAS ════════════════════════════════════════ -->
+      <div class="page" id="page-pesquisas">
+        <div class="ph">
+          <div><div class="ph-title">Pesquisas Eleitorais</div><div class="ph-sub">Pesquisas cadastradas e importadas para cruzamento com dados históricos</div></div>
+          <div class="ph-r">
+            <button class="btn btn-secondary"><i class="fas fa-file-import"></i> Importar CSV</button>
+            <button class="btn btn-primary"><i class="fas fa-plus"></i> Nova Pesquisa</button>
+          </div>
+        </div>
+        <div class="pesq-grid">
+          <div class="pesq-card">
+            <div class="pesq-hd">
+              <div class="pesq-title">Intenção de Voto — Goiânia</div>
+              <div class="pesq-meta"><span><i class="fas fa-calendar"></i> 12 mai 2024</span><span><i class="fas fa-users"></i> n=1.240</span><span>±3,2 p.p.</span></div>
+            </div>
+            <div class="pesq-bd">
+              <div class="pesq-res"><div class="pesq-nome">João F. Silva</div><div class="pesq-track"><div class="pesq-fill" style="width:42%;background:var(--brand-600)"></div></div><div class="pesq-pct">42%</div></div>
+              <div class="pesq-res"><div class="pesq-nome">Carlos A. Nunes</div><div class="pesq-track"><div class="pesq-fill" style="width:28%;background:var(--t-adversario)"></div></div><div class="pesq-pct">28%</div></div>
+              <div class="pesq-res"><div class="pesq-nome">Ana P. Rodrigues</div><div class="pesq-track"><div class="pesq-fill" style="width:18%;background:var(--t-expansao)"></div></div><div class="pesq-pct">18%</div></div>
+              <div class="pesq-res"><div class="pesq-nome">Indecisos</div><div class="pesq-track"><div class="pesq-fill" style="width:12%;background:var(--gray-300)"></div></div><div class="pesq-pct">12%</div></div>
+            </div>
+            <div class="pesq-ft">
+              <button class="btn btn-secondary btn-sm">Cruzar histórico</button>
+              <button class="btn btn-primary btn-sm">Ver no mapa</button>
+            </div>
+          </div>
+          <div class="pesq-card">
+            <div class="pesq-hd">
+              <div class="pesq-title">Pesquisa Espontânea — Anápolis</div>
+              <div class="pesq-meta"><span><i class="fas fa-calendar"></i> 28 abr 2024</span><span><i class="fas fa-users"></i> n=820</span><span>±4,1 p.p.</span></div>
+            </div>
+            <div class="pesq-bd">
+              <div class="pesq-res"><div class="pesq-nome">Ana P. Rodrigues</div><div class="pesq-track"><div class="pesq-fill" style="width:38%;background:var(--brand-600)"></div></div><div class="pesq-pct">38%</div></div>
+              <div class="pesq-res"><div class="pesq-nome">João F. Silva</div><div class="pesq-track"><div class="pesq-fill" style="width:31%;background:var(--t-expansao)"></div></div><div class="pesq-pct">31%</div></div>
+              <div class="pesq-res"><div class="pesq-nome">Outros</div><div class="pesq-track"><div class="pesq-fill" style="width:19%;background:var(--gray-300)"></div></div><div class="pesq-pct">19%</div></div>
+              <div class="pesq-res"><div class="pesq-nome">NS / Nenhum</div><div class="pesq-track"><div class="pesq-fill" style="width:12%;background:var(--gray-200)"></div></div><div class="pesq-pct">12%</div></div>
+            </div>
+            <div class="pesq-ft">
+              <button class="btn btn-secondary btn-sm">Cruzar histórico</button>
+              <button class="btn btn-primary btn-sm">Ver no mapa</button>
+            </div>
+          </div>
+          <div class="pesq-card">
+            <div class="pesq-hd">
+              <div class="pesq-title">Interior — Sul de Goiás</div>
+              <div class="pesq-meta"><span><i class="fas fa-calendar"></i> 05 mar 2024</span><span><i class="fas fa-users"></i> n=2.140</span><span>±2,4 p.p.</span></div>
+            </div>
+            <div class="pesq-bd">
+              <div class="pesq-res"><div class="pesq-nome">João F. Silva</div><div class="pesq-track"><div class="pesq-fill" style="width:35%;background:var(--brand-600)"></div></div><div class="pesq-pct">35%</div></div>
+              <div class="pesq-res"><div class="pesq-nome">Roberto Monteiro</div><div class="pesq-track"><div class="pesq-fill" style="width:22%;background:var(--t-adversario)"></div></div><div class="pesq-pct">22%</div></div>
+              <div class="pesq-res"><div class="pesq-nome">Carlos A. Nunes</div><div class="pesq-track"><div class="pesq-fill" style="width:20%;background:var(--t-disputa)"></div></div><div class="pesq-pct">20%</div></div>
+              <div class="pesq-res"><div class="pesq-nome">Outros / NS</div><div class="pesq-track"><div class="pesq-fill" style="width:23%;background:var(--gray-300)"></div></div><div class="pesq-pct">23%</div></div>
+            </div>
+            <div class="pesq-ft">
+              <button class="btn btn-secondary btn-sm">Cruzar histórico</button>
+              <button class="btn btn-primary btn-sm">Ver no mapa</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ COMPARAÇÃO ═══════════════════════════════════════ -->
+      <div class="page" id="page-comparacao">
+        <div class="ph">
+          <div><div class="ph-title">Comparação de Eleições</div><div class="ph-sub">Variação de desempenho entre dois ciclos eleitorais por território</div></div>
+          <div class="ph-r"><button class="btn btn-secondary"><i class="fas fa-download"></i> Exportar CSV</button></div>
+        </div>
+        <div class="two-col" style="margin-bottom:16px">
+          <div class="card"><div class="card-hd"><div class="card-title">Eleição Base</div></div><div class="card-bd"><select class="form-sel"><option>Eleição 2022 — Dep. Federal</option><option>Eleição 2020 — Vereador</option></select></div></div>
+          <div class="card"><div class="card-hd"><div class="card-title">Eleição Comparada</div></div><div class="card-bd"><select class="form-sel"><option>Eleição 2024 — Dep. Federal</option><option>Eleição 2018 — Dep. Estadual</option></select></div></div>
+        </div>
+        <div class="card">
+          <div class="card-hd"><div><div class="card-title">Variação por Município — 2022 vs 2024</div><div class="card-sub">João Ferreira da Silva · PT · Deputado Federal</div></div></div>
+          <div class="tbl-wrap">
+            <table class="tbl">
+              <thead><tr><th>Município</th><th>Votos 2022</th><th>% 2022</th><th>Votos 2024</th><th>% 2024</th><th>Var. Absoluta</th><th>Var. p.p.</th><th>Tendência</th></tr></thead>
+              <tbody>
+                <tr><td class="td-bold">Goiânia</td><td>68.391</td><td>34,1%</td><td>79.840</td><td>38,2%</td><td class="tag-up">+11.449</td><td class="tag-up">+4,1 p.p.</td><td><span class="badge badge-forca"><i class="fas fa-arrow-up"></i>Crescimento</span></td></tr>
+                <tr><td class="td-bold">Anápolis</td><td>10.820</td><td>34,4%</td><td>12.180</td><td>41,7%</td><td class="tag-up">+1.360</td><td class="tag-up">+7,3 p.p.</td><td><span class="badge badge-forca"><i class="fas fa-arrow-up"></i>Crescimento</span></td></tr>
+                <tr><td class="td-bold">Aparecida de Goiânia</td><td>8.120</td><td>31,5%</td><td>7.340</td><td>29,1%</td><td class="tag-dn">–780</td><td class="tag-dn">–2,4 p.p.</td><td><span class="badge badge-disputa"><i class="fas fa-minus"></i>Estável/queda</span></td></tr>
+                <tr><td class="td-bold">Rio Verde</td><td>5.810</td><td>22,6%</td><td>8.920</td><td>35,4%</td><td class="tag-up">+3.110</td><td class="tag-up">+12,8 p.p.</td><td><span class="badge badge-expansao"><i class="fas fa-arrow-up"></i>Forte crescimento</span></td></tr>
+                <tr><td class="td-bold">Caldas Novas</td><td>3.840</td><td>27,7%</td><td>3.120</td><td>22,6%</td><td class="tag-dn">–720</td><td class="tag-dn">–5,1 p.p.</td><td><span class="badge badge-adversario"><i class="fas fa-arrow-down"></i>Queda</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ IMPORTAÇÃO ═══════════════════════════════════════ -->
+      <div class="page" id="page-importacao">
+        <div class="ph">
+          <div><div class="ph-title">Importação de Dados</div><div class="ph-sub">Importar arquivos CSV do TSE e pesquisas eleitorais</div></div>
+        </div>
+        <div class="two-col">
+          <div>
+            <div class="upload-area" onclick="toast('Selecionar arquivo...','success')">
+              <i class="fas fa-folder-open"></i>
+              <div class="upload-title">Arraste o arquivo CSV aqui</div>
+              <div class="upload-hint">ou clique para selecionar · votacao_secao_AAAA_UF.csv</div>
+              <div style="margin-top:14px"><button class="btn btn-primary" onclick="event.stopPropagation()"><i class="fas fa-upload"></i> Selecionar arquivo</button></div>
+            </div>
+            <div class="card">
+              <div class="card-hd"><div class="card-title">Configurações da Importação</div></div>
+              <div class="card-bd">
+                <div class="form-g"><label class="form-lbl">Tipo de arquivo</label><select class="form-sel"><option>Votação por Seção Eleitoral (TSE)</option><option>Pesquisa Eleitoral (CSV próprio)</option><option>Dados Geográficos (GeoJSON)</option></select></div>
+                <div class="form-g"><label class="form-lbl">Eleição de referência</label><select class="form-sel"><option>2024 — Eleições Gerais</option><option>2022 — Eleições Gerais</option><option>2020 — Eleições Municipais</option></select></div>
+                <button class="btn btn-primary" style="width:100%" onclick="toast('Importação iniciada!','success')"><i class="fas fa-play"></i> Iniciar Importação</button>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:13px;font-weight:700;color:var(--gray-900);margin-bottom:12px">Histórico de Importações</div>
+            <div class="imp-row"><div class="imp-ico">📄</div><div class="imp-info"><div class="imp-name">votacao_secao_2024_GO.csv</div><div class="imp-meta">02 jun 2024 · 629 MB · 12.847 registros · por Vinícius S.</div></div><span class="status-dot sd-ok">Concluído</span></div>
+            <div class="imp-row"><div class="imp-ico">📄</div><div class="imp-info"><div class="imp-name">pesquisa_gyn_maio2024.csv</div><div class="imp-meta">01 jun 2024 · 48 KB · 1.240 registros · por Vinícius S.</div></div><span class="status-dot sd-ok">Concluído</span></div>
+            <div class="imp-row"><div class="imp-ico">📄</div><div class="imp-info"><div class="imp-name">votacao_secao_2022_GO.csv</div><div class="imp-meta">15 mar 2024 · 367 MB · 11.204 registros · por Vinícius S.</div></div><span class="status-dot sd-ok">Concluído</span></div>
+            <div class="imp-row"><div class="imp-ico">📄</div><div class="imp-info"><div class="imp-name">pesquisa_interior_sul_go.csv</div><div class="imp-meta">10 fev 2024 · 82 KB · 2.140 registros · por Ana P.</div></div><span class="status-dot sd-warn">2 avisos</span></div>
+            <div class="imp-row"><div class="imp-ico">🗺️</div><div class="imp-info"><div class="imp-name">municipios_go.geojson</div><div class="imp-meta">02 jan 2024 · 14 MB · 246 municípios · por Vinícius S.</div></div><span class="status-dot sd-ok">Concluído</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ USUÁRIOS ══════════════════════════════════════════ -->
+      <div class="page" id="page-usuarios">
+        <div class="ph">
+          <div><div class="ph-title">Usuários</div><div class="ph-sub">Controle de acesso e perfis · instalação single-tenant</div></div>
+          <div class="ph-r"><button class="btn btn-primary" onclick="toast('Abrir formulário de novo usuário','success')"><i class="fas fa-plus"></i> Novo Usuário</button></div>
+        </div>
+        <div class="card">
+          <div class="card-bd" style="padding:16px">
+            <div class="toolbar">
+              <div class="search-wrap"><i class="fas fa-search"></i><input class="search-inp" placeholder="Buscar usuário..."></div>
+              <select class="filter-sel"><option>Todos os perfis</option><option>Administrador</option><option>Analista</option><option>Visualizador</option></select>
+            </div>
+          </div>
+          <div class="tbl-wrap">
+            <table class="tbl">
+              <thead><tr><th>Usuário</th><th>E-mail</th><th>Perfil</th><th>Último acesso</th><th>Status</th><th>Ações</th></tr></thead>
+              <tbody>
+                <tr>
+                  <td><div style="display:flex;align-items:center;gap:10px"><div style="width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,var(--brand-500),var(--brand-800));display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:700;flex-shrink:0">VS</div><span class="td-bold">Vinícius Soares</span></div></td>
+                  <td style="color:var(--gray-500)">vinicius@campanha.com.br</td>
+                  <td><span class="badge badge-blue"><i class="fas fa-shield-halved"></i>Administrador</span></td>
+                  <td style="color:var(--gray-400);font-size:12.5px">Agora</td>
+                  <td><span class="badge badge-green"><i class="fas fa-circle" style="font-size:6px"></i>Ativo</span></td>
+                  <td><button class="btn btn-ghost btn-sm">Editar</button></td>
+                </tr>
+                <tr>
+                  <td><div style="display:flex;align-items:center;gap:10px"><div style="width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,var(--brand-500),var(--brand-800));display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:700;flex-shrink:0">AP</div><span class="td-bold">Ana Paula</span></div></td>
+                  <td style="color:var(--gray-500)">ana@campanha.com.br</td>
+                  <td><span class="badge badge-blue"><i class="fas fa-chart-bar"></i>Analista</span></td>
+                  <td style="color:var(--gray-400);font-size:12.5px">Ontem 14h32</td>
+                  <td><span class="badge badge-green"><i class="fas fa-circle" style="font-size:6px"></i>Ativo</span></td>
+                  <td><button class="btn btn-ghost btn-sm">Editar</button></td>
+                </tr>
+                <tr>
+                  <td><div style="display:flex;align-items:center;gap:10px"><div style="width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#64748b,#475569);display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:700;flex-shrink:0">CM</div><span class="td-bold">Carlos Monteiro</span></div></td>
+                  <td style="color:var(--gray-500)">carlos@campanha.com.br</td>
+                  <td><span class="badge badge-gray"><i class="fas fa-eye"></i>Visualizador</span></td>
+                  <td style="color:var(--gray-400);font-size:12.5px">03 mai 2024</td>
+                  <td><span class="badge badge-green"><i class="fas fa-circle" style="font-size:6px"></i>Ativo</span></td>
+                  <td><button class="btn btn-ghost btn-sm">Editar</button></td>
+                </tr>
+                <tr>
+                  <td><div style="display:flex;align-items:center;gap:10px"><div style="width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#64748b,#475569);display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:700;flex-shrink:0">SL</div><span class="td-bold">Sandra Lima</span></div></td>
+                  <td style="color:var(--gray-500)">sandra@campanha.com.br</td>
+                  <td><span class="badge badge-gray"><i class="fas fa-eye"></i>Visualizador</span></td>
+                  <td style="color:var(--gray-400);font-size:12.5px">—</td>
+                  <td><span class="badge badge-amber"><i class="fas fa-circle" style="font-size:6px"></i>Inativo</span></td>
+                  <td><button class="btn btn-ghost btn-sm">Editar</button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ ELEIÇÕES ══════════════════════════════════════════ -->
+      <div class="page" id="page-eleicoes">
+        <div class="ph">
+          <div><div class="ph-title">Eleições</div><div class="ph-sub">Ciclos eleitorais cadastrados — cada eleição cobre múltiplos cargos</div></div>
+          <div class="ph-r"><button class="btn btn-primary" onclick="toast('Abrir formulário de nova eleição','success')"><i class="fas fa-plus"></i> Nova Eleição</button></div>
+        </div>
+
+        <div style="background:var(--brand-50);border:1px solid var(--brand-100);border-radius:var(--r-md);padding:12px 16px;margin-bottom:20px;display:flex;align-items:flex-start;gap:10px">
+          <i class="fas fa-circle-info" style="color:var(--brand-500);margin-top:1px;flex-shrink:0"></i>
+          <span style="font-size:13px;color:var(--brand-700);line-height:1.6">Uma <strong>eleição</strong> representa o contexto geral (ano + UF + turno). O cargo específico fica na <strong>candidatura</strong>. Por exemplo: a eleição "2024 · GO · 1º Turno" contém os cargos Governador, Senador, Dep. Federal e Dep. Estadual — cada um vinculado a candidatos diferentes.</span>
+        </div>
+
+        <div class="card">
+          <div class="tbl-wrap">
+            <table class="tbl">
+              <thead><tr><th>Ano</th><th>UF</th><th>Turno</th><th>Tipo</th><th>Data</th><th>CD Eleição TSE</th><th>Candidaturas</th><th>Status</th><th>Ações</th></tr></thead>
+              <tbody>
+                <tr>
+                  <td class="td-bold">2024</td><td>GO</td><td>1º</td>
+                  <td><span class="badge badge-blue">Estadual / Federal</span></td>
+                  <td style="color:var(--gray-500)">06/10/2024</td>
+                  <td style="font-family:monospace;font-size:12px">544</td>
+                  <td>
+                    <div style="display:flex;flex-wrap:wrap;gap:4px">
+                      <span class="badge badge-gray" style="font-size:10px">Governador</span>
+                      <span class="badge badge-gray" style="font-size:10px">Senador</span>
+                      <span class="badge badge-gray" style="font-size:10px">Dep. Federal</span>
+                      <span class="badge badge-gray" style="font-size:10px">Dep. Estadual</span>
+                    </div>
+                  </td>
+                  <td><span class="badge badge-green"><i class="fas fa-circle" style="font-size:6px"></i>Importada</span></td>
+                  <td><button class="btn btn-ghost btn-sm" onclick="navigateTo('candidaturas')">Ver candidaturas</button></td>
+                </tr>
+                <tr>
+                  <td class="td-bold">2022</td><td>GO</td><td>1º</td>
+                  <td><span class="badge badge-blue">Estadual / Federal</span></td>
+                  <td style="color:var(--gray-500)">02/10/2022</td>
+                  <td style="font-family:monospace;font-size:12px">486</td>
+                  <td>
+                    <div style="display:flex;flex-wrap:wrap;gap:4px">
+                      <span class="badge badge-gray" style="font-size:10px">Dep. Federal</span>
+                      <span class="badge badge-gray" style="font-size:10px">Dep. Estadual</span>
+                    </div>
+                  </td>
+                  <td><span class="badge badge-green"><i class="fas fa-circle" style="font-size:6px"></i>Importada</span></td>
+                  <td><button class="btn btn-ghost btn-sm" onclick="navigateTo('candidaturas')">Ver candidaturas</button></td>
+                </tr>
+                <tr>
+                  <td class="td-bold">2020</td><td>GO</td><td>1º</td>
+                  <td><span class="badge badge-amber">Municipal</span></td>
+                  <td style="color:var(--gray-500)">15/11/2020</td>
+                  <td style="font-family:monospace;font-size:12px">426</td>
+                  <td>
+                    <div style="display:flex;flex-wrap:wrap;gap:4px">
+                      <span class="badge badge-gray" style="font-size:10px">Prefeito</span>
+                      <span class="badge badge-gray" style="font-size:10px">Vereador</span>
+                    </div>
+                  </td>
+                  <td><span class="badge badge-green"><i class="fas fa-circle" style="font-size:6px"></i>Importada</span></td>
+                  <td><button class="btn btn-ghost btn-sm">Ver candidaturas</button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ CANDIDATURAS ══════════════════════════════════════ -->
+      <div class="page" id="page-candidaturas">
+        <div class="ph">
+          <div><div class="ph-title">Candidaturas</div><div class="ph-sub">Vínculo entre candidato cadastrado e dados eleitorais do TSE via SQ_CANDIDATO</div></div>
+          <div class="ph-r">
+            <button class="btn btn-primary" onclick="document.getElementById('modal-cand').classList.add('open')"><i class="fas fa-plus"></i> Nova Candidatura</button>
+          </div>
+        </div>
+
+        <div style="background:var(--brand-50);border:1px solid var(--brand-100);border-radius:var(--r-md);padding:12px 16px;margin-bottom:20px;display:flex;align-items:flex-start;gap:10px">
+          <i class="fas fa-circle-info" style="color:var(--brand-500);margin-top:1px;flex-shrink:0"></i>
+          <span style="font-size:13px;color:var(--brand-700);line-height:1.6">O <strong>SQ_CANDIDATO</strong> é o número sequencial gerado internamente pelo TSE para cada candidato por eleição. Ele é a chave que liga o candidato cadastrado aqui aos votos importados do CSV do TSE. Consulte o campo <code style="background:var(--brand-100);padding:1px 5px;border-radius:4px">SQ_CANDIDATO</code> no arquivo CSV para encontrar o valor correto.</span>
+        </div>
+
+        <div class="toolbar">
+          <div class="search-wrap"><i class="fas fa-search"></i><input class="search-inp" placeholder="Buscar candidato ou eleição..."></div>
+          <select class="filter-sel"><option>Todas as eleições</option><option>2024 · GO · 1º Turno</option><option>2022 · GO · 1º Turno</option></select>
+          <select class="filter-sel"><option>Todos os cargos</option><option>Dep. Federal</option><option>Dep. Estadual</option><option>Governador</option></select>
+        </div>
+
+        <div class="card">
+          <div class="tbl-wrap">
+            <table class="tbl">
+              <thead><tr><th>Candidato</th><th>Eleição</th><th>Cargo</th><th>Partido</th><th>SQ_CANDIDATO (TSE)</th><th>Nº Urna</th><th>Nome na Urna (TSE)</th><th>Situação</th><th>Ações</th></tr></thead>
+              <tbody>
+                <tr>
+                  <td class="td-bold">João Ferreira da Silva</td>
+                  <td><span class="badge badge-blue" style="font-size:11px">2024 · GO · 1º</span></td>
+                  <td>Dep. Federal</td><td>PT</td>
+                  <td><code style="font-size:12px;background:var(--brand-50);padding:2px 7px;border-radius:4px;color:var(--brand-700)">280000614682</code></td>
+                  <td style="font-family:monospace">13123</td>
+                  <td style="font-size:12px;color:var(--gray-500)">JOÃO FERREIRA</td>
+                  <td><span class="badge badge-forca"><i class="fas fa-check"></i>Eleito</span></td>
+                  <td><button class="btn btn-ghost btn-sm">Detalhes</button></td>
+                </tr>
+                <tr>
+                  <td class="td-bold">João Ferreira da Silva</td>
+                  <td><span class="badge badge-blue" style="font-size:11px">2022 · GO · 1º</span></td>
+                  <td>Dep. Federal</td><td>PT</td>
+                  <td><code style="font-size:12px;background:var(--brand-50);padding:2px 7px;border-radius:4px;color:var(--brand-700)">260000512401</code></td>
+                  <td style="font-family:monospace">13123</td>
+                  <td style="font-size:12px;color:var(--gray-500)">JOÃO FERREIRA</td>
+                  <td><span class="badge badge-forca"><i class="fas fa-check"></i>Eleito</span></td>
+                  <td><button class="btn btn-ghost btn-sm">Detalhes</button></td>
+                </tr>
+                <tr>
+                  <td class="td-bold">Ana Paula Rodrigues</td>
+                  <td><span class="badge badge-blue" style="font-size:11px">2024 · GO · 1º</span></td>
+                  <td>Dep. Estadual</td><td>PSDB</td>
+                  <td><code style="font-size:12px;background:var(--brand-50);padding:2px 7px;border-radius:4px;color:var(--brand-700)">280000721934</code></td>
+                  <td style="font-family:monospace">45200</td>
+                  <td style="font-size:12px;color:var(--gray-500)">ANA PAULA</td>
+                  <td><span class="badge badge-expansao"><i class="fas fa-check"></i>Eleita</span></td>
+                  <td><button class="btn btn-ghost btn-sm">Detalhes</button></td>
+                </tr>
+                <tr>
+                  <td class="td-bold">Carlos Alberto Nunes</td>
+                  <td><span class="badge badge-blue" style="font-size:11px">2024 · GO · 1º</span></td>
+                  <td>Senador</td><td>PL</td>
+                  <td><code style="font-size:12px;background:var(--brand-50);padding:2px 7px;border-radius:4px;color:var(--brand-700)">280000498271</code></td>
+                  <td style="font-family:monospace">22222</td>
+                  <td style="font-size:12px;color:var(--gray-500)">CARLOS NUNES</td>
+                  <td><span class="badge badge-gray">Não eleito</span></td>
+                  <td><button class="btn btn-ghost btn-sm">Detalhes</button></td>
+                </tr>
+                <tr>
+                  <td class="td-bold">Maria Luíza Conceição</td>
+                  <td colspan="7" style="color:var(--gray-400);font-style:italic;font-size:12px">Pré-candidata — sem candidatura registrada. SQ_CANDIDATO será informado após a candidatura oficial.</td>
+                  <td><button class="btn btn-ghost btn-sm">Vincular</button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ GEOGRAFIA ═════════════════════════════════════════ -->
+      <div class="page" id="page-geografia">
+        <div class="ph">
+          <div><div class="ph-title">Geografia</div><div class="ph-sub">Polígonos geográficos e geocodificação dos locais de votação</div></div>
+          <div class="ph-r">
+            <button class="btn btn-secondary" onclick="toast('Importar GeoJSON de municípios','success')"><i class="fas fa-upload"></i> Importar GeoJSON</button>
+          </div>
+        </div>
+
+        <div class="two-col" style="margin-bottom:16px">
+          <div class="card">
+            <div class="card-hd"><div class="card-title">Status dos Polígonos</div></div>
+            <div class="card-bd">
+              <div class="bar-row" style="margin-bottom:16px">
+                <div class="bar-meta"><span class="bar-name">Municípios com polígono</span><span class="bar-ct">246 / 246</span></div>
+                <div class="bar-track"><div class="bar-fill" style="width:100%;background:var(--t-forca)"></div></div>
+              </div>
+              <div class="bar-row" style="margin-bottom:16px">
+                <div class="bar-meta"><span class="bar-name">Bairros com polígono</span><span class="bar-ct">142 / 312</span></div>
+                <div class="bar-track"><div class="bar-fill" style="width:46%;background:var(--brand-500)"></div></div>
+              </div>
+              <div class="bar-row" style="margin-bottom:16px">
+                <div class="bar-meta"><span class="bar-name">Zonas com polígono</span><span class="bar-ct">38 / 87</span></div>
+                <div class="bar-track"><div class="bar-fill" style="width:44%;background:var(--t-disputa)"></div></div>
+              </div>
+              <div class="bar-row">
+                <div class="bar-meta"><span class="bar-name">Locais geocodificados</span><span class="bar-ct">3.841 / 4.102</span></div>
+                <div class="bar-track"><div class="bar-fill" style="width:93%;background:var(--brand-600)"></div></div>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-hd"><div class="card-title">Geocodificação em Lote</div></div>
+            <div class="card-bd">
+              <p style="font-size:13px;color:var(--gray-600);margin-bottom:16px;line-height:1.6">261 locais de votação ainda sem coordenadas geográficas. O processo consulta a API Nominatim (OpenStreetMap) para converter o endereço em lat/lng.</p>
+              <div style="background:var(--gray-50);border-radius:var(--r-md);padding:12px;margin-bottom:14px;font-size:12px;color:var(--gray-500)">
+                <strong style="color:var(--gray-700)">Endereço de exemplo:</strong><br>
+                <code>AV INDEPENDÊNCIA, 600, SETOR CENTRAL, GOIÂNIA, GO</code><br>
+                <span style="color:var(--brand-600)">→ lat: -16.6864, lng: -49.2643</span>
+              </div>
+              <button class="btn btn-primary" style="width:100%" onclick="toast('Geocodificação iniciada — 261 endereços','success')"><i class="fas fa-location-dot"></i> Geocodificar pendentes (261)</button>
+              <p style="font-size:11px;color:var(--gray-400);margin-top:8px">Após geocodificação, o PostGIS vincula automaticamente cada local ao bairro correspondente via ST_Within.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-hd">
+            <div><div class="card-title">Locais de Votação — Status de Geocodificação</div><div class="card-sub">Goiânia · Zona 1</div></div>
+            <div style="display:flex;gap:8px">
+              <select class="filter-sel" style="font-size:12px"><option>Todos os status</option><option>Geocodificado</option><option>Pendente</option><option>Erro</option></select>
+              <select class="filter-sel" style="font-size:12px"><option>Todos os municípios</option><option>Goiânia</option><option>Anápolis</option></select>
+            </div>
+          </div>
+          <div class="tbl-wrap">
+            <table class="tbl">
+              <thead><tr><th>Nº Local</th><th>Nome</th><th>Endereço (TSE)</th><th>Zona</th><th>Bairro</th><th>Lat / Lng</th><th>Status</th></tr></thead>
+              <tbody>
+                <tr>
+                  <td style="font-family:monospace">1042</td>
+                  <td class="td-bold">Escola Est. Hugo de Carvalho</td>
+                  <td style="font-size:12px;color:var(--gray-500)">R. 68, 300, Setor Central, Goiânia</td>
+                  <td>Zona 1</td>
+                  <td><span class="badge badge-gray" style="font-size:10px">Setor Central</span></td>
+                  <td style="font-family:monospace;font-size:12px;color:var(--brand-700)">-16.686, -49.264</td>
+                  <td><span class="status-dot sd-ok">Geocodificado</span></td>
+                </tr>
+                <tr>
+                  <td style="font-family:monospace">1087</td>
+                  <td class="td-bold">Colégio Est. Jardim América</td>
+                  <td style="font-size:12px;color:var(--gray-500)">AV C-7, 450, Jardim América, Goiânia</td>
+                  <td>Zona 3</td>
+                  <td><span class="badge badge-gray" style="font-size:10px">Jardim América</span></td>
+                  <td style="font-family:monospace;font-size:12px;color:var(--brand-700)">-16.714, -49.271</td>
+                  <td><span class="status-dot sd-ok">Geocodificado</span></td>
+                </tr>
+                <tr>
+                  <td style="font-family:monospace">2031</td>
+                  <td class="td-bold">Escola Mun. Vila Nova</td>
+                  <td style="font-size:12px;color:var(--gray-500)">RUA S/N, VILA NOVA, GOIÂNIA</td>
+                  <td>Zona 5</td>
+                  <td><span style="font-size:11px;color:var(--gray-400)">—</span></td>
+                  <td style="font-size:11px;color:var(--gray-400)">pendente</td>
+                  <td><span class="status-dot sd-warn">Pendente</span></td>
+                </tr>
+                <tr>
+                  <td style="font-family:monospace">3014</td>
+                  <td class="td-bold">Ginásio Setor Norte</td>
+                  <td style="font-size:12px;color:var(--gray-500)">AV NORTE, 1200, SETOR NORTE</td>
+                  <td>Zona 7</td>
+                  <td><span class="badge badge-gray" style="font-size:10px">Setor Norte</span></td>
+                  <td style="font-family:monospace;font-size:12px;color:var(--brand-700)">-16.642, -49.258</td>
+                  <td><span class="status-dot sd-ok">Geocodificado</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ MODAL NOVA CANDIDATURA ════════════════════════════ -->
+      <div class="modal-overlay" id="modal-cand">
+        <div class="modal" style="max-width:600px">
+          <div class="modal-hd">
+            <div class="modal-title">Nova Candidatura</div>
+            <button class="modal-close" onclick="document.getElementById('modal-cand').classList.remove('open')"><i class="fas fa-times"></i></button>
+          </div>
+          <div class="modal-bd">
+            <div style="background:var(--brand-50);border:1px solid var(--brand-100);border-radius:var(--r-md);padding:12px 14px;margin-bottom:20px;font-size:13px;color:var(--brand-700);line-height:1.6">
+              <i class="fas fa-circle-info" style="margin-right:6px"></i>
+              Para vincular o candidato ao TSE, localize o <strong>SQ_CANDIDATO</strong> no arquivo CSV da eleição (campo <code style="background:var(--brand-100);padding:1px 5px;border-radius:4px">SQ_CANDIDATO</code>). Esse número é o identificador único por candidato por eleição.
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+              <div class="form-g"><label class="form-lbl">Candidato cadastrado</label>
+                <select class="form-sel"><option>João Ferreira da Silva</option><option>Ana Paula Rodrigues</option><option>Carlos Alberto Nunes</option><option>Maria Luíza Conceição</option></select>
+              </div>
+              <div class="form-g"><label class="form-lbl">Eleição</label>
+                <select class="form-sel"><option>2024 · GO · 1º Turno</option><option>2022 · GO · 1º Turno</option><option>2020 · GO · 1º Turno</option></select>
+              </div>
+              <div class="form-g"><label class="form-lbl">Cargo</label>
+                <select class="form-sel"><option>Deputado Federal</option><option>Deputado Estadual</option><option>Senador</option><option>Governador</option><option>Prefeito</option><option>Vereador</option></select>
+              </div>
+              <div class="form-g"><label class="form-lbl">Partido na eleição</label>
+                <select class="form-sel"><option>PT</option><option>PL</option><option>PSDB</option><option>MDB</option><option>PDT</option></select>
+              </div>
+            </div>
+            <div style="border-top:1px solid var(--gray-100);padding-top:18px;margin-top:6px">
+              <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--gray-500);margin-bottom:12px">Dados do TSE — localizar no CSV</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px">
+                <div class="form-g">
+                  <label class="form-lbl" style="color:var(--brand-700)">SQ_CANDIDATO ★</label>
+                  <input class="form-inp" placeholder="ex: 280000614682" style="border-color:var(--brand-300);font-family:monospace">
+                  <span style="font-size:10px;color:var(--brand-600)">Chave principal de vínculo</span>
+                </div>
+                <div class="form-g">
+                  <label class="form-lbl">NR_VOTAVEL</label>
+                  <input class="form-inp" placeholder="ex: 13123" style="font-family:monospace">
+                  <span style="font-size:10px;color:var(--gray-400)">Número nas urnas</span>
+                </div>
+                <div class="form-g">
+                  <label class="form-lbl">NM_VOTAVEL (TSE)</label>
+                  <input class="form-inp" placeholder="ex: JOÃO FERREIRA">
+                  <span style="font-size:10px;color:var(--gray-400)">Nome exato nas urnas</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-ft">
+            <button class="btn btn-secondary" onclick="document.getElementById('modal-cand').classList.remove('open')">Cancelar</button>
+            <button class="btn btn-primary" onclick="toast('Candidatura criada e vinculada ao TSE!','success');document.getElementById('modal-cand').classList.remove('open')"><i class="fas fa-link"></i> Criar Candidatura</button>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /content-area -->
+  </div><!-- /app-body -->
+</div><!-- /screen-app -->
+
+<div class="toast-wrap" id="toast-wrap"></div>
+
+<script>
+const CREDS = [
+  {email:'admin@pite.com',         pass:'Admin@2025',  name:'Vinícius Soares', role:'Administrador'},
+  {email:'analista@pite.com',      pass:'Ana@123',     name:'Ana Paula',       role:'Analista'},
+  {email:'visualizador@pite.com',  pass:'Vis@123',     name:'Carlos Monteiro', role:'Visualizador'},
+];
+const $ = id => document.getElementById(id);
+const ini = n => n.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+let currentUser = null;
+
+function fillLogin(e,p){$('l-user').value=e;$('l-pass').value=p}
+
+function toast(msg,type='success'){
+  const icons={success:'fa-circle-check',error:'fa-circle-exclamation',warning:'fa-triangle-exclamation'};
+  const t=document.createElement('div');
+  t.className=`toast ${type}`;
+  t.innerHTML=`<i class="fas ${icons[type]}"></i><span>${msg}</span>`;
+  $('toast-wrap').appendChild(t);
+  setTimeout(()=>t.remove(),3500);
+}
+
+$('l-eye').addEventListener('click',()=>{
+  const i=$('l-pass');i.type=i.type==='password'?'text':'password';
+  $('l-eye').className=`fas fa-eye${i.type==='text'?'-slash':''} lf-eye`;
+});
+
+function doLogin(){
+  const u=$('l-user').value.trim(), p=$('l-pass').value;
+  const found=CREDS.find(c=>c.email===u&&c.pass===p);
+  const err=$('l-err');
+  if(found){
+    currentUser=found; err.style.display='none';
+    $('screen-login').style.display='none';
+    const ws=$('screen-welcome');
+    ws.style.display='flex';
+    $('wc-av').textContent=ini(found.name);
+    $('wc-name').textContent=`Olá, ${found.name.split(' ')[0]}`;
+    $('wc-role').textContent=`${found.role} · PITE`;
+  } else {
+    err.style.display='flex';
+    $('l-err-msg').textContent='Credenciais inválidas. Verifique e tente novamente.';
+    $('l-pass').value='';$('l-pass').focus();
+  }
+}
+$('l-btn').addEventListener('click',doLogin);
+$('l-pass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()});
+
+$('wc-btn').addEventListener('click',()=>{
+  $('screen-welcome').style.display='none';
+  $('screen-app').classList.add('visible');
+  if(currentUser){
+    $('sb-av').textContent=ini(currentUser.name);
+    $('tb-av').textContent=ini(currentUser.name);
+    $('sb-name').textContent=currentUser.name.split(' ')[0]+' '+currentUser.name.split(' ').slice(-1)[0];
+    $('sb-role').textContent=currentUser.role;
+  }
+});
+
+const PAGE_NAMES={painel:'Painel Principal',mapa:'Mapa Territorial',candidatos:'Candidatos',pesquisas:'Pesquisas Eleitorais',comparacao:'Comparação de Eleições',eleicoes:'Eleições',candidaturas:'Candidaturas',importacao:'Importação de Dados',geografia:'Geografia · Geocodificação',usuarios:'Usuários'};
+
+function navigateTo(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.sb-link').forEach(l=>l.classList.remove('active'));
+  const p=$('page-'+id); if(p)p.classList.add('active');
+  const n=document.querySelector(`[data-page="${id}"]`); if(n)n.classList.add('active');
+  $('bc-cur').textContent=PAGE_NAMES[id]||id;
+}
+
+document.querySelectorAll('[data-page]').forEach(l=>{
+  l.addEventListener('click',()=>navigateTo(l.dataset.page));
+});
+
+$('logout-btn').addEventListener('click',()=>{
+  $('screen-app').classList.remove('visible');
+  $('screen-login').style.display='flex';
+  $('l-user').value='';$('l-pass').value='';
+  $('l-err').style.display='none';
+  toast('Sessão encerrada com segurança.');
+});
+
+/* Botões de mapa */
+document.querySelectorAll('.map-tb').forEach(b=>{
+  b.addEventListener('click',()=>{
+    document.querySelectorAll('.map-tb').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+  });
+});
+
+/* Painel lateral do mapa */
+function selectTerr(nome,classif,cor,votos,pct,indice){
+  $('mp-nome').textContent=nome;
+  $('mp-body').innerHTML=`
+    <span class="class-badge" style="background:${cor}">${classif}</span>
+    <div class="terr-stats">
+      <div class="stat-box"><div class="val">${votos.toLocaleString('pt-BR')}</div><div class="lbl">Votos 2024</div></div>
+      <div class="stat-box"><div class="val">${pct.toFixed(1)}%</div><div class="lbl">% Válidos</div></div>
+    </div>
+    <div class="idx-bar">
+      <div class="idx-top"><span style="font-weight:700">Índice de Força</span><span style="font-size:14px;font-weight:800;color:var(--brand-700)">${indice}/100</span></div>
+      <div class="idx-track"><div class="idx-fill" style="width:${indice}%"></div></div>
+    </div>
+    <div style="font-size:12px;font-weight:700;color:var(--gray-700);margin-bottom:8px">Histórico de Votos</div>
+    <table class="hist-tbl">
+      <thead><tr><th>Eleição</th><th>Votos</th><th>%</th><th>Var.</th></tr></thead>
+      <tbody>
+        <tr><td>2024</td><td>${votos.toLocaleString('pt-BR')}</td><td>${pct.toFixed(1)}%</td><td>—</td></tr>
+        <tr><td>2022</td><td>${Math.round(votos*.72).toLocaleString('pt-BR')}</td><td>${(pct-4.1).toFixed(1)}%</td><td class="tag-up">ref.</td></tr>
+        <tr><td>2020</td><td>${Math.round(votos*.56).toLocaleString('pt-BR')}</td><td>${(pct-8.6).toFixed(1)}%</td><td class="tag-up">base</td></tr>
+      </tbody>
+    </table>
+    <div style="display:flex;gap:8px;margin-top:14px">
+      <button class="btn btn-primary btn-sm" style="flex:1">Analisar</button>
+      <button class="btn btn-secondary btn-sm" onclick="$('mp-nome').textContent='Clique em um território';renderLegenda()">← Voltar</button>
+    </div>`;
+}
+function renderLegenda(){
+  $('mp-body').innerHTML=`<p style="font-size:12px;color:var(--gray-400);margin-bottom:12px;line-height:1.6">Classificação baseada em dados históricos objetivos do TSE.</p>
+    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--gray-400);margin-bottom:8px">Legenda</div>
+    <div class="leg-grid">
+      <div class="leg-item"><div class="leg-dot" style="background:#0d5c37"></div>Consolidado</div>
+      <div class="leg-item"><div class="leg-dot" style="background:#1a7a4a"></div>Zona de Força</div>
+      <div class="leg-item"><div class="leg-dot" style="background:#5aab61"></div>Expansão</div>
+      <div class="leg-item"><div class="leg-dot" style="background:#f5a623"></div>Em Disputa</div>
+      <div class="leg-item"><div class="leg-dot" style="background:#c0392b"></div>Adversário</div>
+      <div class="leg-item"><div class="leg-dot" style="background:#9b59b6"></div>Volátil</div>
+      <div class="leg-item"><div class="leg-dot" style="background:#bdc3c7"></div>Neutro</div>
+    </div>
+    <div class="divider"></div>
+    <div style="font-size:11px;color:var(--gray-400);line-height:1.6"><strong style="color:var(--gray-600)">Índice de Força</strong> = média votos (50%) + tendência (30%) + consistência (20%). Escala 0–100.</div>`;
+}
+</script>
+</body>
+</html>

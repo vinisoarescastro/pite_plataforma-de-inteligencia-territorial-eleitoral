@@ -6,129 +6,190 @@
 
 ---
 
-## Entidades
+## Visão Geral do Modelo
 
-1. [municipio](#1-municipio)
-2. [zona_eleitoral](#2-zona_eleitoral)
-3. [secao_eleitoral](#3-secao_eleitoral)
-4. [local_votacao](#4-local_votacao)
-5. [bairro](#5-bairro)
-6. [partido](#6-partido)
-7. [cargo](#7-cargo)
-8. [eleicao](#8-eleicao)
-9. [candidato](#9-candidato)
-10. [candidatura](#10-candidatura)
-11. [resultado_eleitoral](#11-resultado_eleitoral)
-12. [territorio](#12-territorio)
-13. [classificacao_territorial](#13-classificacao_territorial)
-14. [pesquisa_eleitoral](#14-pesquisa_eleitoral)
-15. [resultado_pesquisa](#15-resultado_pesquisa)
-16. [usuario](#16-usuario)
-17. [fonte_dados](#17-fonte_dados)
-18. [importacao_dados](#18-importacao_dados)
-19. [indicador_eleitoral](#19-indicador_eleitoral)
+```
+uf
+ └── municipio  ←── polígono IBGE
+       ├── bairro  ←── polígono IBGE/prefeitura
+       ├── zona_eleitoral  ←── polígono TSE (opcional)
+       │     └── local_votacao  ←── lat/lng geocodificado do endereço TSE
+       │           └── secao_eleitoral
+       │                 └── resultado_eleitoral  ←── qt_votos por seção
+       │                                               (ligado via sq_candidato_tse)
+       └── ...
+
+candidato  (perfil permanente)
+ └── candidatura  ←── sq_candidato_tse: chave de ligação com os dados do TSE
+       └── resultado_eleitoral (agregado pela candidatura)
+
+eleicao  (contexto: ano + UF — cobre múltiplos cargos)
+ └── candidatura  (cargo específico dentro da eleição)
+```
+
+**Decisão de design — `sq_candidato_tse`:**  
+O campo `SQ_CANDIDATO` do CSV do TSE é o identificador sequencial único por candidato por eleição gerado internamente pela Justiça Eleitoral. É a chave de ligação entre o candidato cadastrado na plataforma e os resultados brutos importados do TSE. Mais confiável do que nome (variações de grafia) ou número (pertence ao partido, não à pessoa).
+
+**Decisão de design — eleição cobre múltiplos cargos:**  
+Uma importação do TSE (ex.: `votacao_secao_2024_GO.csv`) contém todos os cargos (Presidente, Governador, Senador, Dep. Federal, Dep. Estadual) em uma única tabela, diferenciados pelo campo `DS_CARGO`. A entidade `eleicao` representa o contexto geral (ano + UF + turno). O cargo específico fica na `candidatura`.
 
 ---
 
-## 1. `municipio`
+## Entidades
 
-**Objetivo:** Base territorial fundamental — representa os municípios brasileiros.
+1. [uf](#1-uf)
+2. [municipio](#2-municipio)
+3. [bairro](#3-bairro)
+4. [zona_eleitoral](#4-zona_eleitoral)
+5. [local_votacao](#5-local_votacao)
+6. [secao_eleitoral](#6-secao_eleitoral)
+7. [partido](#7-partido)
+8. [cargo](#8-cargo)
+9. [eleicao](#9-eleicao)
+10. [candidato](#10-candidato)
+11. [candidatura](#11-candidatura)
+12. [resultado_eleitoral](#12-resultado_eleitoral)
+13. [territorio](#13-territorio)
+14. [classificacao_territorial](#14-classificacao_territorial)
+15. [pesquisa_eleitoral](#15-pesquisa_eleitoral)
+16. [resultado_pesquisa](#16-resultado_pesquisa)
+17. [usuario](#17-usuario)
+18. [fonte_dados](#18-fonte_dados)
+19. [importacao_dados](#19-importacao_dados)
+20. [indicador_eleitoral](#20-indicador_eleitoral)
+
+---
+
+## 1. `uf`
+
+**Objetivo:** Representa as unidades federativas. Base para agrupamento geográfico e filtragem de dados do TSE.
+
+| Campo | Tipo | Descrição |
+|---|---|---|
+| `sigla` | CHAR(2) (PK) | Sigla da UF — ex.: `GO`, `SP`, `MG` |
+| `nome` | VARCHAR | Nome completo — ex.: `Goiás` |
+| `codigo_ibge` | INTEGER | Código numérico do IBGE — ex.: `52` |
+| `regiao` | ENUM | `norte`, `nordeste`, `centro_oeste`, `sudeste`, `sul` |
+
+**Observações:** Tabela de referência simples. Populada manualmente na semente inicial. A sigla da UF aparece em todos os arquivos CSV do TSE no campo `SG_UF`.
+
+---
+
+## 2. `municipio`
+
+**Objetivo:** Base territorial fundamental. Ponto de entrada para análises por município.
 
 | Campo | Tipo | Descrição |
 |---|---|---|
 | `municipio_id` | UUID (PK) | Identificador único |
-| `codigo_ibge` | VARCHAR(7) | Código oficial do IBGE |
-| `codigo_tse` | VARCHAR(6) | Código utilizado pelo TSE |
+| `sigla_uf` | CHAR(2) (FK → uf) | Estado ao qual pertence |
+| `codigo_tse` | INTEGER | `CD_MUNICIPIO` do CSV do TSE — chave de ligação com dados importados |
+| `codigo_ibge` | VARCHAR(7) | Código oficial do IBGE — chave para dados geográficos |
 | `nome` | VARCHAR | Nome do município |
-| `uf` | CHAR(2) | Sigla do estado |
-| `regiao` | VARCHAR | Norte, Nordeste, Centro-Oeste, Sudeste, Sul |
-| `populacao_estimada` | INTEGER | Estimativa populacional |
-| `geometria` | GEOMETRY | Polígono geográfico (PostGIS) |
+| `populacao_estimada` | INTEGER | Estimativa populacional (IBGE, opcional) |
+| `geometria` | GEOMETRY(Polygon, 4326) | Polígono do município em WGS84 — fonte: IBGE malha municipal |
 | `criado_em` | TIMESTAMP | Data de criação |
-| `atualizado_em` | TIMESTAMP | Data de última atualização |
+| `atualizado_em` | TIMESTAMP | Data de atualização |
 
-**Relacionamentos:** Tem muitas `zona_eleitoral`, `bairro`, `resultado_eleitoral`, `pesquisa_eleitoral`.  
-**Índices:** `codigo_ibge`, `codigo_tse`, `uf`.  
-**Observações:** Geometria em WGS84 (EPSG:4326) para uso no Leaflet. Dados provenientes do TSE e IBGE.
+**Relacionamentos:** Pertence a `uf`. Tem muitos `bairro`, `zona_eleitoral`, `local_votacao`.  
+**Índices:** `sigla_uf`, `codigo_tse`, `codigo_ibge`.  
+**Observações:** O polígono é importado do shapefile municipal do IBGE (geoftp.ibge.gov.br). Necessário para colorir municípios no mapa conforme desempenho eleitoral.
 
 ---
 
-## 2. `zona_eleitoral`
+## 3. `bairro`
+
+**Objetivo:** Granularidade territorial abaixo do município. Permite análise de votos por região urbana.
+
+| Campo | Tipo | Descrição |
+|---|---|---|
+| `bairro_id` | UUID (PK) | Identificador único |
+| `municipio_id` | UUID (FK → municipio) | Município ao qual pertence |
+| `nome` | VARCHAR | Nome do bairro |
+| `codigo_externo` | VARCHAR | Código de referência externa (IBGE ou prefeitura) |
+| `geometria` | GEOMETRY(Polygon, 4326) | Polígono do bairro em WGS84 — fonte: IBGE ou prefeitura |
+| `criado_em` | TIMESTAMP | Data de criação |
+
+**Observações:** O vínculo entre `local_votacao` e `bairro` é feito automaticamente via consulta espacial PostGIS: verifica em qual polígono de bairro a coordenada (lat/lng) do local de votação está contida. Isso elimina a necessidade de informar o bairro manualmente.
+
+```sql
+-- Vínculo automático via PostGIS
+UPDATE local_votacao lv
+SET bairro_id = b.bairro_id
+FROM bairro b
+WHERE ST_Within(
+    ST_SetSRID(ST_MakePoint(lv.longitude, lv.latitude), 4326),
+    b.geometria
+);
+```
+
+---
+
+## 4. `zona_eleitoral`
 
 **Objetivo:** Unidade de organização eleitoral do TSE subordinada ao município.
 
 | Campo | Tipo | Descrição |
 |---|---|---|
 | `zona_eleitoral_id` | UUID (PK) | Identificador único |
-| `municipio_id` | UUID (FK) | Município ao qual pertence |
-| `numero_zona` | INTEGER | Número da zona eleitoral |
+| `municipio_id` | UUID (FK → municipio) | Município ao qual pertence |
+| `sigla_uf` | CHAR(2) | Sigla do estado (redundante para queries diretas) |
+| `numero_zona` | INTEGER | `NR_ZONA` do CSV do TSE |
 | `nome_zona` | VARCHAR | Nome da zona (opcional) |
-| `uf` | CHAR(2) | Sigla do estado |
-| `geometria` | GEOMETRY | Polígono geográfico (opcional) |
+| `geometria` | GEOMETRY(Polygon, 4326) | Polígono da zona em WGS84 — fonte: shapefile TSE (opcional) |
 | `criado_em` | TIMESTAMP | Data de criação |
 
-**Relacionamentos:** Pertence a `municipio`. Tem muitas `secao_eleitoral`, `resultado_eleitoral`.  
-**Índices:** `municipio_id`, `numero_zona`, `uf`.
+**Relacionamentos:** Pertence a `municipio`. Tem muitos `local_votacao`, `secao_eleitoral`.  
+**Índices:** `municipio_id`, `numero_zona`, `sigla_uf`.  
+**Observações:** O polígono é importado do shapefile de zonas eleitorais do TSE (dadosabertos.tse.jus.br). Campo opcional — o sistema funciona sem ele, mas habilita coloração de zonas no mapa.
 
 ---
 
-## 3. `secao_eleitoral`
+## 5. `local_votacao`
 
-**Objetivo:** Menor unidade de organização eleitoral — a seção de votação.
-
-| Campo | Tipo | Descrição |
-|---|---|---|
-| `secao_eleitoral_id` | UUID (PK) | Identificador único |
-| `zona_eleitoral_id` | UUID (FK) | Zona à qual pertence |
-| `municipio_id` | UUID (FK) | Município ao qual pertence |
-| `local_votacao_id` | UUID (FK) | Local de votação (opcional) |
-| `numero_secao` | INTEGER | Número da seção |
-| `quantidade_eleitores_aptos` | INTEGER | Total de eleitores aptos |
-| `criado_em` | TIMESTAMP | Data de criação |
-
-**Relacionamentos:** Pertence a `zona_eleitoral`. Tem muitos `resultado_eleitoral`.  
-**Observações:** Resultados por seção são dados públicos — representam totais agregados por seção, não dados individuais.
-
----
-
-## 4. `local_votacao`
-
-**Objetivo:** Representa os locais físicos onde ocorre a votação.
+**Objetivo:** Local físico onde ocorre a votação. Geocodificado para exibição como marcador no mapa.
 
 | Campo | Tipo | Descrição |
 |---|---|---|
 | `local_votacao_id` | UUID (PK) | Identificador único |
-| `municipio_id` | UUID (FK) | Município |
-| `zona_eleitoral_id` | UUID (FK) | Zona eleitoral |
-| `nome_local` | VARCHAR | Nome do local |
-| `endereco` | VARCHAR | Endereço completo |
-| `bairro` | VARCHAR | Bairro |
-| `latitude` | DECIMAL | Coordenada geográfica |
-| `longitude` | DECIMAL | Coordenada geográfica |
+| `municipio_id` | UUID (FK → municipio) | Município |
+| `zona_eleitoral_id` | UUID (FK → zona_eleitoral) | Zona eleitoral |
+| `bairro_id` | UUID (FK → bairro) | Bairro — preenchido automaticamente via PostGIS |
+| `numero_tse` | INTEGER | `NR_LOCAL_VOTACAO` do CSV do TSE |
+| `nome` | VARCHAR | `NM_LOCAL_VOTACAO` do CSV do TSE |
+| `endereco` | VARCHAR | `DS_LOCAL_VOTACAO_ENDERECO` do CSV do TSE |
+| `latitude` | DECIMAL(9,6) | Latitude obtida por geocodificação do endereço |
+| `longitude` | DECIMAL(9,6) | Longitude obtida por geocodificação do endereço |
+| `geocodificado` | BOOLEAN | Indica se a geocodificação já foi realizada |
 | `criado_em` | TIMESTAMP | Data de criação |
 
-**Relacionamentos:** Tem muitas `secao_eleitoral`.
+**Relacionamentos:** Pertence a `municipio`, `zona_eleitoral`, `bairro`. Tem muitas `secao_eleitoral`.  
+**Índices:** `municipio_id`, `zona_eleitoral_id`, `bairro_id`, `numero_tse`.  
+**Observações:** O endereço vem diretamente do campo `DS_LOCAL_VOTACAO_ENDERECO` do CSV do TSE. A geocodificação é feita por um script Python usando a API Nominatim (OpenStreetMap, gratuita) ou Google Maps. Após geocodificado, o ponto lat/lng é o marcador exibido no mapa Leaflet.
 
 ---
 
-## 5. `bairro`
+## 6. `secao_eleitoral`
 
-**Objetivo:** Representa bairros para análise territorial mais fina que o município.
+**Objetivo:** Menor unidade de organização eleitoral — equivale a uma urna de votação.
 
 | Campo | Tipo | Descrição |
 |---|---|---|
-| `bairro_id` | UUID (PK) | Identificador único |
-| `municipio_id` | UUID (FK) | Município ao qual pertence |
-| `nome` | VARCHAR | Nome do bairro |
-| `codigo_externo` | VARCHAR | Código de referência externa (IBGE, prefeitura) |
-| `geometria` | GEOMETRY | Polígono geográfico (opcional) |
+| `secao_eleitoral_id` | UUID (PK) | Identificador único |
+| `zona_eleitoral_id` | UUID (FK → zona_eleitoral) | Zona à qual pertence |
+| `local_votacao_id` | UUID (FK → local_votacao) | Local físico de votação |
+| `municipio_id` | UUID (FK → municipio) | Município (redundante para queries diretas) |
+| `numero_secao` | INTEGER | `NR_SECAO` do CSV do TSE |
+| `total_eleitores_aptos` | INTEGER | Total de eleitores aptos (cadastro eleitoral TSE, opcional) |
 | `criado_em` | TIMESTAMP | Data de criação |
 
-**Observações:** Populado via IBGE, TSE ou cadastro manual. Geometria opcional mas recomendada para análises no Leaflet.
+**Relacionamentos:** Pertence a `zona_eleitoral` e `local_votacao`. Tem muitos `resultado_eleitoral`.  
+**Índices:** `zona_eleitoral_id`, `local_votacao_id`, `municipio_id`, `numero_secao`.  
+**Observações:** Dados de votos por seção são públicos (TSE). Representam totais agregados — nunca dados individuais de eleitores.
 
 ---
 
-## 6. `partido`
+## 7. `partido`
 
 **Objetivo:** Representa os partidos políticos registrados no TSE.
 
@@ -151,7 +212,7 @@
 
 ---
 
-## 7. `cargo`
+## 8. `cargo`
 
 **Objetivo:** Representa os cargos disputados em eleições brasileiras.
 
@@ -166,27 +227,30 @@
 
 ---
 
-## 8. `eleicao`
+## 9. `eleicao`
 
-**Objetivo:** Representa cada ciclo eleitoral realizado no Brasil.
+**Objetivo:** Representa um ciclo eleitoral em uma UF e turno específicos. Uma eleição cobre **múltiplos cargos** — o cargo específico fica na `candidatura`.
 
 | Campo | Tipo | Descrição |
 |---|---|---|
 | `eleicao_id` | UUID (PK) | Identificador único |
-| `ano` | INTEGER | Ano da eleição |
-| `turno` | INTEGER | 1 ou 2 |
-| `tipo_eleicao` | ENUM | municipal, estadual_federal, suplementar |
-| `data_realizacao` | DATE | Data de realização |
-| `descricao` | VARCHAR | Descrição da eleição |
-| `fonte_dados_id` | UUID (FK) | Fonte de dados utilizada |
-| `importado_em` | TIMESTAMP | Data da importação |
+| `ano` | INTEGER | `ANO_ELEICAO` do CSV do TSE |
+| `turno` | INTEGER | `NR_TURNO` — 1 ou 2 |
+| `sigla_uf` | CHAR(2) (FK → uf) | Estado da eleição — `SG_UF` do CSV do TSE |
+| `cd_eleicao_tse` | INTEGER | `CD_ELEICAO` do CSV do TSE — código único por eleição e turno |
+| `tipo_eleicao` | ENUM | `municipal`, `estadual_federal`, `suplementar` |
+| `nm_tipo_eleicao_tse` | VARCHAR | `NM_TIPO_ELEICAO` do CSV do TSE (descritivo) |
+| `data_realizacao` | DATE | `DT_ELEICAO` do CSV do TSE |
+| `descricao` | VARCHAR | `DS_ELEICAO` do CSV do TSE |
+| `importacao_dados_id` | UUID (FK → importacao_dados) | Importação que originou este registro |
 | `criado_em` | TIMESTAMP | Data de criação |
 
-**Índices:** `ano`, `tipo_eleicao`.
+**Índices:** `ano`, `sigla_uf`, `cd_eleicao_tse`, `turno`.  
+**Observações:** Uma única importação (`votacao_secao_2024_GO.csv`) cria uma `eleicao`. Os cargos (Dep. Federal, Governador, Senador etc.) não ficam aqui — ficam nas `candidaturas` vinculadas a esta eleição. O campo `cd_eleicao_tse` garante unicidade e permite cruzar com outros arquivos do TSE da mesma eleição.
 
 ---
 
-## 9. `candidato`
+## 10. `candidato`
 
 **Objetivo:** Representa candidatos com histórico eleitoral e pré-candidatos sem histórico.
 
@@ -212,57 +276,91 @@
 
 ---
 
-## 10. `candidatura`
+## 11. `candidatura`
 
-**Objetivo:** Une candidato, eleição, cargo e partido — representa a participação em uma eleição.
+**Objetivo:** Une candidato, eleição e cargo — representa a participação em um cargo específico de uma eleição. O campo `sq_candidato_tse` é a chave que liga o candidato cadastrado na plataforma aos dados brutos importados do TSE.
 
 | Campo | Tipo | Descrição |
 |---|---|---|
 | `candidatura_id` | UUID (PK) | Identificador único |
-| `candidato_id` | UUID (FK) | Candidato |
-| `eleicao_id` | UUID (FK) | Eleição |
-| `cargo_id` | UUID (FK) | Cargo disputado |
-| `partido_id` | UUID (FK) | Partido na eleição |
-| `municipio_id` | UUID (FK) | Município (cargos municipais) |
-| `uf` | CHAR(2) | Estado (cargos estaduais/federais) |
-| `numero_candidato` | INTEGER | Número nas urnas |
-| `situacao_candidatura` | ENUM | deferida, indeferida, cassada, eleito, nao_eleito |
-| `codigo_tse` | VARCHAR | Código único do TSE |
-| `fonte_dados_id` | UUID (FK) | Fonte de dados |
+| `candidato_id` | UUID (FK → candidato) | Candidato cadastrado na plataforma |
+| `eleicao_id` | UUID (FK → eleicao) | Eleição à qual pertence |
+| `cargo_id` | UUID (FK → cargo) | Cargo específico disputado nesta eleição |
+| `partido_id` | UUID (FK → partido) | Partido na época da eleição |
+| `municipio_id` | UUID (FK → municipio) | Município base (cargos municipais) |
+| `sigla_uf` | CHAR(2) | Estado (cargos estaduais/federais) |
+| `sq_candidato_tse` | BIGINT | **`SQ_CANDIDATO` do CSV do TSE** — chave de ligação com `resultado_eleitoral`. Informado manualmente ao criar a candidatura. |
+| `nr_votavel` | INTEGER | `NR_VOTAVEL` do CSV do TSE — número do candidato nas urnas |
+| `nm_votavel_tse` | VARCHAR | `NM_VOTAVEL` do CSV do TSE — nome exato como aparece nas urnas |
+| `sg_partido_tse` | CHAR(12) | Sigla do partido no TSE na época (pode diferir do partido atual) |
+| `situacao_candidatura` | ENUM | `deferida`, `indeferida`, `cassada`, `eleito`, `nao_eleito` |
 | `criado_em` | TIMESTAMP | Data de criação |
 
-**Índices:** `candidato_id`, `eleicao_id`, `codigo_tse`, `partido_id`.
+**Índices:** `candidato_id`, `eleicao_id`, `sq_candidato_tse`, `partido_id`, `cargo_id`.  
+**Observações:** O `sq_candidato_tse` é copiado do CSV do TSE e informado pelo usuário ao criar a candidatura. A partir desse vínculo, todos os resultados importados com aquele `SQ_CANDIDATO` são automaticamente associados ao candidato cadastrado. Um mesmo candidato pode ter múltiplas candidaturas (uma por eleição × cargo). Pré-candidatos não possuem `sq_candidato_tse` — o campo fica nulo até a primeira candidatura real.
 
 ---
 
-## 11. `resultado_eleitoral`
+## 12. `resultado_eleitoral`
 
-**Objetivo:** Armazena resultados eleitorais agregados por território — núcleo analítico da plataforma.
+**Objetivo:** Armazena os votos brutos importados do TSE por seção eleitoral. Núcleo analítico da plataforma — todas as análises derivam desta tabela.
 
 | Campo | Tipo | Descrição |
 |---|---|---|
 | `resultado_eleitoral_id` | UUID (PK) | Identificador único |
-| `candidatura_id` | UUID (FK) | Candidatura referenciada |
-| `eleicao_id` | UUID (FK) | Eleição |
-| `cargo_id` | UUID (FK) | Cargo |
-| `partido_id` | UUID (FK) | Partido |
-| `municipio_id` | UUID (FK) | Município |
-| `zona_eleitoral_id` | UUID (FK) | Zona eleitoral (nulo se agregado por município) |
-| `secao_eleitoral_id` | UUID (FK) | Seção eleitoral (nulo se agregado por zona) |
-| `quantidade_votos` | INTEGER | Votos absolutos |
-| `percentual_votos_validos` | DECIMAL | % sobre votos válidos |
-| `percentual_votos_totais` | DECIMAL | % sobre total de votos |
-| `colocacao` | INTEGER | Posição no território |
-| `eleito` | BOOLEAN | Se foi eleito |
-| `fonte_dados_id` | UUID (FK) | Fonte de dados |
+| `importacao_dados_id` | UUID (FK → importacao_dados) | Importação que originou este registro |
+| `eleicao_id` | UUID (FK → eleicao) | Eleição — derivada do `cd_eleicao_tse` na importação |
+| `sq_candidato_tse` | BIGINT | `SQ_CANDIDATO` do CSV do TSE — chave de ligação com `candidatura` |
+| `nr_votavel` | INTEGER | `NR_VOTAVEL` do CSV do TSE |
+| `nm_votavel_tse` | VARCHAR | `NM_VOTAVEL` do CSV do TSE |
+| `sg_partido_tse` | CHAR(12) | Sigla do partido no TSE |
+| `cd_cargo_tse` | INTEGER | `CD_CARGO` do CSV do TSE |
+| `ds_cargo_tse` | VARCHAR | `DS_CARGO` do CSV do TSE — ex.: `DEPUTADO FEDERAL` |
+| `municipio_id` | UUID (FK → municipio) | Município — derivado do `CD_MUNICIPIO` na importação |
+| `zona_eleitoral_id` | UUID (FK → zona_eleitoral) | Zona eleitoral — derivada do `NR_ZONA` na importação |
+| `secao_eleitoral_id` | UUID (FK → secao_eleitoral) | Seção eleitoral — derivada do `NR_SECAO` na importação |
+| `local_votacao_id` | UUID (FK → local_votacao) | Local de votação — derivado do `NR_LOCAL_VOTACAO` na importação |
+| `qt_votos` | INTEGER | `QT_VOTOS` do CSV do TSE — votos nesta seção |
 | `criado_em` | TIMESTAMP | Data de criação |
 
-**Índices:** `eleicao_id`, `candidatura_id`, `partido_id`, `municipio_id`, `zona_eleitoral_id`, `secao_eleitoral_id`.  
-**Observações:** Dados por seção são públicos (TSE). **Nunca expor dados individuais de eleitores.** Tabela central para todos os módulos analíticos.
+**Índices:** `eleicao_id`, `sq_candidato_tse`, `municipio_id`, `zona_eleitoral_id`, `secao_eleitoral_id`, `local_votacao_id`, `cd_cargo_tse`.
+
+**Ligação com candidato cadastrado:**
+```sql
+-- Votos do candidato João por seção — cruzando pelo sq_candidato_tse
+SELECT
+    re.municipio_id, re.zona_eleitoral_id, re.secao_eleitoral_id,
+    lv.nome AS local_votacao, lv.latitude, lv.longitude,
+    b.nome AS bairro,
+    re.qt_votos
+FROM resultado_eleitoral re
+JOIN candidatura c ON c.sq_candidato_tse = re.sq_candidato_tse
+                   AND c.eleicao_id = re.eleicao_id
+JOIN candidato ca ON ca.candidato_id = c.candidato_id
+JOIN secao_eleitoral se ON se.secao_eleitoral_id = re.secao_eleitoral_id
+JOIN local_votacao lv ON lv.local_votacao_id = se.local_votacao_id
+LEFT JOIN bairro b ON b.bairro_id = lv.bairro_id
+WHERE ca.nome_completo = 'João Ferreira da Silva'
+  AND re.eleicao_id = '<uuid-eleicao-2024>'
+```
+
+**Votos por bairro:**
+```sql
+SELECT b.nome AS bairro, SUM(re.qt_votos) AS total_votos
+FROM resultado_eleitoral re
+JOIN candidatura c ON c.sq_candidato_tse = re.sq_candidato_tse
+JOIN secao_eleitoral se ON se.secao_eleitoral_id = re.secao_eleitoral_id
+JOIN local_votacao lv ON lv.local_votacao_id = se.local_votacao_id
+JOIN bairro b ON b.bairro_id = lv.bairro_id
+WHERE c.candidato_id = '<uuid-candidato>'
+GROUP BY b.nome ORDER BY total_votos DESC
+```
+
+**Observações:** Dados por seção são públicos (TSE). **Nunca expor dados individuais de eleitores.** Os campos `sq_candidato_tse` e `candidatura` são o elo que transforma dados brutos do TSE em análise direcionada ao candidato cadastrado.
 
 ---
 
-## 12. `territorio`
+## 13. `territorio`
 
 **Objetivo:** Representa recortes territoriais para análise estratégica — pode ser padrão ou personalizado.
 
@@ -280,7 +378,7 @@
 
 ---
 
-## 13. `classificacao_territorial`
+## 14. `classificacao_territorial`
 
 **Objetivo:** Registra a classificação estratégica de um território em relação a um candidato ou partido.
 
@@ -301,7 +399,7 @@
 
 ---
 
-## 14. `pesquisa_eleitoral`
+## 15. `pesquisa_eleitoral`
 
 **Objetivo:** Representa pesquisas eleitorais cadastradas ou importadas pela equipe.
 
@@ -327,7 +425,7 @@
 
 ---
 
-## 15. `resultado_pesquisa`
+## 16. `resultado_pesquisa`
 
 **Objetivo:** Armazena resultados agregados de uma pesquisa eleitoral por território.
 
@@ -348,7 +446,7 @@
 
 ---
 
-## 16. `usuario`
+## 17. `usuario`
 
 **Objetivo:** Representa os usuários com acesso à plataforma.
 
@@ -367,7 +465,7 @@
 
 ---
 
-## 17. `fonte_dados`
+## 18. `fonte_dados`
 
 **Objetivo:** Cataloga todas as fontes de dados, garantindo rastreabilidade de origem.
 
@@ -386,7 +484,7 @@
 
 ---
 
-## 18. `importacao_dados`
+## 19. `importacao_dados`
 
 **Objetivo:** Registra cada processo de importação com rastreabilidade e status.
 
@@ -407,7 +505,7 @@
 
 ---
 
-## 19. `indicador_eleitoral`
+## 20. `indicador_eleitoral`
 
 **Objetivo:** Armazena indicadores calculados para análise territorial e comparativa.
 

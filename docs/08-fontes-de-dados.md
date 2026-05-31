@@ -23,16 +23,31 @@ Fonte: **Tribunal Superior Eleitoral (TSE)** — dados abertos em `dados.tse.jus
 
 ## 2. Dados Geográficos
 
-| Conjunto | Fonte | Formato |
-|---|---|---|
-| Divisão municipal | IBGE | Shapefile / GeoJSON |
-| Setores censitários | IBGE | Shapefile |
-| Polígonos de zonas eleitorais | TSE | Shapefile / GeoJSON |
-| Bairros | Prefeituras / IBGE | GeoJSON |
+| Conjunto | Fonte | Formato | URL de Referência | Uso na plataforma |
+|---|---|---|---|---|
+| Polígonos de municípios | IBGE | Shapefile / GeoJSON | geoftp.ibge.gov.br/organizacao_do_territorio/malhas_territoriais | Colorir municípios no mapa |
+| Polígonos de bairros | IBGE / Prefeitura | GeoJSON | Varia por município — prefeitura local ou dados IBGE | Colorir bairros no mapa; vínculo automático com locais de votação |
+| Polígonos de zonas eleitorais | TSE | Shapefile | dadosabertos.tse.jus.br | Colorir zonas eleitorais no mapa (opcional) |
+| Lat/lng dos locais de votação | Geocodificação automática | — | Nominatim (OpenStreetMap) — gratuito | Marcadores de pins no mapa para cada local de votação |
 
 **Observações:**
 - Coordenadas padronizadas em **WGS84 (EPSG:4326)** para compatibilidade com Leaflet.
-- Shapefiles do IBGE disponíveis em geoftp.ibge.gov.br.
+- Shapefiles devem ser convertidos para GeoJSON antes da importação (ferramenta: `ogr2ogr` ou QGIS).
+- Polígonos de bairros variam por município — disponíveis para capitais e municípios maiores.
+
+### Geocodificação dos Locais de Votação
+
+O endereço de cada local de votação (`DS_LOCAL_VOTACAO_ENDERECO`) é extraído do CSV do TSE e convertido em coordenadas lat/lng via Nominatim (API gratuita do OpenStreetMap). O processo é:
+
+```
+1. Extrair endereço do CSV do TSE
+2. Consultar Nominatim: https://nominatim.openstreetmap.org/search?q=<endereço>&format=json
+3. Salvar lat/lng no campo local_votacao.latitude / local_votacao.longitude
+4. Marcar local_votacao.geocodificado = true
+5. Executar PostGIS para vincular ao bairro: ST_Within(ponto, polígono_bairro)
+```
+
+**Alternativas se Nominatim não encontrar:** Google Maps Geocoding API (pago, mais preciso), ViaCEP + conversão por CEP.
 
 ---
 
@@ -97,7 +112,32 @@ Fonte: **Tribunal Superior Eleitoral (TSE)** — dados abertos em `dados.tse.jus
 
 | Fonte | Responsável | Periodicidade |
 |---|---|---|
-| TSE — resultados eleitorais | Equipe técnica | A cada eleição realizada |
+| TSE — resultados por seção (`votacao_secao_AAAA_UF.csv`) | Equipe técnica | A cada eleição realizada |
 | TSE — candidaturas | Equipe técnica | A cada eleição realizada |
-| IBGE — dados geográficos | Equipe técnica | Revisão anual |
+| IBGE — malha municipal (polígonos) | Equipe técnica | Revisão anual |
+| IBGE / Prefeitura — polígonos de bairros | Equipe técnica | Sob demanda |
+| TSE — shapefile de zonas eleitorais | Equipe técnica | Sob demanda |
+| Geocodificação dos locais de votação | Script automático | Após cada importação TSE |
 | Pesquisas eleitorais próprias | Usuário pesquisador | Sob demanda |
+
+---
+
+## 7. Campos-Chave do CSV do TSE (`votacao_secao`)
+
+Campos utilizados diretamente na importação e suas correspondências no banco:
+
+| Campo CSV | Campo no banco | Tabela | Observação |
+|---|---|---|---|
+| `SQ_CANDIDATO` | `sq_candidato_tse` | `candidatura`, `resultado_eleitoral` | **Chave de ligação candidato ↔ resultados** |
+| `NR_VOTAVEL` | `nr_votavel` | `candidatura`, `resultado_eleitoral` | Número nas urnas |
+| `NM_VOTAVEL` | `nm_votavel_tse` | `candidatura`, `resultado_eleitoral` | Nome exato nas urnas |
+| `CD_MUNICIPIO` | `codigo_tse` | `municipio` | Liga resultado ao município |
+| `NR_ZONA` | `numero_zona` | `zona_eleitoral` | Liga resultado à zona |
+| `NR_SECAO` | `numero_secao` | `secao_eleitoral` | Liga resultado à seção |
+| `NR_LOCAL_VOTACAO` | `numero_tse` | `local_votacao` | Liga seção ao local físico |
+| `DS_LOCAL_VOTACAO_ENDERECO` | `endereco` | `local_votacao` | Endereço para geocodificação |
+| `CD_ELEICAO` | `cd_eleicao_tse` | `eleicao` | Código único da eleição e turno |
+| `CD_CARGO` | `cd_cargo_tse` | `resultado_eleitoral`, `cargo` | Cargo disputado |
+| `DS_CARGO` | `ds_cargo_tse` | `resultado_eleitoral` | Descrição textual do cargo |
+| `QT_VOTOS` | `qt_votos` | `resultado_eleitoral` | Votos nesta seção |
+| `SG_UF` | `sigla_uf` | `uf`, `eleicao` | Estado |

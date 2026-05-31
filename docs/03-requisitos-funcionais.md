@@ -16,6 +16,9 @@
 | RF-C06 | O sistema deve permitir associar candidatos de referência a um pré-candidato | MVP | HU-P01 |
 | RF-C07 | O sistema deve permitir buscar e filtrar candidatos por nome, partido, cargo e município | MVP | — |
 | RF-C08 | O sistema deve armazenar CPF apenas como hash SHA-256 irreversível | MVP | — |
+| RF-C09 | O sistema deve permitir criar candidatura vinculando o candidato à eleição informando o `SQ_CANDIDATO` do TSE | MVP | — |
+| RF-C10 | O sistema deve exibir, na tela de criação de candidatura, os campos `SQ_CANDIDATO`, `NR_VOTAVEL` e nome de urna exato do TSE | MVP | — |
+| RF-C11 | O sistema deve validar que o `SQ_CANDIDATO` informado não está já vinculado a outro candidato na mesma eleição | MVP | — |
 
 ---
 
@@ -23,12 +26,14 @@
 
 | ID | Requisito | Prioridade | HU Relacionada |
 |---|---|---|---|
-| RF-E01 | O sistema deve registrar eleições com ano, turno, tipo e data de realização | MVP | — |
+| RF-E01 | O sistema deve registrar eleições com ano, turno, UF, tipo e data de realização | MVP | — |
 | RF-E02 | O sistema deve exibir histórico eleitoral por candidato, partido, cargo e território | MVP | HU-C01 |
 | RF-E03 | O sistema deve permitir comparar o desempenho de um candidato entre duas eleições | MVP | HU-C02 |
 | RF-E04 | O sistema deve exibir variação absoluta e percentual de votos entre eleições por território | MVP | HU-C02 |
 | RF-E05 | O sistema deve exibir gráfico de evolução de votação ao longo do tempo | MVP | HU-C04 |
 | RF-E06 | O sistema deve permitir comparar candidato com a média do partido por território | Importante | HU-CC04 |
+| RF-E07 | Uma eleição deve cobrir múltiplos cargos — o cargo específico fica na candidatura, não na eleição | MVP | — |
+| RF-E08 | O sistema deve extrair e exibir todos os cargos distintos presentes em uma importação do TSE | MVP | — |
 
 ---
 
@@ -36,16 +41,20 @@
 
 | ID | Requisito | Prioridade | HU Relacionada |
 |---|---|---|---|
-| RF-T01 | O sistema deve exibir mapa interativo com camadas de municípios, zonas eleitorais, seções e bairros | MVP | HU-C01 |
+| RF-T01 | O sistema deve exibir mapa interativo com camadas de municípios, zonas eleitorais, bairros e locais de votação | MVP | HU-C01 |
 | RF-T02 | O sistema deve classificar territórios automaticamente segundo os critérios documentados | MVP | HU-CC01 |
 | RF-T03 | O sistema deve exibir camadas temáticas por classificação territorial com cores distintas | MVP | HU-CC01 |
 | RF-T04 | O sistema deve exibir painel lateral com detalhes ao clicar em um território | MVP | HU-CC01 |
 | RF-T05 | O sistema deve calcular o índice de força territorial de 0 a 100 | MVP | HU-A02 |
 | RF-T06 | O sistema deve exibir os componentes do índice de força de forma transparente | MVP | HU-A02 |
 | RF-T07 | O sistema deve permitir classificação manual de território com justificativa registrada | Importante | HU-CE03 |
-| RF-T08 | O sistema deve exibir locais de votação como marcadores no mapa | Importante | HU-CC06 |
+| RF-T08 | O sistema deve exibir locais de votação como marcadores (pins) no mapa com a quantidade de votos por seção | MVP | HU-CC06 |
 | RF-T09 | O sistema deve permitir filtros do mapa por eleição, cargo, candidato e partido | MVP | HU-CC01 |
-| RF-T10 | O sistema deve suportar zoom e navegação por nível territorial (estado → município → zona → seção) | MVP | HU-CC02 |
+| RF-T10 | O sistema deve suportar zoom e navegação por nível territorial (estado → município → bairro → zona → local de votação) | MVP | HU-CC02 |
+| RF-T11 | O sistema deve geocodificar automaticamente o endereço dos locais de votação (via Nominatim/OpenStreetMap) para obter lat/lng | MVP | — |
+| RF-T12 | O sistema deve vincular automaticamente cada local de votação ao bairro correspondente via consulta espacial PostGIS | Importante | — |
+| RF-T13 | O sistema deve exibir análise de votos agregados por bairro, incluindo mapa colorido por desempenho | Importante | HU-CC02 |
+| RF-T14 | O sistema deve exibir votos por partido por território (município, zona, bairro) | MVP | — |
 
 ---
 
@@ -67,11 +76,17 @@
 
 | ID | Requisito | Prioridade | HU Relacionada |
 |---|---|---|---|
-| RF-I01 | O sistema deve importar dados do TSE a partir de arquivos CSV | MVP | HU-PQ01 |
+| RF-I01 | O sistema deve importar dados do TSE a partir de arquivos CSV (`votacao_secao_AAAA_UF.csv`) | MVP | HU-PQ01 |
 | RF-I02 | O sistema deve validar integridade dos arquivos importados via hash SHA-256 | MVP | — |
 | RF-I03 | O sistema deve registrar cada importação com status, responsável e data | MVP | HU-A05 |
-| RF-I04 | O sistema deve exibir histórico de importações com detalhes de erros | Importante | HU-A05 |
+| RF-I04 | O sistema deve exibir histórico de importações com detalhes de erros por linha | Importante | HU-A05 |
 | RF-I05 | O sistema deve nunca sobrescrever dados importados — apenas adicionar ou marcar como substituído | MVP | — |
+| RF-I06 | O sistema deve extrair e armazenar o campo `SQ_CANDIDATO` de cada linha do CSV do TSE | MVP | — |
+| RF-I07 | O sistema deve criar automaticamente os registros de `municipio`, `zona_eleitoral`, `secao_eleitoral` e `local_votacao` a partir dos dados do CSV, caso ainda não existam | MVP | — |
+| RF-I08 | O sistema deve importar polígonos geográficos de municípios a partir de GeoJSON do IBGE | MVP | — |
+| RF-I09 | O sistema deve importar polígonos de bairros a partir de GeoJSON da prefeitura ou IBGE | Importante | — |
+| RF-I10 | O sistema deve importar polígonos de zonas eleitorais a partir do shapefile do TSE | Importante | — |
+| RF-I11 | O sistema deve executar geocodificação em lote dos locais de votação pendentes via Nominatim | MVP | — |
 
 ---
 

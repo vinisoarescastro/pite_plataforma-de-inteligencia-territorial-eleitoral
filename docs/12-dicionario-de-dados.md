@@ -9,20 +9,26 @@
 
 | Termo | Definição | Tipo | Exemplo |
 |---|---|---|---|
-| `candidato` | Pessoa que disputou ou disputa uma eleição, registrada no TSE | Entidade | João da Silva |
+| `uf` | Unidade federativa brasileira | Entidade | GO, SP, MG |
+| `municipio` | Município brasileiro com polígono geográfico (IBGE) | Entidade | Goiânia — código TSE 09200 |
+| `bairro` | Região urbana dentro de um município com polígono geográfico | Entidade | Setor Bueno, Goiânia |
+| `zona_eleitoral` | Unidade de organização eleitoral do TSE dentro de um município | Entidade | 1ª Zona Eleitoral de Goiânia |
+| `local_votacao` | Local físico onde ocorre a votação — geocodificado com lat/lng | Entidade | Escola Estadual X — Rua Y, nº Z |
+| `secao_eleitoral` | Menor unidade eleitoral — equivale a uma urna de votação | Entidade | Seção 0042 da Zona 01 |
+| `candidato` | Pessoa que disputou ou disputa uma eleição, registrada na plataforma | Entidade | João da Silva |
 | `pre_candidato` | Pessoa que pretende disputar eleições mas ainda não tem histórico eleitoral registrado | Atributo de `candidato` (`eh_pre_candidato = true`) | Maria Souza |
 | `partido` | Organização política registrada no TSE | Entidade | PT, MDB, PL |
 | `cargo` | Cargo eletivo disputado em uma eleição | Entidade | Vereador, Prefeito, Deputado Federal |
-| `eleicao` | Ciclo eleitoral realizado em um determinado ano e turno | Entidade | Eleições Municipais 2020, 1º Turno |
-| `candidatura` | Participação de um candidato em uma eleição específica para um cargo em um partido | Entidade | João Silva pelo PT para Vereador em 2020 |
-| `resultado_eleitoral` | Resultado agregado de uma candidatura em um território específico | Entidade | João Silva obteve 350 votos na Zona 01 em 2020 |
-| `territorio` | Recorte geográfico para análise estratégica (município, zona, seção, bairro ou personalizado) | Entidade | Zona Eleitoral 001 de São Paulo |
-| `classificacao_territorial` | Classificação estratégica de um território em relação a um candidato ou partido | Entidade | Zona 001 = Zona de Força para João Silva (2020) |
-| `pesquisa_eleitoral` | Levantamento de intenção de voto, aprovação ou rejeição realizado pela equipe | Entidade | Pesquisa de intenção de voto — junho/2024 |
+| `eleicao` | Ciclo eleitoral em uma UF e turno específicos — cobre múltiplos cargos | Entidade | 2024 · GO · 1º Turno |
+| `candidatura` | Participação de um candidato em um cargo específico de uma eleição, vinculada ao TSE via `sq_candidato_tse` | Entidade | João Silva · PT · Dep. Federal · GO 2024 · SQ 280000614682 |
+| `resultado_eleitoral` | Votos brutos por seção eleitoral, importados do CSV do TSE | Entidade | SQ 280000614682 obteve 87 votos na Seção 0042 |
+| `territorio` | Recorte geográfico para análise estratégica (município, zona, bairro ou personalizado) | Entidade | Zona Eleitoral 001 de Goiânia |
+| `classificacao_territorial` | Classificação estratégica de um território em relação a um candidato ou partido | Entidade | Zona 001 = Zona de Força para João Silva (2024) |
+| `pesquisa_eleitoral` | Levantamento de intenção de voto, aprovação ou rejeição realizado pela equipe | Entidade | Pesquisa de intenção de voto — jun/2024 |
 | `resultado_pesquisa` | Resultado agregado de uma pesquisa por território e candidato/partido | Entidade | João Silva com 35% de intenção de voto na Zona 01 |
-| `importacao_dados` | Registro de cada processo de importação de dados externos | Entidade | Import TSE 2020 — concluído em 15/01/2024 |
-| `fonte_dados` | Origem dos dados importados (TSE, IBGE, pesquisa própria) | Entidade | TSE — Resultados por Seção 2020 |
-| `indicador_eleitoral` | Indicador calculado para análise territorial | Entidade | Índice de Força Territorial = 72.5 |
+| `importacao_dados` | Registro de cada processo de importação de dados externos | Entidade | Import TSE 2024 GO — concluído em 02/06/2024 |
+| `fonte_dados` | Origem dos dados importados (TSE, IBGE, pesquisa própria) | Entidade | TSE — Resultados por Seção 2024 |
+| `indicador_eleitoral` | Indicador calculado para análise territorial | Entidade | Índice de Força Territorial = 82 |
 
 ---
 
@@ -52,6 +58,24 @@
 
 ---
 
+## Campos TSE — Mapeamento com a Plataforma
+
+| Campo CSV (TSE) | Campo no banco | Definição |
+|---|---|---|
+| `SQ_CANDIDATO` | `sq_candidato_tse` | **Chave principal de ligação.** Número sequencial único por candidato por eleição, gerado internamente pelo TSE. Não é o número de campanha. Informado manualmente ao criar a candidatura para vincular o candidato cadastrado aos dados importados. |
+| `NR_VOTAVEL` | `nr_votavel` | Número do candidato nas urnas (ex.: 13123). Pertence ao partido, não à pessoa. |
+| `NM_VOTAVEL` | `nm_votavel_tse` | Nome exato como aparece nas urnas e no CSV do TSE. |
+| `CD_MUNICIPIO` | `codigo_tse` em `municipio` | Código numérico do município no TSE — diferente do código IBGE. |
+| `NR_ZONA` | `numero_zona` em `zona_eleitoral` | Número da zona eleitoral dentro do município. |
+| `NR_SECAO` | `numero_secao` em `secao_eleitoral` | Número da seção (urna). |
+| `NR_LOCAL_VOTACAO` | `numero_tse` em `local_votacao` | Número do local físico de votação. |
+| `DS_LOCAL_VOTACAO_ENDERECO` | `endereco` em `local_votacao` | Endereço completo do local — usado para geocodificação (obtenção de lat/lng). |
+| `CD_ELEICAO` | `cd_eleicao_tse` em `eleicao` | Código único da eleição e turno no TSE. Uma eleição cobre múltiplos cargos. |
+| `CD_CARGO` / `DS_CARGO` | `cd_cargo_tse` / `ds_cargo_tse` em `resultado_eleitoral` | Código e nome do cargo (ex.: 6 = DEPUTADO FEDERAL). |
+| `QT_VOTOS` | `qt_votos` em `resultado_eleitoral` | Votos recebidos naquela seção específica. |
+
+---
+
 ## Termos de Importação
 
 | Termo | Definição |
@@ -71,9 +95,13 @@
 | `media_percentual_votos` | Média do percentual de votos válidos nas últimas N eleições em um território |
 | `tendencia_crescimento` | Variação percentual de votos entre a última e a penúltima eleição em um território |
 | `consistencia_historica` | Medida de regularidade do desempenho: `1 - (desvio_padrão / média)`, normalizado entre 0 e 1 |
-| `WGS84` | Sistema de coordenadas geográficas padrão (EPSG:4326) utilizado pelo Leaflet |
-| `PostGIS` | Extensão do PostgreSQL para dados geoespaciais |
-| `GeoJSON` | Formato de dados geográficos baseado em JSON |
+| `geocodificacao` | Processo de converter um endereço textual em coordenadas geográficas (lat/lng). Realizado via Nominatim (OpenStreetMap, gratuito) sobre o campo `DS_LOCAL_VOTACAO_ENDERECO` do TSE. |
+| `vinculo_spatial` | Processo PostGIS que determina automaticamente em qual bairro um local de votação está, via `ST_Within(ponto, polígono)` |
+| `WGS84` | Sistema de coordenadas geográficas padrão (EPSG:4326) utilizado pelo Leaflet e pelo TSE |
+| `PostGIS` | Extensão do PostgreSQL para dados geoespaciais — habilita polígonos, cálculos de área e consultas espaciais |
+| `GeoJSON` | Formato de dados geográficos baseado em JSON — padrão para polígonos no Leaflet |
+| `Shapefile` | Formato de dados geográficos vetoriais usado pelo TSE e IBGE — deve ser convertido para GeoJSON |
+| `Nominatim` | API gratuita de geocodificação baseada no OpenStreetMap |
 | `single-tenant` | Arquitetura onde cada instalação serve uma única organização — sem isolamento entre organizações |
 | `multi-tenant` | Arquitetura onde múltiplas organizações compartilham a plataforma com dados isolados — **não adotada neste projeto** |
 | `RBAC` | Role-Based Access Control — controle de acesso baseado em perfis de usuário |
