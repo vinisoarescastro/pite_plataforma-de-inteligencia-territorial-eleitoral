@@ -608,7 +608,7 @@ ul{list-style:none}
     <div class="wc-name" id="wc-name">Olá, Vinícius</div>
     <div class="wc-role" id="wc-role">Administrador · PITE</div>
     <!-- Card do candidato vinculado (visível para não-admins) -->
-    <div id="wc-candidato-card" style="display:none;background:linear-gradient(135deg,var(--brand-50),var(--brand-100));border:1px solid var(--brand-200);border-radius:var(--r-lg);padding:14px 20px;margin-bottom:20px;text-align:left;display:none">
+    <div id="wc-candidato-card" style="display:none;background:linear-gradient(135deg,var(--brand-50),var(--brand-100));border:1px solid var(--brand-200);border-radius:var(--r-lg);padding:14px 20px;margin-bottom:20px;text-align:left;width:100%;max-width:380px">
       <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--brand-600);margin-bottom:6px">Seu candidato</div>
       <div style="display:flex;align-items:center;gap:10px">
         <div style="width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,var(--brand-600),var(--brand-900));display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#fff;flex-shrink:0" id="wc-cand-av">JF</div>
@@ -709,7 +709,7 @@ ul{list-style:none}
           <div><div class="ph-title">Painel Principal</div><div class="ph-sub">Visão geral do cenário eleitoral · Goiás 2024</div></div>
           <div class="ph-r">
             <button class="btn btn-secondary"><i class="fas fa-download"></i> Exportar</button>
-            <button class="btn btn-primary" onclick="navigateTo('importacao')"><i class="fas fa-file-import"></i> Importar dados</button>
+            <button id="painel-import-btn" class="btn btn-primary" onclick="navigateTo('importacao')"><i class="fas fa-file-import"></i> Importar dados</button>
           </div>
         </div>
 
@@ -1452,214 +1452,273 @@ ul{list-style:none}
 <div class="toast-wrap" id="toast-wrap"></div>
 
 <script>
-// ── Dados de demonstração ────────────────────────────────────────
+// ── Dados ────────────────────────────────────────────────────────
 const CANDIDATOS = {
   joao: { nome:'João Ferreira da Silva', cargo:'PT · Deputado Federal · GO', siglas:'JF' },
   ana:  { nome:'Ana Paula Rodrigues',    cargo:'PSDB · Dep. Estadual · GO',  siglas:'AP' },
 };
 const CREDS = [
   { email:'admin@pite.com',    pass:'Admin@2025', name:'Vinícius Soares', perfil:'administrador', candidato:null },
-  { email:'gestor@pite.com',   pass:'Ges@123',    name:'Carlos Neto',     perfil:'gestor',         candidato: CANDIDATOS.joao },
-  { email:'analista@pite.com', pass:'Ana@123',    name:'Ana Paula',       perfil:'analista',       candidato: CANDIDATOS.joao },
-  { email:'assessor@pite.com', pass:'Ass@123',    name:'Pedro Lima',      perfil:'assessor',       candidato: CANDIDATOS.joao },
+  { email:'gestor@pite.com',   pass:'Ges@123',    name:'Carlos Neto',     perfil:'gestor',        candidato: CANDIDATOS.joao },
+  { email:'analista@pite.com', pass:'Ana@123',    name:'Ana Paula Costa', perfil:'analista',      candidato: CANDIDATOS.joao },
+  { email:'assessor@pite.com', pass:'Ass@123',    name:'Pedro Lima',      perfil:'assessor',      candidato: CANDIDATOS.joao },
 ];
-
 const PERFIL_LABELS = { administrador:'Administrador', gestor:'Gestor', analista:'Analista', assessor:'Assessor' };
-const PERFIL_CORES  = { administrador:'var(--brand-600)', gestor:'#15803d', analista:'#1d4ed8', assessor:'#92400e' };
 
-const $ = id => document.getElementById(id);
-const ini = n => n.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+// ── Helpers ──────────────────────────────────────────────────────
+const el   = id => document.getElementById(id);
+const $ = el; // alias
+const ini  = n => n.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
 let currentUser = null;
 
-function fillLogin(e,p){$('l-user').value=e;$('l-pass').value=p}
+function fillLogin(e,p){ el('l-user').value=e; el('l-pass').value=p; }
 
-function toast(msg,type='success'){
-  const icons={success:'fa-circle-check',error:'fa-circle-exclamation',warning:'fa-triangle-exclamation'};
-  const t=document.createElement('div');
-  t.className=`toast ${type}`;
-  t.innerHTML=`<i class="fas ${icons[type]}"></i><span>${msg}</span>`;
-  $('toast-wrap').appendChild(t);
-  setTimeout(()=>t.remove(),3500);
+function toast(msg, type='success'){
+  const icons = { success:'fa-circle-check', error:'fa-circle-exclamation', warning:'fa-triangle-exclamation' };
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.innerHTML = `<i class="fas ${icons[type]||icons.success}"></i><span>${msg}</span>`;
+  el('toast-wrap').appendChild(t);
+  setTimeout(() => t.remove(), 3500);
 }
 
-$('l-eye').addEventListener('click',()=>{
-  const i=$('l-pass');i.type=i.type==='password'?'text':'password';
-  $('l-eye').className=`fas fa-eye${i.type==='text'?'-slash':''} lf-eye`;
+// ── Login ────────────────────────────────────────────────────────
+el('l-eye').addEventListener('click', () => {
+  const i = el('l-pass');
+  i.type = i.type === 'password' ? 'text' : 'password';
+  el('l-eye').className = `fas fa-eye${i.type==='text'?'-slash':''} lf-eye`;
 });
 
 function doLogin(){
-  const u=$('l-user').value.trim(), p=$('l-pass').value;
-  const found=CREDS.find(c=>c.email===u&&c.pass===p);
-  const err=$('l-err');
+  const u = el('l-user').value.trim(), p = el('l-pass').value;
+  const found = CREDS.find(c => c.email===u && c.pass===p);
   if(found){
-    currentUser=found; err.style.display='none';
-    $('screen-login').style.display='none';
+    currentUser = found;
+    el('l-err').style.display = 'none';
+    el('screen-login').style.display = 'none';
     showWelcome(found);
   } else {
-    err.style.display='flex';
-    $('l-err-msg').textContent='Credenciais inválidas. Verifique e tente novamente.';
-    $('l-pass').value='';$('l-pass').focus();
+    el('l-err').style.display = 'flex';
+    el('l-err-msg').textContent = 'Credenciais inválidas. Verifique e tente novamente.';
+    el('l-pass').value = ''; el('l-pass').focus();
   }
 }
-$('l-btn').addEventListener('click',doLogin);
-$('l-pass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()});
+el('l-btn').addEventListener('click', doLogin);
+el('l-pass').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
 
+// ── Welcome ──────────────────────────────────────────────────────
 function showWelcome(user){
-  const ws=$('screen-welcome');
-  ws.style.display='flex';
-  $('wc-av').textContent=ini(user.name);
-  $('wc-name').textContent=`Olá, ${user.name.split(' ')[0]}`;
-  $('wc-role').textContent=`${PERFIL_LABELS[user.perfil]} · PITE`;
+  el('screen-welcome').style.display = 'flex';
+  el('wc-av').textContent  = ini(user.name);
+  el('wc-name').textContent = `Olá, ${user.name.split(' ')[0]}`;
+  el('wc-role').textContent = `${PERFIL_LABELS[user.perfil]} · PITE`;
 
-  const isAdmin = user.perfil === 'administrador';
-  const candCard = $('wc-candidato-card');
+  const isAdmin   = user.perfil === 'administrador';
+  const candCard  = el('wc-candidato-card');
 
   if(!isAdmin && user.candidato){
-    candCard.style.display='flex';
-    $('wc-cand-av').textContent = user.candidato.siglas;
-    $('wc-cand-nome').textContent = user.candidato.nome;
-    $('wc-cand-cargo').textContent = user.candidato.cargo;
-
+    candCard.style.display = 'flex';
+    el('wc-cand-av').textContent    = user.candidato.siglas;
+    el('wc-cand-nome').textContent  = user.candidato.nome;
+    el('wc-cand-cargo').textContent = user.candidato.cargo;
     const descs = {
-      gestor:   `Você é gestor vinculado a ${user.candidato.nome.split(' ')[0]}. Acesse dados completos e exporte relatórios.`,
-      analista: `Você é analista vinculado a ${user.candidato.nome.split(' ')[0]}. Visualize dados e compare com outros candidatos.`,
-      assessor: `Você é assessor vinculado a ${user.candidato.nome.split(' ')[0]}. Consulte as informações eleitorais do candidato.`,
+      gestor:   `Você é gestor de ${user.candidato.nome.split(' ')[0]}. Acesse dados completos e exporte relatórios.`,
+      analista: `Você é analista de ${user.candidato.nome.split(' ')[0]}. Veja os dados e compare com outros candidatos.`,
+      assessor: `Você é assessor de ${user.candidato.nome.split(' ')[0]}. Consulte as informações eleitorais (somente leitura).`,
     };
-    $('wc-desc').textContent = descs[user.perfil] || '';
-
+    el('wc-desc').textContent = descs[user.perfil] || '';
     const chips = {
-      gestor:   `<span class="wc-chip"><i class="fas fa-map"></i> 246 territórios</span><span class="wc-chip"><i class="fas fa-chart-bar"></i> 14 pesquisas</span><span class="wc-chip"><i class="fas fa-download"></i> Exportação liberada</span>`,
-      analista: `<span class="wc-chip"><i class="fas fa-map"></i> 246 territórios</span><span class="wc-chip"><i class="fas fa-scale-balanced"></i> Comparação liberada</span><span class="wc-chip"><i class="fas fa-download"></i> Exportação liberada</span>`,
-      assessor: `<span class="wc-chip"><i class="fas fa-map"></i> 246 territórios</span><span class="wc-chip"><i class="fas fa-chart-bar"></i> 14 pesquisas</span><span class="wc-chip"><i class="fas fa-eye"></i> Somente visualização</span>`,
+      gestor:   `<span class="wc-chip"><i class="fas fa-map"></i>246 territórios</span><span class="wc-chip"><i class="fas fa-chart-bar"></i>14 pesquisas</span><span class="wc-chip"><i class="fas fa-download"></i>Exportação liberada</span>`,
+      analista: `<span class="wc-chip"><i class="fas fa-map"></i>246 territórios</span><span class="wc-chip"><i class="fas fa-scale-balanced"></i>Comparação liberada</span><span class="wc-chip"><i class="fas fa-download"></i>Exportação liberada</span>`,
+      assessor: `<span class="wc-chip"><i class="fas fa-map"></i>246 territórios</span><span class="wc-chip"><i class="fas fa-chart-bar"></i>14 pesquisas</span><span class="wc-chip"><i class="fas fa-eye"></i>Somente visualização</span>`,
     };
-    $('wc-chips').innerHTML = chips[user.perfil] || '';
+    el('wc-chips').innerHTML = chips[user.perfil] || '';
   } else {
-    candCard.style.display='none';
-    $('wc-desc').textContent='Você tem acesso completo à plataforma. Analise territórios, gerencie candidatos e importe dados do TSE.';
-    $('wc-chips').innerHTML=`<span class="wc-chip"><i class="fas fa-users"></i> 48 candidatos</span><span class="wc-chip"><i class="fas fa-map"></i> 246 territórios</span><span class="wc-chip"><i class="fas fa-chart-bar"></i> 14 pesquisas</span>`;
+    candCard.style.display = 'none';
+    el('wc-desc').textContent = 'Você tem acesso completo à plataforma. Analise territórios, gerencie candidatos e importe dados do TSE.';
+    el('wc-chips').innerHTML = `<span class="wc-chip"><i class="fas fa-users"></i>48 candidatos</span><span class="wc-chip"><i class="fas fa-map"></i>246 territórios</span><span class="wc-chip"><i class="fas fa-chart-bar"></i>14 pesquisas</span>`;
   }
 }
 
-$('wc-btn').addEventListener('click',()=>{
-  $('screen-welcome').style.display='none';
-  $('screen-app').classList.add('visible');
+el('wc-btn').addEventListener('click', () => {
+  el('screen-welcome').style.display = 'none';
+  el('screen-app').classList.add('visible');
+  resetApp();
   initApp();
 });
 
-function initApp(){
-  const user = currentUser;
-  const isAdmin = user.perfil === 'administrador';
-  const podeComparar = ['administrador','analista'].includes(user.perfil);
-  const podeExportar = ['administrador','gestor','analista'].includes(user.perfil);
-  const podeAdmin   = user.perfil === 'administrador';
-
-  // Sidebar usuário
-  $('sb-av').textContent=ini(user.name);
-  $('tb-av').textContent=ini(user.name);
-  $('sb-name').textContent=user.name.split(' ')[0]+' '+user.name.split(' ').slice(-1)[0];
-  $('sb-role').textContent=PERFIL_LABELS[user.perfil];
-
-  // Candidato na sidebar e topbar
-  if(!isAdmin && user.candidato){
-    const wrap=$('sb-candidato-wrap');
-    wrap.style.display='block';
-    $('sb-cand-av').textContent=user.candidato.siglas;
-    $('sb-cand-nome').textContent=user.candidato.nome.split(' ')[0]+' '+user.candidato.nome.split(' ')[1];
-    $('sb-cand-cargo').textContent=user.candidato.cargo.split('·')[0].trim()+' · '+user.candidato.cargo.split('·')[1].trim();
-
-    const badge=$('tb-cand-badge');
-    badge.style.display='flex';
-    $('tb-cand-nome').textContent=user.candidato.nome.split(' ')[0]+' '+user.candidato.nome.split(' ')[1];
-  }
-
-  // Painel: adaptar para não-admin
-  if(!isAdmin){
-    // Ocultar botão de importar no painel
-    const importBtn = document.querySelector('#page-painel .ph-r .btn-primary');
-    if(importBtn) importBtn.style.display='none';
-    // Ajustar KPIs para mostrar dados do candidato vinculado
-    const kpiCand = document.querySelector('#page-painel .kpi-grid .kpi-card:first-child .kpi-val');
-    if(kpiCand) kpiCand.textContent='1';
-    const kpiLbl = document.querySelector('#page-painel .kpi-grid .kpi-card:first-child .kpi-lbl');
-    if(kpiLbl) kpiLbl.textContent='Candidato vinculado';
-  }
-
-  // Ocultar itens de navegação por perfil
-  const adminNavIds = ['eleicoes','candidaturas','importacao','geografia','usuarios'];
-  adminNavIds.forEach(id=>{
-    const el=document.querySelector(`[data-page="${id}"]`);
-    if(el && !podeAdmin) el.closest('.sb-link').style.display='none';
+// ── Reset (chamado antes de initApp e no logout) ─────────────────
+function resetApp(){
+  // Volta tudo ao estado inicial antes de aplicar restrições do perfil
+  document.querySelectorAll('.sb-link, .sb-sec').forEach(e => e.style.display = '');
+  document.querySelectorAll('.btn-export-hidden').forEach(b => {
+    b.style.display = ''; b.classList.remove('btn-export-hidden');
   });
+  el('sb-candidato-wrap').style.display = 'none';
+  el('tb-cand-badge').style.display     = 'none';
+  // Volta página para o painel
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  el('page-painel').classList.add('active');
+  document.querySelectorAll('.sb-link').forEach(l => l.classList.remove('active'));
+  const painelLink = document.querySelector('[data-page="painel"]');
+  if(painelLink) painelLink.classList.add('active');
+  el('bc-cur').textContent = 'Painel';
+  // Revert painel KPIs/subtitle
+  const kpiVal = document.querySelector('#page-painel .kpi-grid .kpi-card:first-child .kpi-val');
+  const kpiLbl = document.querySelector('#page-painel .kpi-grid .kpi-card:first-child .kpi-lbl');
+  const impBtn = document.getElementById('painel-import-btn');
+  if(kpiVal) kpiVal.textContent = '48';
+  if(kpiLbl) kpiLbl.textContent = 'Candidatos';
+  if(impBtn) impBtn.style.display = '';
+  const sub = document.querySelector('#page-painel .ph-sub');
+  if(sub) sub.textContent = 'Visão geral do cenário eleitoral · Goiás 2024';
+}
 
-  // Ocultar comparação para assessor e gestor
-  if(!podeComparar){
-    const compEl=document.querySelector('[data-page="comparacao"]');
-    if(compEl) compEl.style.display='none';
+// ── initApp — aplica RBAC do perfil atual ────────────────────────
+function initApp(){
+  const user       = currentUser;
+  const isAdmin    = user.perfil === 'administrador';
+  const podeComp   = ['administrador','analista'].includes(user.perfil);
+  const podeExp    = ['administrador','gestor','analista'].includes(user.perfil);
+
+  // ── Identidade na sidebar e topbar
+  el('sb-av').textContent   = ini(user.name);
+  el('tb-av').textContent   = ini(user.name);
+  el('sb-name').textContent = user.name.split(' ').slice(0,2).join(' ');
+  el('sb-role').textContent = PERFIL_LABELS[user.perfil];
+
+  // ── Candidato vinculado
+  if(!isAdmin && user.candidato){
+    el('sb-candidato-wrap').style.display = 'block';
+    el('sb-cand-av').textContent    = user.candidato.siglas;
+    el('sb-cand-nome').textContent  = user.candidato.nome.split(' ').slice(0,2).join(' ');
+    el('sb-cand-cargo').textContent = user.candidato.cargo.split('·').slice(0,2).map(s=>s.trim()).join(' · ');
+    el('tb-cand-badge').style.display = 'flex';
+    el('tb-cand-nome').textContent = user.candidato.nome.split(' ').slice(0,2).join(' ');
   }
 
-  // Ocultar botões de exportar para assessor
-  if(!podeExportar){
-    document.querySelectorAll('.btn-secondary').forEach(btn=>{
-      if(btn.textContent.includes('Exportar')||btn.textContent.includes('CSV')){
-        btn.style.display='none';
+  // ── Painel: adaptar para não-admin
+  if(!isAdmin && user.candidato){
+    const kpiVal = document.querySelector('#page-painel .kpi-grid .kpi-card:first-child .kpi-val');
+    const kpiLbl = document.querySelector('#page-painel .kpi-grid .kpi-card:first-child .kpi-lbl');
+    const impBtn = document.getElementById('painel-import-btn');
+    const sub    = document.querySelector('#page-painel .ph-sub');
+    if(kpiVal) kpiVal.textContent = '1';
+    if(kpiLbl) kpiLbl.textContent = 'Candidato vinculado';
+    if(impBtn) impBtn.style.display = 'none';
+    if(sub)    sub.textContent = `${user.candidato.nome} · Goiás 2024`;
+
+    // Ajustar gráfico do painel para mostrar só o candidato vinculado
+    const chartSub = document.querySelector('#page-painel .card-hd .card-sub');
+    if(chartSub) chartSub.textContent = `${user.candidato.nome} · 2016–2024`;
+  }
+
+  // ── Ocultar navegação admin-only
+  const adminNavIds = ['eleicoes','candidaturas','importacao','geografia','usuarios'];
+  if(!isAdmin){
+    adminNavIds.forEach(id => {
+      const lnk = document.querySelector(`[data-page="${id}"]`);
+      if(lnk) lnk.style.display = 'none';
+    });
+    // Ocultar seções "Dados" e "Sistema" da sidebar (todos os itens são admin-only)
+    document.querySelectorAll('.sb-sec').forEach(sec => {
+      const next = sec.nextElementSibling;
+      if(next && next.style.display === 'none') sec.style.display = 'none';
+      // Lógica mais robusta: checar todos irmãos até a próxima section
+      let all = [], cur = sec.nextElementSibling;
+      while(cur && !cur.classList.contains('sb-sec')){ all.push(cur); cur = cur.nextElementSibling; }
+      if(all.every(n => adminNavIds.includes(n.dataset?.page))) sec.style.display = 'none';
+    });
+  }
+
+  // ── Ocultar comparação para assessor/gestor
+  if(!podeComp){
+    const compLink = document.querySelector('[data-page="comparacao"]');
+    if(compLink) compLink.style.display = 'none';
+  }
+
+  // ── Ocultar exportação para assessor (marcar para poder resetar depois)
+  if(!podeExp){
+    document.querySelectorAll('.btn-secondary, .btn-outline').forEach(btn => {
+      const txt = btn.textContent.trim();
+      if(txt.includes('Exportar') || txt.includes('CSV') || txt.includes('exportar')){
+        btn.style.display = 'none';
+        btn.classList.add('btn-export-hidden');
       }
     });
   }
 
-  // Painel: título personalizado
-  const painelSub = document.querySelector('#page-painel .ph-sub');
-  if(painelSub && !isAdmin && user.candidato){
-    painelSub.textContent=`${user.candidato.nome} · Goiás 2024`;
+  // ── Candidatos: filtrar para não-admin (mostrar só o candidato vinculado)
+  if(!isAdmin && user.candidato){
+    const tabBody = document.querySelector('#page-candidatos tbody');
+    if(tabBody){
+      const rows = tabBody.querySelectorAll('tr');
+      rows.forEach(row => {
+        const nome = row.querySelector('.td-bold')?.textContent.trim() || '';
+        row.style.display = nome === user.candidato.nome ? '' : 'none';
+      });
+      // Atualizar contador
+      const counter = document.querySelector('#page-candidatos p[style*="margin-top"]');
+      if(counter) counter.textContent = `Exibindo 1 candidato — filtrado pelo seu vínculo.`;
+    }
   }
 }
 
-const PAGE_NAMES={painel:'Painel Principal',mapa:'Mapa Territorial',candidatos:'Candidatos',pesquisas:'Pesquisas Eleitorais',comparacao:'Comparação de Eleições',eleicoes:'Eleições',candidaturas:'Candidaturas',importacao:'Importação de Dados',geografia:'Geografia · Geocodificação',usuarios:'Usuários'};
+// ── Navegação ────────────────────────────────────────────────────
+const PAGE_NAMES = {
+  painel:'Painel Principal', mapa:'Mapa Territorial', candidatos:'Candidatos',
+  pesquisas:'Pesquisas Eleitorais', comparacao:'Comparação de Eleições',
+  eleicoes:'Eleições', candidaturas:'Candidaturas',
+  importacao:'Importação de Dados', geografia:'Geografia · Geocodificação', usuarios:'Usuários'
+};
 
 function navigateTo(id){
-  // Bloquear páginas restritas para não-admins
-  const adminOnly=['eleicoes','candidaturas','importacao','geografia','usuarios'];
-  const podeComparar=['administrador','analista'].includes(currentUser?.perfil);
+  const adminOnly  = ['eleicoes','candidaturas','importacao','geografia','usuarios'];
+  const podeComp   = ['administrador','analista'].includes(currentUser?.perfil);
   if(adminOnly.includes(id) && currentUser?.perfil !== 'administrador'){
-    toast('Acesso restrito ao Administrador.','error');return;
+    toast('Acesso restrito ao Administrador.', 'error'); return;
   }
-  if(id==='comparacao' && !podeComparar){
-    toast('Comparação disponível apenas para Analista e Administrador.','warning');return;
+  if(id === 'comparacao' && !podeComp){
+    toast('Comparação disponível apenas para Analista e Administrador.', 'warning'); return;
   }
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.sb-link').forEach(l=>l.classList.remove('active'));
-  const p=$('page-'+id); if(p)p.classList.add('active');
-  const n=document.querySelector(`[data-page="${id}"]`); if(n)n.classList.add('active');
-  $('bc-cur').textContent=PAGE_NAMES[id]||id;
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.sb-link').forEach(l => l.classList.remove('active'));
+  const pg = el('page-'+id); if(pg) pg.classList.add('active');
+  const lnk = document.querySelector(`[data-page="${id}"]`); if(lnk) lnk.classList.add('active');
+  el('bc-cur').textContent = PAGE_NAMES[id] || id;
 }
 
-document.querySelectorAll('[data-page]').forEach(l=>{
-  l.addEventListener('click',()=>navigateTo(l.dataset.page));
+document.querySelectorAll('[data-page]').forEach(l => {
+  l.addEventListener('click', () => navigateTo(l.dataset.page));
 });
 
-$('logout-btn').addEventListener('click',()=>{
-  currentUser=null;
-  $('screen-app').classList.remove('visible');
-  $('screen-login').style.display='flex';
-  $('l-user').value='';$('l-pass').value='';
-  $('l-err').style.display='none';
-  // Resetar sidebar
-  $('sb-candidato-wrap').style.display='none';
-  $('tb-cand-badge').style.display='none';
+// ── Logout ───────────────────────────────────────────────────────
+el('logout-btn').addEventListener('click', () => {
+  currentUser = null;
+  resetApp();
+  el('screen-app').classList.remove('visible');
+  el('screen-login').style.display = 'flex';
+  el('l-user').value = ''; el('l-pass').value = '';
+  el('l-err').style.display = 'none';
   toast('Sessão encerrada com segurança.');
 });
 
-/* Botões de mapa */
-document.querySelectorAll('.map-tb').forEach(b=>{
-  b.addEventListener('click',()=>{
-    document.querySelectorAll('.map-tb').forEach(x=>x.classList.remove('active'));
+// ── Mapa ─────────────────────────────────────────────────────────
+document.querySelectorAll('.map-tb').forEach(b => {
+  b.addEventListener('click', () => {
+    document.querySelectorAll('.map-tb').forEach(x => x.classList.remove('active'));
     b.classList.add('active');
   });
 });
 
-/* Painel lateral do mapa */
-function selectTerr(nome,classif,cor,votos,pct,indice){
-  $('mp-nome').textContent=nome;
-  $('mp-body').innerHTML=`
+function voltarLegenda(){
+  el('mp-nome').textContent = 'Clique em um território';
+  renderLegenda();
+}
+
+function selectTerr(nome, classif, cor, votos, pct, indice){
+  el('mp-nome').textContent = nome;
+  el('mp-body').innerHTML = `
     <span class="class-badge" style="background:${cor}">${classif}</span>
     <div class="terr-stats">
       <div class="stat-box"><div class="val">${votos.toLocaleString('pt-BR')}</div><div class="lbl">Votos 2024</div></div>
@@ -1674,17 +1733,19 @@ function selectTerr(nome,classif,cor,votos,pct,indice){
       <thead><tr><th>Eleição</th><th>Votos</th><th>%</th><th>Var.</th></tr></thead>
       <tbody>
         <tr><td>2024</td><td>${votos.toLocaleString('pt-BR')}</td><td>${pct.toFixed(1)}%</td><td>—</td></tr>
-        <tr><td>2022</td><td>${Math.round(votos*.72).toLocaleString('pt-BR')}</td><td>${(pct-4.1).toFixed(1)}%</td><td class="tag-up">ref.</td></tr>
+        <tr><td>2022</td><td>${Math.round(votos*.72).toLocaleString('pt-BR')}</td><td>${(pct-4.1).toFixed(1)}%</td><td class="tag-up">+4,1 p.p.</td></tr>
         <tr><td>2020</td><td>${Math.round(votos*.56).toLocaleString('pt-BR')}</td><td>${(pct-8.6).toFixed(1)}%</td><td class="tag-up">base</td></tr>
       </tbody>
     </table>
     <div style="display:flex;gap:8px;margin-top:14px">
-      <button class="btn btn-primary btn-sm" style="flex:1">Analisar</button>
-      <button class="btn btn-secondary btn-sm" onclick="$('mp-nome').textContent='Clique em um território';renderLegenda()">← Voltar</button>
+      <button class="btn btn-primary btn-sm" style="flex:1" onclick="toast('Abrindo análise de ${nome}','success')">Analisar</button>
+      <button class="btn btn-secondary btn-sm" onclick="voltarLegenda()">← Voltar</button>
     </div>`;
 }
+
 function renderLegenda(){
-  $('mp-body').innerHTML=`<p style="font-size:12px;color:var(--gray-400);margin-bottom:12px;line-height:1.6">Classificação baseada em dados históricos objetivos do TSE.</p>
+  el('mp-body').innerHTML = `
+    <p style="font-size:12px;color:var(--gray-400);margin-bottom:12px;line-height:1.6">Classificação baseada em dados históricos objetivos do TSE. Clique em qualquer município no mapa.</p>
     <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--gray-400);margin-bottom:8px">Legenda</div>
     <div class="leg-grid">
       <div class="leg-item"><div class="leg-dot" style="background:#0d5c37"></div>Consolidado</div>
