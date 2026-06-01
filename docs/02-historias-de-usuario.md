@@ -15,6 +15,7 @@
 5. [Partido Político](#5-partido-político)
 6. [Pesquisador](#6-pesquisador)
 7. [Analista](#7-analista)
+8. [Administrador](#8-administrador)
 
 ---
 
@@ -433,3 +434,54 @@
 > **COMO** analista  
 > **QUERO** visualizar gráficos de evolução eleitoral por território ao longo de múltiplas eleições  
 > **PARA** identificar padrões, tendências e anomalias históricas de forma visual
+
+---
+
+## 8. Administrador
+
+### HU-ADM01 ★
+
+> **COMO** administrador  
+> **QUERO** criar, editar e desativar usuários na plataforma  
+> **PARA** controlar quem tem acesso ao sistema e com qual nível de permissão
+
+**Critérios de aceitação:**
+- O formulário de criação exige: nome completo, e-mail, senha temporária e confirmação, perfil de acesso e candidato vinculado (obrigatório para `gestor`, `analista` e `assessor`; oculto para `administrador`).
+- O sistema valida se as senhas coincidem antes de criar o usuário.
+- O formulário de edição permite alterar nome, e-mail, perfil, candidato vinculado, permissões individuais e status da conta (ativo/inativo).
+- O botão "Desativar" impede o login do usuário sem excluir seus dados ou logs.
+- Usuários inativos são visivelmente marcados na tabela de usuários.
+- A tela de usuários exibe, para cada usuário: nome, e-mail, perfil, candidato vinculado, permissão de exportação, permissão de comparação, último acesso e status.
+
+---
+
+### HU-ADM02 ★
+
+> **COMO** administrador  
+> **QUERO** configurar as permissões padrão de cada perfil e sobrescrever permissões de usuários individuais  
+> **PARA** adaptar o nível de acesso a cada contexto sem precisar criar perfis novos
+
+**Critérios de aceitação:**
+- A tela de Usuários exibe um painel com cards de cada perfil (`gestor`, `analista`, `assessor`), com toggles para as permissões configuráveis: **Exportar dados** e **Comparar candidatos**.
+- O `administrador` tem todas as permissões sempre ativas e não pode ser configurado.
+- A importação de dados TSE é sempre bloqueada para `gestor`, `analista` e `assessor` — não é configurável.
+- Um botão "Permissões por Perfil" abre um modal com a visão expandida das configurações, incluindo descrição de cada permissão.
+- No modal de edição de cada usuário, é possível sobrescrever as permissões padrão do perfil com permissões individuais específicas para aquele usuário.
+- As alterações nos cards da página e no modal de permissões por perfil estão sincronizadas em tempo real.
+- Ao salvar, um toast de confirmação é exibido.
+
+---
+
+### HU-ADM03
+
+> **COMO** administrador  
+> **QUERO** ver, na tabela de usuários, se cada usuário tem permissão de exportar e comparar  
+> **PARA** ter uma visão rápida das capacidades de toda a equipe sem abrir cada usuário individualmente
+
+---
+
+### HU-ADM04
+
+> **COMO** administrador  
+> **QUERO** filtrar a lista de usuários por perfil e por candidato vinculado  
+> **PARA** localizar rapidamente usuários de um candidato ou perfil específico

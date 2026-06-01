@@ -52,14 +52,14 @@
   --info-50:    #eff6ff; --info-500:    #3b82f6; --info-700:    #1d4ed8;
 
   /* Sidebar */
-  --sb-bg:      #0f1c3f;
-  --sb-border:  rgba(255,255,255,.07);
-  --sb-hover:   rgba(255,255,255,.07);
-  --sb-active:  rgba(96,144,248,.18);
-  --sb-text:    rgba(255,255,255,.52);
-  --sb-active-t:#93b4fd;
+  --sb-bg:      #f8faff;
+  --sb-border:  #e4eaf8;
+  --sb-hover:   rgba(59,110,242,.06);
+  --sb-active:  rgba(59,110,242,.10);
+  --sb-text:    var(--gray-500);
+  --sb-active-t:var(--brand-700);
   --sb-w:       228px;
-  --sb-col:     60px;
+  --sb-col:     76px;
 
   --topbar-h: 58px;
   --font: 'Plus Jakarta Sans', system-ui, sans-serif;
@@ -85,183 +85,300 @@ ul{list-style:none}
 #screen-login{
   position:fixed;inset:0;z-index:1000;
   display:flex;align-items:center;justify-content:center;
-  background:var(--sb-bg);overflow:hidden;
+  background:#f0f4ff;overflow:hidden;
 }
 .login-bg{
   position:absolute;inset:0;
   background:
-    radial-gradient(ellipse 70% 55% at 15% 85%,rgba(59,110,242,.22) 0%,transparent 55%),
-    radial-gradient(ellipse 55% 45% at 85% 15%,rgba(30,53,174,.18) 0%,transparent 50%);
+    radial-gradient(ellipse 70% 55% at 15% 85%,rgba(59,110,242,.10) 0%,transparent 55%),
+    radial-gradient(ellipse 55% 45% at 85% 15%,rgba(99,140,248,.08) 0%,transparent 50%);
 }
 .login-grid{
   position:absolute;inset:0;
-  background-image:linear-gradient(rgba(59,110,242,.05) 1px,transparent 1px),
-                   linear-gradient(90deg,rgba(59,110,242,.05) 1px,transparent 1px);
+  background-image:linear-gradient(rgba(59,110,242,.12) 1px,transparent 1px),
+                   linear-gradient(90deg,rgba(59,110,242,.12) 1px,transparent 1px);
   background-size:48px 48px;
 }
 .login-wrap{
   position:relative;z-index:2;display:flex;
-  width:900px;max-width:calc(100vw - 40px);
-  background:rgba(255,255,255,.03);
-  border:1px solid rgba(255,255,255,.09);
+  width:720px;max-width:calc(100vw - 40px);
+  background:#fff;
+  border:1px solid var(--brand-100);
   border-radius:var(--r-xl);overflow:hidden;box-shadow:var(--shadow-xl);
 }
 .login-left{
   flex:1;
-  background:linear-gradient(160deg,rgba(59,110,242,.28) 0%,rgba(15,28,63,.85) 100%);
-  padding:52px 44px;display:flex;flex-direction:column;justify-content:space-between;min-height:560px;
+  background:linear-gradient(160deg,var(--brand-700) 0%,var(--brand-950) 100%);
+  padding:32px 36px;display:flex;flex-direction:column;justify-content:space-between;min-height:380px;
 }
 .ll-brand{display:flex;align-items:center;gap:12px}
 .ll-mark{
   width:40px;height:40px;
-  background:linear-gradient(135deg,var(--brand-400),var(--brand-700));
+  background:rgba(255,255,255,.15);
   border-radius:11px;display:flex;align-items:center;justify-content:center;
-  box-shadow:0 6px 20px rgba(59,110,242,.4);font-size:16px;font-weight:900;color:#fff;letter-spacing:-1px;
+  box-shadow:0 6px 20px rgba(0,0,0,.2);font-size:16px;font-weight:900;color:#fff;letter-spacing:-1px;
 }
 .ll-name{font-size:16px;font-weight:700;color:#fff}
-.ll-tag{font-size:9.5px;color:var(--brand-300);letter-spacing:1.4px;text-transform:uppercase;font-weight:600}
-.ll-tagline{font-size:30px;font-weight:800;color:#fff;line-height:1.2;letter-spacing:-.5px;margin-bottom:14px}
-.ll-desc{font-size:13.5px;color:rgba(255,255,255,.45);line-height:1.7}
-.ll-pills{display:flex;flex-wrap:wrap;gap:8px;margin-top:24px}
+.ll-tag{font-size:9.5px;color:var(--brand-200);letter-spacing:1.4px;text-transform:uppercase;font-weight:600}
+.ll-tagline{font-size:24px;font-weight:800;color:#fff;line-height:1.2;letter-spacing:-.5px;margin-bottom:10px}
+.ll-desc{font-size:13.5px;color:rgba(255,255,255,.55);line-height:1.7}
+.ll-pills{display:flex;flex-wrap:wrap;gap:6px;margin-top:16px}
 .ll-pill{
   display:inline-flex;align-items:center;gap:6px;
   padding:5px 12px;border-radius:99px;
-  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);
-  color:rgba(255,255,255,.6);font-size:11.5px;font-weight:500;
+  background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);
+  color:rgba(255,255,255,.7);font-size:11.5px;font-weight:500;
 }
-.ll-pill i{font-size:10px;color:var(--brand-300)}
+.ll-pill i{font-size:10px;color:var(--brand-200)}
 .login-right{
-  width:390px;flex-shrink:0;
-  background:rgba(255,255,255,.04);
-  padding:50px 42px;display:flex;flex-direction:column;justify-content:center;
+  width:320px;flex-shrink:0;
+  background:#fff;
+  padding:28px 32px;display:flex;flex-direction:column;justify-content:center;
 }
-.lr-title{font-size:22px;font-weight:700;color:#fff;margin-bottom:4px}
-.lr-sub{font-size:13px;color:rgba(255,255,255,.4);margin-bottom:32px}
-.lf-g{margin-bottom:16px}
-.lf-lbl{display:block;font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:rgba(255,255,255,.45);margin-bottom:7px}
+.lr-title{font-size:20px;font-weight:700;color:var(--gray-900);margin-bottom:3px}
+.lr-sub{font-size:12.5px;color:var(--gray-400);margin-bottom:20px}
+.lf-g{margin-bottom:12px}
+.lf-lbl{display:block;font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--gray-500);margin-bottom:7px}
 .lf-wrap{position:relative}
-.lf-wrap i.lf-ic{position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:13px;color:rgba(255,255,255,.25);pointer-events:none}
+.lf-wrap i.lf-ic{position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:13px;color:var(--gray-300);pointer-events:none}
 .lf-inp{
   width:100%;height:44px;padding:0 40px 0 38px;
-  background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.11);
-  border-radius:var(--r-md);color:#fff;font-size:14px;font-family:var(--font);outline:none;transition:all var(--t-base);
+  background:var(--gray-50);border:1px solid var(--gray-200);
+  border-radius:var(--r-md);color:var(--gray-900);font-size:14px;font-family:var(--font);outline:none;transition:all var(--t-base);
 }
-.lf-inp::placeholder{color:rgba(255,255,255,.2)}
-.lf-inp:focus{background:rgba(255,255,255,.1);border-color:var(--brand-400);box-shadow:0 0 0 3px rgba(59,110,242,.22)}
-.lf-eye{position:absolute;right:12px;top:50%;transform:translateY(-50%);color:rgba(255,255,255,.3);font-size:13px;cursor:pointer;transition:color var(--t-fast)}
-.lf-eye:hover{color:rgba(255,255,255,.6)}
+.lf-inp::placeholder{color:var(--gray-300)}
+.lf-inp:focus{background:#fff;border-color:var(--brand-400);box-shadow:0 0 0 3px rgba(59,110,242,.12)}
+.lf-eye{position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--gray-300);font-size:13px;cursor:pointer;transition:color var(--t-fast)}
+.lf-eye:hover{color:var(--gray-600)}
 .btn-login{
   width:100%;height:44px;margin-top:8px;
   background:linear-gradient(135deg,var(--brand-500),var(--brand-800));
   color:#fff;font-size:14px;font-weight:600;border-radius:var(--r-md);
   display:flex;align-items:center;justify-content:center;gap:8px;
-  box-shadow:0 4px 16px rgba(59,110,242,.4);transition:all var(--t-base);font-family:var(--font);
+  box-shadow:0 4px 16px rgba(59,110,242,.3);transition:all var(--t-base);font-family:var(--font);
 }
-.btn-login:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(59,110,242,.5)}
+.btn-login:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(59,110,242,.4)}
 .lf-err{
   display:none;margin-top:12px;padding:10px 14px;
-  background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.25);
-  border-radius:var(--r-sm);color:#fca5a5;font-size:12.5px;align-items:center;gap:8px;
+  background:var(--danger-50);border:1px solid rgba(239,68,68,.25);
+  border-radius:var(--r-sm);color:var(--danger-700);font-size:12.5px;align-items:center;gap:8px;
 }
-.login-demos{margin-top:20px;padding:12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:var(--r-md)}
-.login-demos p{font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:rgba(255,255,255,.3);margin-bottom:8px}
+.login-demos{margin-top:14px;padding:8px 10px;background:var(--gray-50);border:1px solid var(--gray-100);border-radius:var(--r-md)}
+.login-demos p{font-size:9.5px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--gray-400);margin-bottom:6px}
+.demo-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px}
 .demo-btn{
-  display:block;width:100%;text-align:left;
-  background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07);
-  border-radius:6px;padding:5px 9px;cursor:pointer;
-  color:rgba(255,255,255,.5);font-size:11px;font-family:var(--font);
-  transition:background var(--t-fast);margin-bottom:4px;
+  display:flex;align-items:center;gap:5px;
+  background:#fff;border:1px solid var(--gray-200);
+  border-radius:6px;padding:4px 8px;cursor:pointer;
+  color:var(--gray-600);font-size:10.5px;font-family:var(--font);
+  transition:background var(--t-fast);white-space:nowrap;overflow:hidden;
 }
-.demo-btn:last-child{margin-bottom:0}
-.demo-btn:hover{background:rgba(255,255,255,.1)}
-.demo-btn strong{color:rgba(255,255,255,.75)}
-.login-footer{font-size:11px;color:rgba(255,255,255,.18);text-align:center;margin-top:20px}
+.demo-btn:hover{background:var(--brand-50);border-color:var(--brand-200)}
+.demo-btn strong{color:var(--gray-800);font-weight:600}
+.login-footer{font-size:11px;color:var(--gray-300);text-align:center;margin-top:20px}
 
 /* ═══ WELCOME ══════════════════════════════════════════════════ */
 #screen-welcome{
   display:none;position:fixed;inset:0;z-index:900;
   background:var(--gray-50);align-items:center;justify-content:center;
 }
-.wc-card{text-align:center;max-width:480px;padding:20px;animation:wIn .5s var(--ease) both}
-@keyframes wIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+@keyframes wIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.wc-card{
+  width:100%;max-width:400px;padding:20px;
+  animation:wIn .4s var(--ease) both;
+}
+/* Topo: avatar + saudação */
+.wc-top{display:flex;align-items:center;gap:14px;margin-bottom:24px}
 .wc-av{
-  width:80px;height:80px;border-radius:24px;
+  width:48px;height:48px;border-radius:14px;flex-shrink:0;
   background:linear-gradient(135deg,var(--brand-500),var(--brand-800));
   display:flex;align-items:center;justify-content:center;
-  font-size:26px;font-weight:800;color:#fff;margin:0 auto 24px;
-  box-shadow:0 12px 40px rgba(59,110,242,.35);
+  font-size:16px;font-weight:800;color:#fff;
+  box-shadow:0 4px 14px rgba(59,110,242,.3);
 }
-.wc-greet{font-size:13px;font-weight:600;color:var(--brand-600);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px}
-.wc-name{font-size:32px;font-weight:800;color:var(--gray-900);letter-spacing:-.5px;margin-bottom:8px}
-.wc-role{font-size:14px;color:var(--gray-400);margin-bottom:28px}
-.wc-desc{font-size:14px;color:var(--gray-500);line-height:1.7;margin-bottom:32px;max-width:380px;margin-left:auto;margin-right:auto}
-.wc-chips{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:32px}
-.wc-chip{
-  display:inline-flex;align-items:center;gap:7px;
-  padding:7px 14px;border-radius:99px;
-  background:var(--brand-50);border:1px solid var(--brand-100);
-  color:var(--brand-700);font-size:12.5px;font-weight:600;
+.wc-greet{font-size:12px;font-weight:600;color:var(--brand-600);text-transform:uppercase;letter-spacing:.7px;margin-bottom:3px}
+.wc-name{font-size:20px;font-weight:800;color:var(--gray-900);letter-spacing:-.3px}
+.wc-role{font-size:12px;color:var(--gray-400);margin-top:1px}
+/* Card candidato vinculado */
+.wc-cand-card{
+  background:#fff;border:1px solid var(--gray-100);border-radius:var(--r-lg);
+  padding:14px 16px;margin-bottom:14px;box-shadow:var(--shadow-sm);
 }
+.wc-cand-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--gray-400);margin-bottom:10px}
+.wc-cand-row{display:flex;align-items:center;gap:12px}
+.wc-cand-ico{
+  width:42px;height:42px;border-radius:12px;flex-shrink:0;
+  background:linear-gradient(135deg,var(--brand-600),var(--brand-950));
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:800;color:#fff;
+}
+.wc-cand-nome{font-size:14px;font-weight:700;color:var(--gray-900)}
+.wc-cand-cargo{font-size:12px;color:var(--gray-500);margin-top:2px}
+/* Permissões */
+.wc-perms{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px;padding-top:12px;border-top:1px solid var(--gray-100)}
+.wc-perm{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:3px 10px;border-radius:99px;font-size:11px;font-weight:600;
+}
+.wc-perm.ok{background:var(--brand-50);color:var(--brand-700);border:1px solid var(--brand-100)}
+.wc-perm.no{background:var(--gray-100);color:var(--gray-400);border:1px solid var(--gray-200)}
+/* Card admin */
+.wc-admin-card{
+  background:#fff;border:1px solid var(--gray-100);border-radius:var(--r-lg);
+  padding:14px 16px;margin-bottom:14px;box-shadow:var(--shadow-sm);
+  display:flex;flex-wrap:wrap;gap:8px;
+}
+.wc-stat{flex:1;min-width:80px;text-align:center;padding:10px 8px;border-radius:var(--r-md);background:var(--gray-50)}
+.wc-stat-val{font-size:22px;font-weight:800;color:var(--gray-900);letter-spacing:-1px}
+.wc-stat-lbl{font-size:10.5px;color:var(--gray-400);margin-top:2px}
+/* Botão */
 .btn-wc{
-  display:inline-flex;align-items:center;gap:8px;
-  padding:0 28px;height:46px;border-radius:var(--r-md);
+  width:100%;height:42px;border-radius:var(--r-md);
   background:linear-gradient(135deg,var(--brand-500),var(--brand-800));
-  color:#fff;font-size:14px;font-weight:700;
-  box-shadow:0 6px 20px rgba(59,110,242,.35);cursor:pointer;border:none;
+  color:#fff;font-size:13.5px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  box-shadow:0 4px 14px rgba(59,110,242,.28);cursor:pointer;border:none;
   font-family:var(--font);transition:all var(--t-base);
 }
-.btn-wc:hover{transform:translateY(-1px);box-shadow:0 10px 28px rgba(59,110,242,.45)}
+.btn-wc:hover{transform:translateY(-1px);box-shadow:0 8px 22px rgba(59,110,242,.38)}
 
 /* ═══ APP SHELL ════════════════════════════════════════════════ */
 #screen-app{display:none;position:fixed;inset:0;flex-direction:row}
 #screen-app.visible{display:flex}
 
+/* Sidebar wrapper — overflow visible para o botão seta aparecer fora da sidebar */
+.sidebar-wrap{
+  position:relative;flex-shrink:0;
+}
 /* Sidebar */
 .sidebar{
-  width:var(--sb-col);background:var(--sb-bg);
+  width:var(--sb-w);
   border-right:1px solid var(--sb-border);
   display:flex;flex-direction:column;
-  transition:width var(--t-slow);flex-shrink:0;overflow:hidden;z-index:100;
+  transition:width var(--t-slow);overflow:hidden;z-index:100;
+  background-color:var(--sb-bg);
+  background-image:
+    linear-gradient(rgba(59,110,242,.07) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(59,110,242,.07) 1px,transparent 1px);
+  background-size:10px 10px;
+  height:100%;
 }
-.sidebar:hover{width:var(--sb-w)}
+.sidebar.collapsed{width:var(--sb-col)}
+
+/* Botão seta flutuante na borda direita */
+.sb-arrow{
+  position:absolute;
+  right:-13px;
+  top:calc(var(--topbar-h) / 2);
+  transform:translateY(-50%);
+  z-index:200;
+  width:26px;height:26px;border-radius:50%;
+  background:#fff;
+  border:1.5px solid var(--gray-200);
+  color:var(--gray-400);font-size:10px;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;
+  box-shadow:0 2px 8px rgba(0,0,0,.10);
+  transition:all var(--t-fast);
+}
+.sb-arrow:hover{
+  background:var(--brand-50);
+  border-color:var(--brand-400);
+  color:var(--brand-600);
+  box-shadow:0 4px 14px rgba(59,110,242,.22);
+  transform:translateY(-50%) scale(1.1);
+}
+
+/* Cabeçalho */
 .sb-hd{
   height:var(--topbar-h);display:flex;align-items:center;
-  padding:0 12px;gap:10px;flex-shrink:0;
-  border-bottom:1px solid var(--sb-border);overflow:hidden;white-space:nowrap;
+  padding:0 12px;gap:10px;flex-shrink:0;overflow:hidden;white-space:nowrap;
+  position:relative;
 }
+/* Linhas degradê topo e base */
+.sb-hd::before,.sb-hd::after{
+  content:'';position:absolute;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,var(--brand-700),rgba(59,110,242,.06));
+  pointer-events:none;z-index:1;
+}
+.sb-hd::before{top:0}
+.sb-hd::after{bottom:0}
+
 .sb-mark{
   width:36px;height:36px;flex-shrink:0;
   background:linear-gradient(135deg,var(--brand-500),var(--brand-800));
   border-radius:10px;display:flex;align-items:center;justify-content:center;
-  box-shadow:0 4px 12px rgba(59,110,242,.35);font-size:13px;font-weight:900;color:#fff;letter-spacing:-1px;
+  box-shadow:0 4px 12px rgba(59,110,242,.25);font-size:13px;font-weight:900;color:#fff;letter-spacing:-1px;
 }
-.sb-brand{overflow:hidden}
-.sb-name{font-size:13.5px;font-weight:700;color:#fff;white-space:nowrap}
-.sb-tag{font-size:9.5px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:var(--brand-400)}
-.sb-nav{flex:1;overflow-y:auto;overflow-x:hidden;padding:10px 0}
+.sb-brand{overflow:hidden;flex:1;min-width:0}
+.sb-name{font-size:13.5px;font-weight:700;color:var(--gray-900);white-space:nowrap}
+.sb-tag{font-size:9.5px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:var(--brand-500)}
+
+/* Recolhido: esconde brand, centraliza logo */
+.sidebar.collapsed .sb-brand{display:none}
+.sidebar.collapsed .sb-hd{justify-content:center;padding:0}
+
+.sb-nav{flex:1;overflow-y:auto;overflow-x:hidden;padding:4px 0 10px}
 .sb-nav::-webkit-scrollbar{width:3px}
-.sb-nav::-webkit-scrollbar-thumb{background:rgba(255,255,255,.08);border-radius:99px}
-.sb-sec{font-size:9px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:rgba(255,255,255,.2);padding:14px 16px 4px;white-space:nowrap;opacity:0;transition:opacity var(--t-base)}
-.sidebar:hover .sb-sec{opacity:1}
+.sb-nav::-webkit-scrollbar-thumb{background:var(--gray-200);border-radius:99px}
+.sb-sec{
+  font-size:9px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;
+  color:var(--gray-400);padding:14px 16px 4px;white-space:nowrap;
+  opacity:1;transition:opacity var(--t-base);
+}
+.sidebar.collapsed .sb-sec{opacity:0;pointer-events:none;padding-top:6px}
+
+/* Links */
 .sb-link{
   display:flex;align-items:center;
-  padding:8px 12px;margin:1px 6px;
+  padding:7px 12px;margin:1px 6px;
   border-radius:var(--r-md);color:var(--sb-text);
   font-size:13px;font-weight:500;cursor:pointer;
   transition:all var(--t-fast);white-space:nowrap;overflow:hidden;
-  position:relative;border-left:3px solid transparent;
+  position:relative;
 }
-.sb-link:hover{background:var(--sb-hover);color:rgba(255,255,255,.85)}
-.sb-link.active{background:var(--sb-active);color:var(--sb-active-t);border-left-color:var(--brand-400)}
-.sb-icon{width:36px;height:36px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:14px;border-radius:8px}
+.sb-link:hover{background:var(--sb-hover);color:var(--gray-800)}
+/* Ativo: degradê da esquerda pra direita, azul → transparente */
+.sb-link.active{
+  background:linear-gradient(90deg,rgba(59,110,242,.18) 0%,rgba(59,110,242,.04) 100%);
+  color:var(--brand-800);font-weight:700;
+}
+.sb-icon{
+  width:36px;height:36px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;border-radius:8px;color:var(--gray-400);
+  transition:color var(--t-fast);
+}
+.sb-link:hover .sb-icon{color:var(--gray-700)}
+.sb-link.active .sb-icon{color:var(--brand-600)}
+/* Recolhido: ocultar label, centralizar ícone */
+.sidebar.collapsed .sb-lbl{display:none}
+.sidebar.collapsed .sb-link{justify-content:center;padding:7px 0;margin:1px 8px}
+.sidebar.collapsed .sb-link.active{
+  background:linear-gradient(135deg,rgba(59,110,242,.18),rgba(59,110,242,.06));
+}
 .sb-lbl{flex:1;overflow:hidden;text-overflow:ellipsis;margin-left:2px}
-.sb-ft{padding:10px 6px;border-top:1px solid var(--sb-border);flex-shrink:0}
+.sb-ft{
+  padding:10px 6px;flex-shrink:0;
+  background:var(--brand-950);
+  position:relative;
+}
+/* Linha degradê só no topo — mesmo padrão do sb-hd */
+.sb-ft::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,var(--brand-700),rgba(59,110,242,.06));
+  pointer-events:none;
+}
 .sb-user{display:flex;align-items:center;padding:8px 6px;border-radius:var(--r-md);cursor:pointer;transition:background var(--t-fast);overflow:hidden;white-space:nowrap}
-.sb-user:hover{background:var(--sb-hover)}
-.sb-av{width:36px;height:36px;flex-shrink:0;border-radius:10px;background:linear-gradient(135deg,var(--brand-500),var(--brand-900));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff}
+.sb-user:hover{background:rgba(255,255,255,.07)}
+.sb-av{width:36px;height:36px;flex-shrink:0;border-radius:10px;background:linear-gradient(135deg,var(--brand-500),var(--brand-700));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff}
 .sb-ui{margin-left:10px;overflow:hidden}
-.sb-uname{font-size:12.5px;font-weight:600;color:rgba(255,255,255,.75);overflow:hidden;text-overflow:ellipsis}
-.sb-urole{font-size:11px;color:rgba(255,255,255,.3)}
+.sb-uname{font-size:12.5px;font-weight:600;color:#fff;overflow:hidden;text-overflow:ellipsis}
+.sb-urole{font-size:11px;color:rgba(255,255,255,.45)}
+.sidebar.collapsed .sb-ui{display:none}
+.sidebar.collapsed #sb-candidato-wrap .sb-cand-text{display:none}
+.sidebar.collapsed .sb-user{justify-content:center}
+.sidebar.collapsed #sb-candidato-wrap > div{justify-content:center}
 
 /* App body */
 .app-body{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
@@ -439,6 +556,31 @@ ul{list-style:none}
 .form-inp,.form-sel{height:38px;padding:0 12px;background:var(--gray-0);border:1px solid var(--gray-200);border-radius:var(--r-md);font-size:13.5px;color:var(--gray-800);font-family:var(--font);outline:none;transition:all var(--t-base);width:100%}
 .form-inp:focus,.form-sel:focus{border-color:var(--brand-400);box-shadow:0 0 0 3px rgba(59,110,242,.1)}
 
+/* Toggle switch */
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--gray-50)}
+.toggle-row:last-child{border-bottom:none}
+.toggle-lbl{font-size:13px;color:var(--gray-700)}
+.toggle-desc{font-size:11.5px;color:var(--gray-400);margin-top:2px}
+.toggle{position:relative;display:inline-block;width:38px;height:22px;flex-shrink:0}
+.toggle input{opacity:0;width:0;height:0}
+.toggle-track{position:absolute;inset:0;background:var(--gray-200);border-radius:99px;cursor:pointer;transition:background var(--t-base)}
+.toggle input:checked+.toggle-track{background:var(--brand-500)}
+.toggle-track::after{content:'';position:absolute;width:16px;height:16px;background:#fff;border-radius:50%;top:3px;left:3px;transition:transform var(--t-base);box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.toggle input:checked+.toggle-track::after{transform:translateX(16px)}
+/* Permissões por perfil */
+.perfil-perm-card{background:var(--gray-0);border:1px solid var(--gray-100);border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--shadow-sm)}
+.ppc-hd{padding:14px 18px;border-bottom:1px solid var(--gray-100);display:flex;align-items:center;gap:10px}
+.ppc-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.ppc-nome{font-size:14px;font-weight:700;color:var(--gray-900)}
+.ppc-desc{font-size:11.5px;color:var(--gray-400);margin-top:1px}
+.ppc-bd{padding:4px 18px 8px}
+/* Modal tabs */
+.modal-tabs{display:flex;gap:0;border-bottom:1px solid var(--gray-100);margin:-22px -24px 20px}
+.modal-tab{flex:1;padding:12px 0;text-align:center;font-size:13px;font-weight:600;color:var(--gray-400);cursor:pointer;border-bottom:2px solid transparent;transition:all var(--t-fast)}
+.modal-tab.active{color:var(--brand-600);border-bottom-color:var(--brand-500)}
+.modal-tab-panel{display:none}
+.modal-tab-panel.active{display:block}
+
 /* Toast */
 .toast-wrap{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px}
 .toast{display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--gray-0);border-radius:var(--r-md);box-shadow:var(--shadow-lg);border-left:3px solid var(--brand-500);font-size:13.5px;color:var(--gray-800);min-width:260px;max-width:360px;animation:tIn .25s var(--ease)}
@@ -539,6 +681,143 @@ ul{list-style:none}
 .pesq-fill{height:100%;border-radius:4px}
 .pesq-pct{width:36px;font-size:12px;font-weight:700;text-align:right}
 .pesq-ft{padding:8px 14px;background:var(--gray-50);border-top:1px solid var(--gray-100);display:flex;gap:6px;justify-content:flex-end}
+
+/* ═══ RESPONSIVIDADE ══════════════════════════════════════════════
+   Breakpoints:
+   ≤ 1024px  — Tablet landscape / desktop compacto
+   ≤  768px  — Tablet portrait / mobile grande
+   ≤  480px  — Mobile
+═══════════════════════════════════════════════════════════════════ */
+
+/* ── Tablet landscape (≤ 1024px) ─────────────────────────────── */
+@media (max-width:1024px){
+  /* Sidebar recolhe automaticamente */
+  .sidebar{width:var(--sb-col)}
+  .sidebar .sb-brand{display:none}
+  .sidebar .sb-hd{justify-content:center;padding:0}
+  .sidebar .sb-lbl{display:none}
+  .sidebar .sb-link{justify-content:center;padding:7px 0;margin:1px 8px}
+  .sidebar .sb-ui{display:none}
+  .sidebar .sb-cand-text{display:none}
+  .sidebar .sb-user{justify-content:center}
+  .sidebar #sb-candidato-wrap > div{justify-content:center}
+  .sidebar .sb-sec{opacity:0;pointer-events:none;padding-top:6px}
+  .sidebar .sb-link.active{
+    background:linear-gradient(135deg,rgba(59,110,242,.18),rgba(59,110,242,.06));
+  }
+  /* Seta aponta para expandir */
+  #sb-arrow-icon{transform:rotate(180deg)}
+  /* KPI grid: 3 colunas */
+  .kpi-grid{grid-template-columns:repeat(3,1fr)}
+  /* Grids de 3/2 colunas viram 2 */
+  .three-col{grid-template-columns:1fr 1fr}
+  /* Page padding menor */
+  .page{padding:20px 20px}
+  /* Topbar search menor */
+  .tb-search{width:160px}
+  /* Login */
+  .login-wrap{width:620px}
+}
+
+/* ── Tablet portrait (≤ 768px) ────────────────────────────────── */
+@media (max-width:768px){
+  /* Sidebar vira drawer overlay */
+  .sidebar-wrap{position:fixed;inset:0;z-index:500;pointer-events:none}
+  .sidebar{
+    width:var(--sb-w) !important;
+    transform:translateX(-100%);
+    transition:transform var(--t-slow);
+    pointer-events:all;
+    box-shadow:var(--shadow-xl);
+  }
+  .sidebar .sb-brand{display:block !important}
+  .sidebar .sb-hd{justify-content:flex-start !important;padding:0 12px !important}
+  .sidebar .sb-lbl{display:inline !important}
+  .sidebar .sb-link{justify-content:flex-start !important;padding:7px 12px !important;margin:1px 6px !important}
+  .sidebar .sb-ui{display:block !important}
+  .sidebar .sb-cand-text{display:block !important}
+  .sidebar .sb-user{justify-content:flex-start !important}
+  .sidebar .sb-sec{opacity:1 !important;pointer-events:auto !important;padding-top:14px !important}
+  /* Sidebar aberta */
+  .sidebar-wrap.mobile-open{pointer-events:all}
+  .sidebar-wrap.mobile-open .sidebar{transform:translateX(0)}
+  /* Overlay escuro atrás */
+  .sidebar-wrap::after{
+    content:'';position:fixed;inset:0;
+    background:rgba(0,0,0,.4);backdrop-filter:blur(2px);
+    opacity:0;transition:opacity var(--t-slow);pointer-events:none;z-index:-1;
+  }
+  .sidebar-wrap.mobile-open::after{opacity:1;pointer-events:all}
+  /* Seta vira hamburguer na topbar */
+  .sb-arrow{display:none}
+  /* Botão menu mobile na topbar */
+  .tb-mobile-menu{
+    display:flex !important;
+    width:34px;height:34px;align-items:center;justify-content:center;
+    border-radius:var(--r-md);border:1px solid var(--gray-100);
+    color:var(--gray-500);font-size:15px;cursor:pointer;
+    background:transparent;flex-shrink:0;transition:all var(--t-fast);
+  }
+  .tb-mobile-menu:hover{background:var(--gray-50);color:var(--gray-800)}
+  /* App body ocupa tela toda */
+  .app-body{width:100%}
+  /* KPI grid: 2 colunas */
+  .kpi-grid{grid-template-columns:repeat(2,1fr)}
+  /* Todos grids viram 1 coluna */
+  .three-col,.two-col{grid-template-columns:1fr}
+  .pesq-grid{grid-template-columns:repeat(2,1fr)}
+  /* Mapa: stacked */
+  .map-layout{grid-template-columns:1fr;height:auto}
+  .map-cont{height:55vw;min-height:280px;border-radius:var(--r-lg) var(--r-lg) 0 0}
+  .map-panel{max-height:40vh;overflow-y:auto;border-radius:0 0 var(--r-lg) var(--r-lg)}
+  /* Page padding */
+  .page{padding:16px}
+  /* Topbar compacta */
+  .topbar{padding:0 14px;gap:8px}
+  .tb-search{width:120px}
+  /* Ocultar itens secundários da topbar */
+  .tb-search{display:none}
+  /* Login: coluna única */
+  .login-wrap{flex-direction:column;width:calc(100vw - 32px);max-height:calc(100vh - 32px);overflow-y:auto}
+  .login-left{min-height:auto;padding:28px 28px}
+  .login-right{width:100%;padding:28px 28px}
+  /* Welcome */
+  .wc-card{padding:16px}
+  /* Modais */
+  .modal{max-width:calc(100vw - 32px) !important;margin:0 16px}
+  /* Tabelas: ocultar colunas menos importantes */
+  .tbl thead th:nth-child(n+6),
+  .tbl tbody td:nth-child(n+6){display:none}
+}
+
+/* ── Mobile (≤ 480px) ─────────────────────────────────────────── */
+@media (max-width:480px){
+  /* KPI grid: 2 colunas compactas */
+  .kpi-grid{grid-template-columns:1fr 1fr;gap:10px}
+  .kpi-card{padding:14px 14px}
+  .kpi-val{font-size:26px}
+  /* Uma coluna */
+  .pesq-grid{grid-template-columns:1fr}
+  /* Page padding mínimo */
+  .page{padding:12px}
+  /* Topbar */
+  .topbar{padding:0 10px;gap:6px}
+  /* Ocultar breadcrumb secundário e badge UF */
+  .bc-it,.bc-sep{display:none}
+  /* Ocultar select eleição na topbar */
+  .topbar .filter-sel{display:none}
+  /* Login pills */
+  .ll-pills{display:none}
+  .ll-tagline{font-size:20px}
+  /* Tabelas mais agressivo */
+  .tbl thead th:nth-child(n+5),
+  .tbl tbody td:nth-child(n+5){display:none}
+  /* Modais full width */
+  .modal-overlay{padding:8px}
+  .modal{max-width:100% !important;border-radius:var(--r-lg)}
+  .modal-bd{padding:16px}
+  .modal-hd{padding:16px}
+}
 </style>
 </head>
 <body>
@@ -590,22 +869,24 @@ ul{list-style:none}
       <div class="lf-err" id="l-err"><i class="fas fa-circle-exclamation"></i><span id="l-err-msg">Credenciais inválidas.</span></div>
       <div class="login-demos">
         <p>Acessos de demonstração</p>
-        <button class="demo-btn" onclick="fillLogin('admin@pite.com','Admin@2025')">
-          <i class="fas fa-shield-halved" style="color:var(--brand-400);margin-right:5px"></i>
-          <strong>Vinícius Soares</strong> <span style="color:rgba(255,255,255,.3)">·</span> Administrador <span style="color:rgba(255,255,255,.3)">·</span> acesso total
-        </button>
-        <button class="demo-btn" onclick="fillLogin('gestor@pite.com','Ges@123')">
-          <i class="fas fa-user-tie" style="color:#22c55e;margin-right:5px"></i>
-          <strong>Carlos Neto</strong> <span style="color:rgba(255,255,255,.3)">·</span> Gestor de João Ferreira <span style="color:rgba(255,255,255,.3)">·</span> pode exportar
-        </button>
-        <button class="demo-btn" onclick="fillLogin('analista@pite.com','Ana@123')">
-          <i class="fas fa-chart-bar" style="color:#60a5fa;margin-right:5px"></i>
-          <strong>Ana Paula Costa</strong> <span style="color:rgba(255,255,255,.3)">·</span> Analista de João Ferreira <span style="color:rgba(255,255,255,.3)">·</span> vê comparação
-        </button>
-        <button class="demo-btn" onclick="fillLogin('assessor@pite.com','Ass@123')">
-          <i class="fas fa-eye" style="color:#f97316;margin-right:5px"></i>
-          <strong>Pedro Lima</strong> <span style="color:rgba(255,255,255,.3)">·</span> Assessor de João Ferreira <span style="color:rgba(255,255,255,.3)">·</span> somente leitura
-        </button>
+        <div class="demo-grid">
+          <button class="demo-btn" onclick="fillLogin('admin@pite.com','Admin@2025')">
+            <i class="fas fa-shield-halved" style="color:var(--brand-400);flex-shrink:0"></i>
+            <strong>Vinícius</strong><span style="color:var(--gray-300);margin:0 2px">·</span>Admin
+          </button>
+          <button class="demo-btn" onclick="fillLogin('gestor@pite.com','Ges@123')">
+            <i class="fas fa-user-tie" style="color:#22c55e;flex-shrink:0"></i>
+            <strong>Carlos</strong><span style="color:var(--gray-300);margin:0 2px">·</span>Gestor
+          </button>
+          <button class="demo-btn" onclick="fillLogin('analista@pite.com','Ana@123')">
+            <i class="fas fa-chart-bar" style="color:#60a5fa;flex-shrink:0"></i>
+            <strong>Ana Paula</strong><span style="color:var(--gray-300);margin:0 2px">·</span>Analista
+          </button>
+          <button class="demo-btn" onclick="fillLogin('assessor@pite.com','Ass@123')">
+            <i class="fas fa-eye" style="color:#f97316;flex-shrink:0"></i>
+            <strong>Pedro</strong><span style="color:var(--gray-300);margin:0 2px">·</span>Assessor
+          </button>
+        </div>
       </div>
       <div class="login-footer">PITE © 2025 · Acesso restrito e monitorado · LGPD</div>
     </div>
@@ -615,33 +896,26 @@ ul{list-style:none}
 <!-- ═══ WELCOME ═════════════════════════════════════════════════ -->
 <div id="screen-welcome" style="display:none;position:fixed;inset:0;z-index:900;background:var(--gray-50);align-items:center;justify-content:center">
   <div class="wc-card">
-    <div class="wc-av" id="wc-av">AD</div>
-    <div class="wc-greet">Bem-vindo ao portal</div>
-    <div class="wc-name" id="wc-name">Olá, Vinícius</div>
-    <div class="wc-role" id="wc-role">Administrador · PITE</div>
-    <!-- Card do candidato vinculado (visível para não-admins) -->
-    <div id="wc-candidato-card" style="display:none;background:linear-gradient(135deg,var(--brand-50),var(--brand-100));border:1px solid var(--brand-200);border-radius:var(--r-lg);padding:14px 20px;margin-bottom:20px;text-align:left;width:100%;max-width:380px">
-      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--brand-600);margin-bottom:6px">Seu candidato</div>
-      <div style="display:flex;align-items:center;gap:10px">
-        <div style="width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,var(--brand-600),var(--brand-900));display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#fff;flex-shrink:0" id="wc-cand-av">JF</div>
-        <div>
-          <div style="font-size:14px;font-weight:700;color:var(--brand-900)" id="wc-cand-nome">João Ferreira da Silva</div>
-          <div style="font-size:12px;color:var(--brand-600)" id="wc-cand-cargo">PT · Deputado Federal · GO</div>
-        </div>
+    <!-- Saudação -->
+    <div class="wc-top">
+      <div class="wc-av" id="wc-av">AD</div>
+      <div>
+        <div class="wc-greet">Bem-vindo de volta</div>
+        <div class="wc-name" id="wc-name">Vinícius Soares</div>
+        <div class="wc-role" id="wc-role">Administrador · PITE</div>
       </div>
     </div>
-    <div class="wc-desc" id="wc-desc">Você tem acesso completo à plataforma. Analise territórios, gerencie candidatos e importe dados do TSE.</div>
-    <div class="wc-chips" id="wc-chips">
-      <span class="wc-chip"><i class="fas fa-users"></i> 48 candidatos</span>
-      <span class="wc-chip"><i class="fas fa-map"></i> 246 territórios</span>
-      <span class="wc-chip"><i class="fas fa-chart-bar"></i> 14 pesquisas</span>
-    </div>
+
+    <!-- Conteúdo dinâmico por perfil -->
+    <div id="wc-body"></div>
+
     <button class="btn-wc" id="wc-btn"><i class="fas fa-arrow-right"></i> Acessar o portal</button>
   </div>
 </div>
 
 <!-- ═══ APP ══════════════════════════════════════════════════════ -->
 <div id="screen-app">
+  <div class="sidebar-wrap">
   <aside class="sidebar" id="sidebar">
     <div class="sb-hd">
       <div class="sb-mark">PI</div>
@@ -666,13 +940,13 @@ ul{list-style:none}
       <div class="sb-link" data-page="usuarios"><div class="sb-icon"><i class="fas fa-users"></i></div><span class="sb-lbl">Usuários</span></div>
     </nav>
     <!-- Candidato vinculado na sidebar (visível apenas para não-admins) -->
-    <div id="sb-candidato-wrap" style="display:none;padding:8px 6px;border-bottom:1px solid var(--sb-border)">
-      <div style="display:flex;align-items:center;gap:0;padding:8px 6px;border-radius:var(--r-md);background:rgba(96,144,248,.1);overflow:hidden;white-space:nowrap">
-        <div style="width:36px;height:36px;flex-shrink:0;border-radius:9px;background:linear-gradient(135deg,var(--brand-600),var(--brand-900));display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff" id="sb-cand-av">JF</div>
-        <div style="margin-left:10px;overflow:hidden">
-          <div style="font-size:9px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--brand-400)">Candidato</div>
+    <div id="sb-candidato-wrap" style="display:none;padding:8px 6px;background:var(--brand-950)">
+      <div style="display:flex;align-items:center;gap:0;padding:8px 6px;border-radius:var(--r-md);background:rgba(255,255,255,.07);overflow:hidden;white-space:nowrap">
+        <div style="width:36px;height:36px;flex-shrink:0;border-radius:9px;background:linear-gradient(135deg,var(--brand-500),var(--brand-700));display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff" id="sb-cand-av">JF</div>
+        <div class="sb-cand-text" style="margin-left:10px;overflow:hidden">
+          <div style="font-size:9px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:rgba(255,255,255,.4)">Candidato</div>
           <div style="font-size:12px;font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis" id="sb-cand-nome">João Ferreira</div>
-          <div style="font-size:10px;color:rgba(255,255,255,.4)" id="sb-cand-cargo">PT · Dep. Federal</div>
+          <div style="font-size:10px;color:rgba(255,255,255,.5)" id="sb-cand-cargo">PT · Dep. Federal</div>
         </div>
       </div>
     </div>
@@ -686,9 +960,17 @@ ul{list-style:none}
       </div>
     </div>
   </aside>
+  <button class="sb-arrow" id="sb-arrow" onclick="toggleSidebar()">
+    <i class="fas fa-chevron-left" id="sb-arrow-icon"></i>
+  </button>
+  </div><!-- /sidebar-wrap -->
 
   <div class="app-body">
     <header class="topbar">
+      <!-- Botão menu mobile (oculto em desktop, visível em ≤768px) -->
+      <button class="tb-mobile-menu" style="display:none" onclick="toggleMobileMenu()" title="Menu">
+        <i class="fas fa-bars"></i>
+      </button>
       <div class="tb-bc">
         <span class="bc-it">PITE</span>
         <span class="bc-sep"><i class="fas fa-chevron-right"></i></span>
@@ -708,100 +990,15 @@ ul{list-style:none}
           <option>Eleição 2024</option><option>Eleição 2022</option>
         </select>
         <button class="tb-btn" title="Notificações"><i class="fas fa-bell"></i><span class="tb-notif"></span></button>
-        <button class="tb-btn" id="logout-btn" title="Sair"><i class="fas fa-right-from-bracket"></i></button>
+        <button class="tb-btn" id="logout-btn" title="Sair" style="color:var(--danger-500);border-color:var(--danger-50)" onmouseenter="this.style.background='var(--danger-50)';this.style.borderColor='var(--danger-200)'" onmouseleave="this.style.background='transparent';this.style.borderColor='var(--danger-50)'"><i class="fas fa-right-from-bracket"></i></button>
         <div class="tb-uav" id="tb-av">VS</div>
       </div>
     </header>
 
     <div class="content-area">
 
-      <!-- ═══ PAINEL ══════════════════════════════════════════ -->
-      <div class="page active" id="page-painel">
-        <div class="ph">
-          <div><div class="ph-title">Painel Principal</div><div class="ph-sub">Visão geral do cenário eleitoral · Goiás 2024</div></div>
-          <div class="ph-r">
-            <button class="btn btn-secondary"><i class="fas fa-download"></i> Exportar</button>
-            <button id="painel-import-btn" class="btn btn-primary" onclick="navigateTo('importacao')"><i class="fas fa-file-import"></i> Importar dados</button>
-          </div>
-        </div>
-
-        <div class="kpi-grid">
-          <div class="kpi-card" onclick="navigateTo('candidatos')">
-            <div class="kpi-top"><div><div class="kpi-val">48</div><div class="kpi-lbl">Candidatos</div></div><div class="kpi-ico blue"><i class="fas fa-user-tie"></i></div></div>
-            <span class="kpi-trend trend-up"><i class="fas fa-arrow-up"></i> 12 pré-candidatos</span>
-          </div>
-          <div class="kpi-card" onclick="navigateTo('mapa')">
-            <div class="kpi-top"><div><div class="kpi-val">246</div><div class="kpi-lbl">Territórios</div></div><div class="kpi-ico green"><i class="fas fa-map"></i></div></div>
-            <span class="kpi-trend trend-green"><i class="fas fa-check"></i> 100% mapeados</span>
-          </div>
-          <div class="kpi-card">
-            <div class="kpi-top"><div><div class="kpi-val">61</div><div class="kpi-lbl">Zonas de Força</div></div><div class="kpi-ico amber"><i class="fas fa-location-dot"></i></div></div>
-            <span class="kpi-trend trend-up"><i class="fas fa-arrow-up"></i> +7 vs 2022</span>
-          </div>
-          <div class="kpi-card" onclick="navigateTo('pesquisas')">
-            <div class="kpi-top"><div><div class="kpi-val">14</div><div class="kpi-lbl">Pesquisas</div></div><div class="kpi-ico purple"><i class="fas fa-clipboard-list"></i></div></div>
-            <span class="kpi-trend trend-neutral"><i class="fas fa-clock"></i> Última: 12 mai</span>
-          </div>
-          <div class="kpi-card" onclick="navigateTo('importacao')">
-            <div class="kpi-top"><div><div class="kpi-val">9</div><div class="kpi-lbl">Importações</div></div><div class="kpi-ico teal"><i class="fas fa-database"></i></div></div>
-            <span class="kpi-trend trend-neutral"><i class="fas fa-clock"></i> Última: 02 jun</span>
-          </div>
-        </div>
-
-        <div class="three-col" style="margin-bottom:16px">
-          <div class="card">
-            <div class="card-hd"><div><div class="card-title">Evolução de Votos — Cand. Principal</div><div class="card-sub">2016 – 2024</div></div><span class="badge badge-blue">Dep. Federal</span></div>
-            <div class="card-bd">
-              <div class="bar-row"><div class="bar-meta"><span class="bar-name">2016</span><span class="bar-ct">42.890</span></div><div class="bar-track"><div class="bar-fill" style="width:46%;background:var(--t-expansao)"></div></div></div>
-              <div class="bar-row"><div class="bar-meta"><span class="bar-name">2018</span><span class="bar-ct">56.120</span></div><div class="bar-track"><div class="bar-fill" style="width:61%;background:var(--t-forca)"></div></div></div>
-              <div class="bar-row"><div class="bar-meta"><span class="bar-name">2020</span><span class="bar-ct">38.744</span></div><div class="bar-track"><div class="bar-fill" style="width:41%;background:var(--t-disputa)"></div></div></div>
-              <div class="bar-row"><div class="bar-meta"><span class="bar-name">2022</span><span class="bar-ct">68.391</span></div><div class="bar-track"><div class="bar-fill" style="width:74%;background:var(--t-forca)"></div></div></div>
-              <div class="bar-row"><div class="bar-meta"><span class="bar-name">2024</span><span class="bar-ct">79.840</span></div><div class="bar-track"><div class="bar-fill" style="width:86%;background:var(--t-consolidado)"></div></div></div>
-            </div>
-          </div>
-          <div class="card">
-            <div class="card-hd"><div class="card-title">Classificação Territorial</div></div>
-            <div class="card-bd">
-              <div class="bar-row"><div class="bar-meta"><span class="bar-name" style="font-size:12px">Consolidado</span><span class="bar-ct">22%</span></div><div class="bar-track"><div class="bar-fill" style="width:22%;background:var(--t-consolidado)"></div></div></div>
-              <div class="bar-row"><div class="bar-meta"><span class="bar-name" style="font-size:12px">Força</span><span class="bar-ct">25%</span></div><div class="bar-track"><div class="bar-fill" style="width:25%;background:var(--t-forca)"></div></div></div>
-              <div class="bar-row"><div class="bar-meta"><span class="bar-name" style="font-size:12px">Expansão</span><span class="bar-ct">15%</span></div><div class="bar-track"><div class="bar-fill" style="width:15%;background:var(--t-expansao)"></div></div></div>
-              <div class="bar-row"><div class="bar-meta"><span class="bar-name" style="font-size:12px">Disputa</span><span class="bar-ct">18%</span></div><div class="bar-track"><div class="bar-fill" style="width:18%;background:var(--t-disputa)"></div></div></div>
-              <div class="bar-row"><div class="bar-meta"><span class="bar-name" style="font-size:12px">Adversário</span><span class="bar-ct">12%</span></div><div class="bar-track"><div class="bar-fill" style="width:12%;background:var(--t-adversario)"></div></div></div>
-              <div class="bar-row"><div class="bar-meta"><span class="bar-name" style="font-size:12px">Volátil</span><span class="bar-ct">8%</span></div><div class="bar-track"><div class="bar-fill" style="width:8%;background:var(--t-volatil)"></div></div></div>
-            </div>
-          </div>
-          <div class="card">
-            <div class="card-hd"><div class="card-title">Atividade Recente</div></div>
-            <div class="card-bd" style="padding:4px 20px">
-              <div class="act-list">
-                <div class="act-item"><div class="act-ico" style="background:#f0fdf4;color:var(--t-forca)"><i class="fas fa-file-import"></i></div><div class="act-info"><div class="act-title">Importação TSE 2024</div><div class="act-sub">12.847 registros · GO</div></div><div class="act-time">2h</div></div>
-                <div class="act-item"><div class="act-ico" style="background:var(--brand-50);color:var(--brand-600)"><i class="fas fa-clipboard-list"></i></div><div class="act-info"><div class="act-title">Pesquisa #14 importada</div><div class="act-sub">Goiânia · mai 2024</div></div><div class="act-time">5h</div></div>
-                <div class="act-item"><div class="act-ico" style="background:#f0fdf4;color:var(--t-expansao)"><i class="fas fa-map-pin"></i></div><div class="act-info"><div class="act-title">3 territórios reclassificados</div><div class="act-sub">Zona de Expansão</div></div><div class="act-time">1d</div></div>
-                <div class="act-item"><div class="act-ico" style="background:#fffbeb;color:var(--warning-500)"><i class="fas fa-user-plus"></i></div><div class="act-info"><div class="act-title">Pré-candidata cadastrada</div><div class="act-sub">Maria L. · Anápolis</div></div><div class="act-time">2d</div></div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-hd">
-            <div><div class="card-title">Top Municípios — Índice de Força Territorial · 2024</div><div class="card-sub">Calculado com base em votos, tendência e consistência histórica</div></div>
-            <button class="btn btn-secondary btn-sm"><i class="fas fa-download"></i> CSV</button>
-          </div>
-          <div class="tbl-wrap">
-            <table class="tbl">
-              <thead><tr><th>#</th><th>Município</th><th>Zona Eleitoral</th><th>Votos 2024</th><th>% Válidos</th><th>Var. 2022</th><th style="width:160px">Índice de Força</th><th>Classificação</th></tr></thead>
-              <tbody>
-                <tr><td style="color:var(--gray-400);font-weight:700">1</td><td class="td-bold">Goiânia</td><td>1ª–14ª zona</td><td>79.840</td><td>38,2%</td><td class="tag-up">+4,1 p.p.</td><td><div style="display:flex;align-items:center;gap:8px"><div style="flex:1;height:6px;background:var(--gray-100);border-radius:4px;overflow:hidden"><div style="width:82%;height:100%;background:linear-gradient(90deg,var(--brand-700),var(--brand-500));border-radius:4px"></div></div><span style="font-size:12px;font-weight:800;color:var(--brand-700)">82</span></div></td><td><span class="badge badge-consolidado"><i class="fas fa-circle" style="font-size:6px"></i>Consolidado</span></td></tr>
-                <tr><td style="color:var(--gray-400);font-weight:700">2</td><td class="td-bold">Anápolis</td><td>15ª–17ª zona</td><td>12.180</td><td>41,7%</td><td class="tag-up">+7,3 p.p.</td><td><div style="display:flex;align-items:center;gap:8px"><div style="flex:1;height:6px;background:var(--gray-100);border-radius:4px;overflow:hidden"><div style="width:79%;height:100%;background:linear-gradient(90deg,var(--brand-600),var(--brand-400));border-radius:4px"></div></div><span style="font-size:12px;font-weight:800;color:var(--brand-700)">79</span></div></td><td><span class="badge badge-forca"><i class="fas fa-circle" style="font-size:6px"></i>Zona de Força</span></td></tr>
-                <tr><td style="color:var(--gray-400);font-weight:700">3</td><td class="td-bold">Rio Verde</td><td>42ª zona</td><td>8.920</td><td>35,4%</td><td class="tag-up">+12,8 p.p.</td><td><div style="display:flex;align-items:center;gap:8px"><div style="flex:1;height:6px;background:var(--gray-100);border-radius:4px;overflow:hidden"><div style="width:71%;height:100%;background:linear-gradient(90deg,var(--t-expansao),#86efac);border-radius:4px"></div></div><span style="font-size:12px;font-weight:800;color:#16a34a">71</span></div></td><td><span class="badge badge-expansao"><i class="fas fa-circle" style="font-size:6px"></i>Zona de Expansão</span></td></tr>
-                <tr><td style="color:var(--gray-400);font-weight:700">4</td><td class="td-bold">Aparecida de Goiânia</td><td>2ª–3ª zona</td><td>7.340</td><td>29,1%</td><td class="tag-dn">–2,4 p.p.</td><td><div style="display:flex;align-items:center;gap:8px"><div style="flex:1;height:6px;background:var(--gray-100);border-radius:4px;overflow:hidden"><div style="width:54%;height:100%;background:linear-gradient(90deg,var(--t-disputa),#fcd34d);border-radius:4px"></div></div><span style="font-size:12px;font-weight:800;color:var(--warning-700)">54</span></div></td><td><span class="badge badge-disputa"><i class="fas fa-circle" style="font-size:6px"></i>Zona em Disputa</span></td></tr>
-                <tr><td style="color:var(--gray-400);font-weight:700">5</td><td class="td-bold">Caldas Novas</td><td>53ª zona</td><td>3.120</td><td>22,6%</td><td class="tag-dn">–5,1 p.p.</td><td><div style="display:flex;align-items:center;gap:8px"><div style="flex:1;height:6px;background:var(--gray-100);border-radius:4px;overflow:hidden"><div style="width:38%;height:100%;background:linear-gradient(90deg,var(--t-adversario),#f87171);border-radius:4px"></div></div><span style="font-size:12px;font-weight:800;color:var(--danger-700)">38</span></div></td><td><span class="badge badge-adversario"><i class="fas fa-circle" style="font-size:6px"></i>Adversário</span></td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
+      <!-- ═══ PAINEL — conteúdo gerado dinamicamente por perfil ══ -->
+      <div class="page active" id="page-painel"></div>
 
       <!-- ═══ MAPA ══════════════════════════════════════════════ -->
       <div class="page" id="page-mapa">
@@ -1032,57 +1229,56 @@ ul{list-style:none}
       <div class="page" id="page-usuarios">
         <div class="ph">
           <div><div class="ph-title">Usuários</div><div class="ph-sub">Controle de acesso e perfis · somente Administrador pode gerenciar</div></div>
-          <div class="ph-r"><button class="btn btn-primary" onclick="toast('Abrir formulário de novo usuário','success')"><i class="fas fa-plus"></i> Novo Usuário</button></div>
+          <div class="ph-r">
+            <button class="btn btn-secondary" onclick="document.getElementById('modal-perms').classList.add('open')"><i class="fas fa-sliders"></i> Permissões por Perfil</button>
+            <button class="btn btn-primary" onclick="document.getElementById('modal-novo-usuario').classList.add('open')"><i class="fas fa-plus"></i> Novo Usuário</button>
+          </div>
         </div>
 
-        <!-- Legenda de perfis -->
+        <!-- Cards resumo de perfis -->
         <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px">
-          <div class="card" style="padding:14px 16px">
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-              <div style="width:28px;height:28px;border-radius:7px;background:var(--brand-50);color:var(--brand-600);display:flex;align-items:center;justify-content:center;font-size:12px"><i class="fas fa-shield-halved"></i></div>
-              <span style="font-size:13px;font-weight:700">Administrador</span>
+          <div class="perfil-perm-card">
+            <div class="ppc-hd">
+              <div class="ppc-icon" style="background:var(--brand-50);color:var(--brand-600)"><i class="fas fa-shield-halved"></i></div>
+              <div><div class="ppc-nome">Administrador</div><div class="ppc-desc">Acesso total à plataforma</div></div>
             </div>
-            <div style="font-size:11.5px;color:var(--gray-500);line-height:1.5">Acesso total. Gerencia tudo: candidatos, eleições, importações e usuários.</div>
-            <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:4px">
-              <span class="badge badge-green" style="font-size:10px"><i class="fas fa-check"></i>Exportar</span>
-              <span class="badge badge-green" style="font-size:10px"><i class="fas fa-check"></i>Comparar</span>
-              <span class="badge badge-green" style="font-size:10px"><i class="fas fa-check"></i>Importar</span>
-            </div>
-          </div>
-          <div class="card" style="padding:14px 16px">
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-              <div style="width:28px;height:28px;border-radius:7px;background:#f0fdf4;color:#15803d;display:flex;align-items:center;justify-content:center;font-size:12px"><i class="fas fa-user-tie"></i></div>
-              <span style="font-size:13px;font-weight:700">Gestor</span>
-            </div>
-            <div style="font-size:11.5px;color:var(--gray-500);line-height:1.5">Vinculado a 1 candidato. Vê dados completos do seu candidato. Ex.: chefe de gabinete.</div>
-            <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:4px">
-              <span class="badge badge-green" style="font-size:10px"><i class="fas fa-check"></i>Exportar</span>
-              <span class="badge badge-red" style="font-size:10px"><i class="fas fa-times"></i>Comparar</span>
-              <span class="badge badge-red" style="font-size:10px"><i class="fas fa-times"></i>Importar</span>
+            <div class="ppc-bd">
+              <div class="toggle-row"><span class="toggle-lbl">Exportar dados</span><span class="badge badge-green" style="font-size:10px"><i class="fas fa-lock"></i>Sempre ativo</span></div>
+              <div class="toggle-row"><span class="toggle-lbl">Comparar candidatos</span><span class="badge badge-green" style="font-size:10px"><i class="fas fa-lock"></i>Sempre ativo</span></div>
+              <div class="toggle-row"><span class="toggle-lbl">Importar dados TSE</span><span class="badge badge-green" style="font-size:10px"><i class="fas fa-lock"></i>Sempre ativo</span></div>
             </div>
           </div>
-          <div class="card" style="padding:14px 16px">
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-              <div style="width:28px;height:28px;border-radius:7px;background:var(--info-50);color:var(--info-700);display:flex;align-items:center;justify-content:center;font-size:12px"><i class="fas fa-chart-bar"></i></div>
-              <span style="font-size:13px;font-weight:700">Analista</span>
+          <div class="perfil-perm-card">
+            <div class="ppc-hd">
+              <div class="ppc-icon" style="background:#f0fdf4;color:#15803d"><i class="fas fa-user-tie"></i></div>
+              <div><div class="ppc-nome">Gestor</div><div class="ppc-desc">Dados completos · 1 candidato</div></div>
             </div>
-            <div style="font-size:11.5px;color:var(--gray-500);line-height:1.5">Vinculado a 1 candidato. Vê dados do seu candidato + pode comparar com outros.</div>
-            <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:4px">
-              <span class="badge badge-green" style="font-size:10px"><i class="fas fa-check"></i>Exportar</span>
-              <span class="badge badge-green" style="font-size:10px"><i class="fas fa-check"></i>Comparar</span>
-              <span class="badge badge-red" style="font-size:10px"><i class="fas fa-times"></i>Importar</span>
+            <div class="ppc-bd">
+              <div class="toggle-row"><span class="toggle-lbl">Exportar dados</span><label class="toggle"><input type="checkbox" id="perm-gestor-exportar" checked onchange="savePerms()"><span class="toggle-track"></span></label></div>
+              <div class="toggle-row"><span class="toggle-lbl">Comparar candidatos</span><label class="toggle"><input type="checkbox" id="perm-gestor-comparar" onchange="savePerms()"><span class="toggle-track"></span></label></div>
+              <div class="toggle-row"><span class="toggle-lbl">Importar dados TSE</span><span class="badge badge-red" style="font-size:10px"><i class="fas fa-ban"></i>Bloqueado</span></div>
             </div>
           </div>
-          <div class="card" style="padding:14px 16px">
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-              <div style="width:28px;height:28px;border-radius:7px;background:#fffbeb;color:#b45309;display:flex;align-items:center;justify-content:center;font-size:12px"><i class="fas fa-eye"></i></div>
-              <span style="font-size:13px;font-weight:700">Assessor</span>
+          <div class="perfil-perm-card">
+            <div class="ppc-hd">
+              <div class="ppc-icon" style="background:var(--info-50);color:var(--info-700)"><i class="fas fa-chart-bar"></i></div>
+              <div><div class="ppc-nome">Analista</div><div class="ppc-desc">Dados + comparação · 1 candidato</div></div>
             </div>
-            <div style="font-size:11.5px;color:var(--gray-500);line-height:1.5">Vinculado a 1 candidato. Somente leitura. Não exporta nem compara. Ex.: equipe operacional.</div>
-            <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:4px">
-              <span class="badge badge-red" style="font-size:10px"><i class="fas fa-times"></i>Exportar</span>
-              <span class="badge badge-red" style="font-size:10px"><i class="fas fa-times"></i>Comparar</span>
-              <span class="badge badge-red" style="font-size:10px"><i class="fas fa-times"></i>Importar</span>
+            <div class="ppc-bd">
+              <div class="toggle-row"><span class="toggle-lbl">Exportar dados</span><label class="toggle"><input type="checkbox" id="perm-analista-exportar" checked onchange="savePerms()"><span class="toggle-track"></span></label></div>
+              <div class="toggle-row"><span class="toggle-lbl">Comparar candidatos</span><label class="toggle"><input type="checkbox" id="perm-analista-comparar" checked onchange="savePerms()"><span class="toggle-track"></span></label></div>
+              <div class="toggle-row"><span class="toggle-lbl">Importar dados TSE</span><span class="badge badge-red" style="font-size:10px"><i class="fas fa-ban"></i>Bloqueado</span></div>
+            </div>
+          </div>
+          <div class="perfil-perm-card">
+            <div class="ppc-hd">
+              <div class="ppc-icon" style="background:#fffbeb;color:#b45309"><i class="fas fa-eye"></i></div>
+              <div><div class="ppc-nome">Assessor</div><div class="ppc-desc">Somente leitura · 1 candidato</div></div>
+            </div>
+            <div class="ppc-bd">
+              <div class="toggle-row"><span class="toggle-lbl">Exportar dados</span><label class="toggle"><input type="checkbox" id="perm-assessor-exportar" onchange="savePerms()"><span class="toggle-track"></span></label></div>
+              <div class="toggle-row"><span class="toggle-lbl">Comparar candidatos</span><label class="toggle"><input type="checkbox" id="perm-assessor-comparar" onchange="savePerms()"><span class="toggle-track"></span></label></div>
+              <div class="toggle-row"><span class="toggle-lbl">Importar dados TSE</span><span class="badge badge-red" style="font-size:10px"><i class="fas fa-ban"></i>Bloqueado</span></div>
             </div>
           </div>
         </div>
@@ -1108,7 +1304,7 @@ ul{list-style:none}
                   <td><span class="badge badge-green" style="font-size:10px"><i class="fas fa-check"></i>Sim</span></td>
                   <td style="color:var(--gray-400);font-size:12px">Agora</td>
                   <td><span class="badge badge-green"><i class="fas fa-circle" style="font-size:6px"></i>Ativo</span></td>
-                  <td><button class="btn btn-ghost btn-sm">Editar</button></td>
+                  <td><button class="btn btn-ghost btn-sm" onclick="openEditarUsuario({ini:'VS',nome:'Vinícius Soares',email:'admin@pite.com',perfil:'administrador',candidato:'—',exportar:true,comparar:true,ativo:true})">Editar</button></td>
                 </tr>
                 <tr>
                   <td><div style="display:flex;align-items:center;gap:10px"><div style="width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#16a34a,#15803d);display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:700;flex-shrink:0">CN</div><span class="td-bold">Carlos Neto</span></div></td>
@@ -1119,7 +1315,7 @@ ul{list-style:none}
                   <td><span class="badge badge-red" style="font-size:10px"><i class="fas fa-times"></i>Não</span></td>
                   <td style="color:var(--gray-400);font-size:12px">Ontem 09h14</td>
                   <td><span class="badge badge-green"><i class="fas fa-circle" style="font-size:6px"></i>Ativo</span></td>
-                  <td><button class="btn btn-ghost btn-sm">Editar</button></td>
+                  <td><button class="btn btn-ghost btn-sm" onclick="openEditarUsuario({ini:'CN',nome:'Carlos Neto',email:'gestor@pite.com',perfil:'gestor',candidato:'João Ferreira da Silva',exportar:true,comparar:false,ativo:true})">Editar</button></td>
                 </tr>
                 <tr>
                   <td><div style="display:flex;align-items:center;gap:10px"><div style="width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,var(--info-500),var(--info-700));display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:700;flex-shrink:0">AP</div><span class="td-bold">Ana Paula</span></div></td>
@@ -1130,7 +1326,7 @@ ul{list-style:none}
                   <td><span class="badge badge-green" style="font-size:10px"><i class="fas fa-check"></i>Sim</span></td>
                   <td style="color:var(--gray-400);font-size:12px">Ontem 14h32</td>
                   <td><span class="badge badge-green"><i class="fas fa-circle" style="font-size:6px"></i>Ativo</span></td>
-                  <td><button class="btn btn-ghost btn-sm">Editar</button></td>
+                  <td><button class="btn btn-ghost btn-sm" onclick="openEditarUsuario({ini:'AP',nome:'Ana Paula Costa',email:'analista@pite.com',perfil:'analista',candidato:'João Ferreira da Silva',exportar:true,comparar:true,ativo:true})">Editar</button></td>
                 </tr>
                 <tr>
                   <td><div style="display:flex;align-items:center;gap:10px"><div style="width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#d97706,#b45309);display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:700;flex-shrink:0">PL</div><span class="td-bold">Pedro Lima</span></div></td>
@@ -1141,7 +1337,7 @@ ul{list-style:none}
                   <td><span class="badge badge-red" style="font-size:10px"><i class="fas fa-times"></i>Não</span></td>
                   <td style="color:var(--gray-400);font-size:12px">03 mai 2024</td>
                   <td><span class="badge badge-green"><i class="fas fa-circle" style="font-size:6px"></i>Ativo</span></td>
-                  <td><button class="btn btn-ghost btn-sm">Editar</button></td>
+                  <td><button class="btn btn-ghost btn-sm" onclick="openEditarUsuario({ini:'PL',nome:'Pedro Lima',email:'assessor@pite.com',perfil:'assessor',candidato:'João Ferreira da Silva',exportar:false,comparar:false,ativo:true})">Editar</button></td>
                 </tr>
                 <tr>
                   <td><div style="display:flex;align-items:center;gap:10px"><div style="width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#64748b,#475569);display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:700;flex-shrink:0">SL</div><span class="td-bold">Sandra Lima</span></div></td>
@@ -1152,7 +1348,7 @@ ul{list-style:none}
                   <td><span class="badge badge-red" style="font-size:10px"><i class="fas fa-times"></i>Não</span></td>
                   <td style="color:var(--gray-400);font-size:12px">—</td>
                   <td><span class="badge badge-amber"><i class="fas fa-circle" style="font-size:6px"></i>Inativo</span></td>
-                  <td><button class="btn btn-ghost btn-sm">Editar</button></td>
+                  <td><button class="btn btn-ghost btn-sm" onclick="openEditarUsuario({ini:'SL',nome:'Sandra Lima',email:'sandra@pite.com',perfil:'assessor',candidato:'Ana Paula Rodrigues',exportar:false,comparar:false,ativo:false})">Editar</button></td>
                 </tr>
               </tbody>
             </table>
@@ -1403,6 +1599,257 @@ ul{list-style:none}
         </div>
       </div>
 
+      <!-- ═══ MODAL NOVO USUÁRIO ══════════════════════════════════ -->
+      <div class="modal-overlay" id="modal-novo-usuario">
+        <div class="modal" style="max-width:580px">
+          <div class="modal-hd">
+            <div>
+              <div class="modal-title">Novo Usuário</div>
+              <div style="font-size:12px;color:var(--gray-400);margin-top:2px">Preencha os dados e defina as permissões do novo acesso</div>
+            </div>
+            <button class="modal-close" onclick="document.getElementById('modal-novo-usuario').classList.remove('open')"><i class="fas fa-times"></i></button>
+          </div>
+          <div class="modal-bd">
+            <!-- Dados pessoais -->
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--gray-400);margin-bottom:12px">Dados pessoais</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+              <div class="form-g" style="margin-bottom:0">
+                <label class="form-lbl">Nome completo</label>
+                <input class="form-inp" placeholder="Ex: Maria Luíza Conceição" id="nu-nome">
+              </div>
+              <div class="form-g" style="margin-bottom:0">
+                <label class="form-lbl">E-mail</label>
+                <input class="form-inp" type="email" placeholder="usuario@email.com" id="nu-email">
+              </div>
+              <div class="form-g" style="margin-bottom:0">
+                <label class="form-lbl">Senha temporária</label>
+                <input class="form-inp" type="password" placeholder="Mínimo 8 caracteres" id="nu-senha">
+              </div>
+              <div class="form-g" style="margin-bottom:0">
+                <label class="form-lbl">Confirmar senha</label>
+                <input class="form-inp" type="password" placeholder="Repita a senha" id="nu-senha2">
+              </div>
+            </div>
+
+            <div style="border-top:1px solid var(--gray-100);margin:20px 0"></div>
+
+            <!-- Perfil e candidato -->
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--gray-400);margin-bottom:12px">Perfil e vínculo</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+              <div class="form-g" style="margin-bottom:0">
+                <label class="form-lbl">Perfil de acesso</label>
+                <select class="form-sel" id="nu-perfil" onchange="toggleCandidatoField('nu-cand-wrap', this.value)">
+                  <option value="">Selecionar perfil...</option>
+                  <option value="gestor">Gestor</option>
+                  <option value="analista">Analista</option>
+                  <option value="assessor">Assessor</option>
+                </select>
+              </div>
+              <div class="form-g" style="margin-bottom:0" id="nu-cand-wrap">
+                <label class="form-lbl">Candidato vinculado <span style="color:var(--danger-500)">★</span></label>
+                <select class="form-sel" id="nu-candidato">
+                  <option value="">Selecionar candidato...</option>
+                  <option>João Ferreira da Silva</option>
+                  <option>Ana Paula Rodrigues</option>
+                  <option>Carlos Alberto Nunes</option>
+                  <option>Maria Luíza Conceição</option>
+                  <option>Roberto Monteiro</option>
+                </select>
+              </div>
+            </div>
+
+            <div style="border-top:1px solid var(--gray-100);margin:20px 0"></div>
+
+            <!-- Permissões individuais -->
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--gray-400);margin-bottom:4px">Permissões individuais</div>
+            <div style="font-size:12px;color:var(--gray-400);margin-bottom:14px">Substituem as permissões padrão do perfil para este usuário específico.</div>
+            <div style="background:var(--gray-50);border:1px solid var(--gray-100);border-radius:var(--r-md);padding:4px 16px">
+              <div class="toggle-row">
+                <div><div class="toggle-lbl">Exportar dados</div><div class="toggle-desc">Baixar CSVs de tabelas e relatórios</div></div>
+                <label class="toggle"><input type="checkbox" id="nu-perm-exportar" checked><span class="toggle-track"></span></label>
+              </div>
+              <div class="toggle-row">
+                <div><div class="toggle-lbl">Comparar candidatos</div><div class="toggle-desc">Acesso à tela de comparação entre candidatos</div></div>
+                <label class="toggle"><input type="checkbox" id="nu-perm-comparar"><span class="toggle-track"></span></label>
+              </div>
+            </div>
+          </div>
+          <div class="modal-ft">
+            <button class="btn btn-secondary" onclick="document.getElementById('modal-novo-usuario').classList.remove('open')">Cancelar</button>
+            <button class="btn btn-primary" onclick="criarUsuario()"><i class="fas fa-user-plus"></i> Criar Usuário</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ MODAL EDITAR USUÁRIO ══════════════════════════════════ -->
+      <div class="modal-overlay" id="modal-editar-usuario">
+        <div class="modal" style="max-width:580px">
+          <div class="modal-hd">
+            <div>
+              <div class="modal-title" id="eu-titulo">Editar Usuário</div>
+              <div style="font-size:12px;color:var(--gray-400);margin-top:2px" id="eu-subtitulo">—</div>
+            </div>
+            <button class="modal-close" onclick="document.getElementById('modal-editar-usuario').classList.remove('open')"><i class="fas fa-times"></i></button>
+          </div>
+          <div class="modal-bd">
+            <!-- Dados -->
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--gray-400);margin-bottom:12px">Dados pessoais</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+              <div class="form-g" style="margin-bottom:0">
+                <label class="form-lbl">Nome completo</label>
+                <input class="form-inp" id="eu-nome">
+              </div>
+              <div class="form-g" style="margin-bottom:0">
+                <label class="form-lbl">E-mail</label>
+                <input class="form-inp" type="email" id="eu-email">
+              </div>
+            </div>
+
+            <div style="border-top:1px solid var(--gray-100);margin:20px 0"></div>
+
+            <!-- Perfil e candidato -->
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--gray-400);margin-bottom:12px">Perfil e vínculo</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+              <div class="form-g" style="margin-bottom:0">
+                <label class="form-lbl">Perfil de acesso</label>
+                <select class="form-sel" id="eu-perfil" onchange="toggleCandidatoField('eu-cand-wrap', this.value)">
+                  <option value="administrador">Administrador</option>
+                  <option value="gestor">Gestor</option>
+                  <option value="analista">Analista</option>
+                  <option value="assessor">Assessor</option>
+                </select>
+              </div>
+              <div class="form-g" style="margin-bottom:0" id="eu-cand-wrap">
+                <label class="form-lbl">Candidato vinculado</label>
+                <select class="form-sel" id="eu-candidato">
+                  <option value="">— todos (admin)</option>
+                  <option>João Ferreira da Silva</option>
+                  <option>Ana Paula Rodrigues</option>
+                  <option>Carlos Alberto Nunes</option>
+                  <option>Maria Luíza Conceição</option>
+                  <option>Roberto Monteiro</option>
+                </select>
+              </div>
+            </div>
+
+            <div style="border-top:1px solid var(--gray-100);margin:20px 0"></div>
+
+            <!-- Permissões individuais -->
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--gray-400);margin-bottom:4px">Permissões individuais</div>
+            <div style="font-size:12px;color:var(--gray-400);margin-bottom:14px">Substituem as permissões padrão do perfil para este usuário específico.</div>
+            <div style="background:var(--gray-50);border:1px solid var(--gray-100);border-radius:var(--r-md);padding:4px 16px">
+              <div class="toggle-row">
+                <div><div class="toggle-lbl">Exportar dados</div><div class="toggle-desc">Baixar CSVs de tabelas e relatórios</div></div>
+                <label class="toggle"><input type="checkbox" id="eu-perm-exportar"><span class="toggle-track"></span></label>
+              </div>
+              <div class="toggle-row">
+                <div><div class="toggle-lbl">Comparar candidatos</div><div class="toggle-desc">Acesso à tela de comparação entre candidatos</div></div>
+                <label class="toggle"><input type="checkbox" id="eu-perm-comparar"><span class="toggle-track"></span></label>
+              </div>
+            </div>
+
+            <div style="border-top:1px solid var(--gray-100);margin:20px 0"></div>
+
+            <!-- Status da conta -->
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <div>
+                <div style="font-size:13px;font-weight:700;color:var(--gray-700)">Status da conta</div>
+                <div style="font-size:12px;color:var(--gray-400);margin-top:2px">Usuários inativos não conseguem fazer login</div>
+              </div>
+              <label class="toggle"><input type="checkbox" id="eu-ativo"><span class="toggle-track"></span></label>
+            </div>
+          </div>
+          <div class="modal-ft" style="justify-content:space-between">
+            <button class="btn btn-ghost" style="color:var(--danger-500)" onclick="toast('Usuário desativado com sucesso.','warning');document.getElementById('modal-editar-usuario').classList.remove('open')"><i class="fas fa-user-slash"></i> Desativar</button>
+            <div style="display:flex;gap:8px">
+              <button class="btn btn-secondary" onclick="document.getElementById('modal-editar-usuario').classList.remove('open')">Cancelar</button>
+              <button class="btn btn-primary" onclick="salvarUsuario()"><i class="fas fa-check"></i> Salvar alterações</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ MODAL PERMISSÕES POR PERFIL (expandido) ════════════════ -->
+      <div class="modal-overlay" id="modal-perms">
+        <div class="modal" style="max-width:620px">
+          <div class="modal-hd">
+            <div>
+              <div class="modal-title">Permissões por Perfil</div>
+              <div style="font-size:12px;color:var(--gray-400);margin-top:2px">Configure as capacidades padrão de cada perfil. Permissões individuais podem sobrescrever estas configurações.</div>
+            </div>
+            <button class="modal-close" onclick="document.getElementById('modal-perms').classList.remove('open')"><i class="fas fa-times"></i></button>
+          </div>
+          <div class="modal-bd">
+            <!-- Aviso administrador -->
+            <div style="background:var(--brand-50);border:1px solid var(--brand-100);border-radius:var(--r-md);padding:12px 14px;margin-bottom:20px;display:flex;gap:10px;align-items:flex-start">
+              <i class="fas fa-circle-info" style="color:var(--brand-500);flex-shrink:0;margin-top:1px"></i>
+              <span style="font-size:12.5px;color:var(--brand-700);line-height:1.5">O perfil <strong>Administrador</strong> sempre tem acesso total e não pode ser restringido. A importação de dados TSE é exclusiva do Administrador em todos os perfis.</span>
+            </div>
+
+            <!-- Gestor -->
+            <div style="margin-bottom:16px">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+                <div style="width:28px;height:28px;border-radius:7px;background:#f0fdf4;color:#15803d;display:flex;align-items:center;justify-content:center;font-size:12px"><i class="fas fa-user-tie"></i></div>
+                <div style="font-size:14px;font-weight:700">Gestor</div>
+                <span style="font-size:11.5px;color:var(--gray-400)">· Vinculado a 1 candidato · dados completos</span>
+              </div>
+              <div style="background:var(--gray-50);border:1px solid var(--gray-100);border-radius:var(--r-md);padding:4px 16px">
+                <div class="toggle-row">
+                  <div><div class="toggle-lbl">Exportar dados</div><div class="toggle-desc">Permite baixar CSV de tabelas e relatórios</div></div>
+                  <label class="toggle"><input type="checkbox" id="mp-gestor-exportar" checked onchange="syncPermCard('gestor','exportar',this.checked)"><span class="toggle-track"></span></label>
+                </div>
+                <div class="toggle-row">
+                  <div><div class="toggle-lbl">Comparar candidatos</div><div class="toggle-desc">Acesso à tela de comparação entre candidatos (somente leitura)</div></div>
+                  <label class="toggle"><input type="checkbox" id="mp-gestor-comparar" onchange="syncPermCard('gestor','comparar',this.checked)"><span class="toggle-track"></span></label>
+                </div>
+              </div>
+            </div>
+
+            <!-- Analista -->
+            <div style="margin-bottom:16px">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+                <div style="width:28px;height:28px;border-radius:7px;background:var(--info-50);color:var(--info-700);display:flex;align-items:center;justify-content:center;font-size:12px"><i class="fas fa-chart-bar"></i></div>
+                <div style="font-size:14px;font-weight:700">Analista</div>
+                <span style="font-size:11.5px;color:var(--gray-400)">· Vinculado a 1 candidato · comparação disponível</span>
+              </div>
+              <div style="background:var(--gray-50);border:1px solid var(--gray-100);border-radius:var(--r-md);padding:4px 16px">
+                <div class="toggle-row">
+                  <div><div class="toggle-lbl">Exportar dados</div><div class="toggle-desc">Permite baixar CSV de tabelas e relatórios</div></div>
+                  <label class="toggle"><input type="checkbox" id="mp-analista-exportar" checked onchange="syncPermCard('analista','exportar',this.checked)"><span class="toggle-track"></span></label>
+                </div>
+                <div class="toggle-row">
+                  <div><div class="toggle-lbl">Comparar candidatos</div><div class="toggle-desc">Acesso à tela de comparação entre candidatos</div></div>
+                  <label class="toggle"><input type="checkbox" id="mp-analista-comparar" checked onchange="syncPermCard('analista','comparar',this.checked)"><span class="toggle-track"></span></label>
+                </div>
+              </div>
+            </div>
+
+            <!-- Assessor -->
+            <div>
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+                <div style="width:28px;height:28px;border-radius:7px;background:#fffbeb;color:#b45309;display:flex;align-items:center;justify-content:center;font-size:12px"><i class="fas fa-eye"></i></div>
+                <div style="font-size:14px;font-weight:700">Assessor</div>
+                <span style="font-size:11.5px;color:var(--gray-400)">· Vinculado a 1 candidato · somente leitura</span>
+              </div>
+              <div style="background:var(--gray-50);border:1px solid var(--gray-100);border-radius:var(--r-md);padding:4px 16px">
+                <div class="toggle-row">
+                  <div><div class="toggle-lbl">Exportar dados</div><div class="toggle-desc">Permite baixar CSV de tabelas e relatórios</div></div>
+                  <label class="toggle"><input type="checkbox" id="mp-assessor-exportar" onchange="syncPermCard('assessor','exportar',this.checked)"><span class="toggle-track"></span></label>
+                </div>
+                <div class="toggle-row">
+                  <div><div class="toggle-lbl">Comparar candidatos</div><div class="toggle-desc">Acesso à tela de comparação entre candidatos (somente leitura)</div></div>
+                  <label class="toggle"><input type="checkbox" id="mp-assessor-comparar" onchange="syncPermCard('assessor','comparar',this.checked)"><span class="toggle-track"></span></label>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-ft">
+            <button class="btn btn-secondary" onclick="document.getElementById('modal-perms').classList.remove('open')">Fechar</button>
+            <button class="btn btn-primary" onclick="salvarPerms()"><i class="fas fa-check"></i> Salvar configurações</button>
+          </div>
+        </div>
+      </div>
+
       <!-- ═══ MODAL NOVA CANDIDATURA ════════════════════════════ -->
       <div class="modal-overlay" id="modal-cand">
         <div class="modal" style="max-width:600px">
@@ -1521,34 +1968,43 @@ el('l-pass').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); }
 // ── Welcome ──────────────────────────────────────────────────────
 function showWelcome(user){
   el('screen-welcome').style.display = 'flex';
-  el('wc-av').textContent  = ini(user.name);
-  el('wc-name').textContent = `Olá, ${user.name.split(' ')[0]}`;
+  el('wc-av').textContent   = ini(user.name);
+  el('wc-name').textContent = user.name.split(' ').slice(0,2).join(' ');
   el('wc-role').textContent = `${PERFIL_LABELS[user.perfil]} · PITE`;
 
-  const isAdmin   = user.perfil === 'administrador';
-  const candCard  = el('wc-candidato-card');
+  const isAdmin = user.perfil === 'administrador';
+  const p       = user.perfil;
+  const cand    = user.candidato;
 
-  if(!isAdmin && user.candidato){
-    candCard.style.display = 'flex';
-    el('wc-cand-av').textContent    = user.candidato.siglas;
-    el('wc-cand-nome').textContent  = user.candidato.nome;
-    el('wc-cand-cargo').textContent = user.candidato.cargo;
-    const descs = {
-      gestor:   `Você é gestor de ${user.candidato.nome.split(' ')[0]}. Acesse dados completos e exporte relatórios.`,
-      analista: `Você é analista de ${user.candidato.nome.split(' ')[0]}. Veja os dados e compare com outros candidatos.`,
-      assessor: `Você é assessor de ${user.candidato.nome.split(' ')[0]}. Consulte as informações eleitorais (somente leitura).`,
-    };
-    el('wc-desc').textContent = descs[user.perfil] || '';
-    const chips = {
-      gestor:   `<span class="wc-chip"><i class="fas fa-map"></i>246 territórios</span><span class="wc-chip"><i class="fas fa-chart-bar"></i>14 pesquisas</span><span class="wc-chip"><i class="fas fa-download"></i>Exportação liberada</span>`,
-      analista: `<span class="wc-chip"><i class="fas fa-map"></i>246 territórios</span><span class="wc-chip"><i class="fas fa-scale-balanced"></i>Comparação liberada</span><span class="wc-chip"><i class="fas fa-download"></i>Exportação liberada</span>`,
-      assessor: `<span class="wc-chip"><i class="fas fa-map"></i>246 territórios</span><span class="wc-chip"><i class="fas fa-chart-bar"></i>14 pesquisas</span><span class="wc-chip"><i class="fas fa-eye"></i>Somente visualização</span>`,
-    };
-    el('wc-chips').innerHTML = chips[user.perfil] || '';
+  const perm = (ok, label, ico) =>
+    `<span class="wc-perm ${ok?'ok':'no'}"><i class="fas ${ico}"></i>${label}</span>`;
+
+  if(isAdmin){
+    el('wc-body').innerHTML = `
+      <div class="wc-admin-card">
+        <div class="wc-stat"><div class="wc-stat-val">48</div><div class="wc-stat-lbl">Candidatos</div></div>
+        <div class="wc-stat"><div class="wc-stat-val">246</div><div class="wc-stat-lbl">Territórios</div></div>
+        <div class="wc-stat"><div class="wc-stat-val">14</div><div class="wc-stat-lbl">Pesquisas</div></div>
+        <div class="wc-stat"><div class="wc-stat-val">9</div><div class="wc-stat-lbl">Importações</div></div>
+      </div>`;
   } else {
-    candCard.style.display = 'none';
-    el('wc-desc').textContent = 'Você tem acesso completo à plataforma. Analise territórios, gerencie candidatos e importe dados do TSE.';
-    el('wc-chips').innerHTML = `<span class="wc-chip"><i class="fas fa-users"></i>48 candidatos</span><span class="wc-chip"><i class="fas fa-map"></i>246 territórios</span><span class="wc-chip"><i class="fas fa-chart-bar"></i>14 pesquisas</span>`;
+    const permsHtml = {
+      gestor:   perm(true,'Exportar','fa-download') + perm(false,'Comparar','fa-scale-balanced') + perm(false,'Importar','fa-file-import'),
+      analista: perm(true,'Exportar','fa-download') + perm(true,'Comparar','fa-scale-balanced')  + perm(false,'Importar','fa-file-import'),
+      assessor: perm(false,'Exportar','fa-download')+ perm(false,'Comparar','fa-scale-balanced') + perm(false,'Importar','fa-file-import'),
+    };
+    el('wc-body').innerHTML = `
+      <div class="wc-cand-card">
+        <div class="wc-cand-label">Candidato vinculado</div>
+        <div class="wc-cand-row">
+          <div class="wc-cand-ico">${cand.siglas}</div>
+          <div>
+            <div class="wc-cand-nome">${cand.nome}</div>
+            <div class="wc-cand-cargo">${cand.cargo}</div>
+          </div>
+        </div>
+        <div class="wc-perms">${permsHtml[p]||''}</div>
+      </div>`;
   }
 }
 
@@ -1575,15 +2031,8 @@ function resetApp(){
   const painelLink = document.querySelector('[data-page="painel"]');
   if(painelLink) painelLink.classList.add('active');
   el('bc-cur').textContent = 'Painel';
-  // Revert painel KPIs/subtitle
-  const kpiVal = document.querySelector('#page-painel .kpi-grid .kpi-card:first-child .kpi-val');
-  const kpiLbl = document.querySelector('#page-painel .kpi-grid .kpi-card:first-child .kpi-lbl');
-  const impBtn = document.getElementById('painel-import-btn');
-  if(kpiVal) kpiVal.textContent = '48';
-  if(kpiLbl) kpiLbl.textContent = 'Candidatos';
-  if(impBtn) impBtn.style.display = '';
-  const sub = document.querySelector('#page-painel .ph-sub');
-  if(sub) sub.textContent = 'Visão geral do cenário eleitoral · Goiás 2024';
+  // Limpa o painel — será re-renderizado por renderPainel() em initApp()
+  el('page-painel').innerHTML = '';
 }
 
 // ── initApp — aplica RBAC do perfil atual ────────────────────────
@@ -1609,21 +2058,8 @@ function initApp(){
     el('tb-cand-nome').textContent = user.candidato.nome.split(' ').slice(0,2).join(' ');
   }
 
-  // ── Painel: adaptar para não-admin
-  if(!isAdmin && user.candidato){
-    const kpiVal = document.querySelector('#page-painel .kpi-grid .kpi-card:first-child .kpi-val');
-    const kpiLbl = document.querySelector('#page-painel .kpi-grid .kpi-card:first-child .kpi-lbl');
-    const impBtn = document.getElementById('painel-import-btn');
-    const sub    = document.querySelector('#page-painel .ph-sub');
-    if(kpiVal) kpiVal.textContent = '1';
-    if(kpiLbl) kpiLbl.textContent = 'Candidato vinculado';
-    if(impBtn) impBtn.style.display = 'none';
-    if(sub)    sub.textContent = `${user.candidato.nome} · Goiás 2024`;
-
-    // Ajustar gráfico do painel para mostrar só o candidato vinculado
-    const chartSub = document.querySelector('#page-painel .card-hd .card-sub');
-    if(chartSub) chartSub.textContent = `${user.candidato.nome} · 2016–2024`;
-  }
+  // ── Renderizar painel de acordo com o perfil do usuário
+  renderPainel(user);
 
   // ── Ocultar navegação admin-only
   const adminNavIds = ['eleicoes','candidaturas','importacao','geografia','usuarios'];
@@ -1715,6 +2151,304 @@ el('logout-btn').addEventListener('click', () => {
   toast('Sessão encerrada com segurança.');
 });
 
+// ── Painel dinâmico por perfil ───────────────────────────────────
+function kpiHtml(val, lbl, ico, cor, trend, trendCls, onclick){
+  return `<div class="kpi-card" ${onclick?`onclick="${onclick}"`:''}">
+    <div class="kpi-top">
+      <div><div class="kpi-val">${val}</div><div class="kpi-lbl">${lbl}</div></div>
+      <div class="kpi-ico ${cor}"><i class="fas ${ico}"></i></div>
+    </div>
+    <span class="kpi-trend ${trendCls}">${trend}</span>
+  </div>`;
+}
+
+function barChart(rows){
+  return rows.map(r=>`
+    <div class="bar-row">
+      <div class="bar-meta"><span class="bar-name">${r.lbl}</span><span class="bar-ct">${r.val}</span></div>
+      <div class="bar-track"><div class="bar-fill" style="width:${r.w}%;background:${r.cor}"></div></div>
+    </div>`).join('');
+}
+
+function actItem(ico,bg,cor,title,sub,time){
+  return `<div class="act-item">
+    <div class="act-ico" style="background:${bg};color:${cor}"><i class="fas ${ico}"></i></div>
+    <div class="act-info"><div class="act-title">${title}</div><div class="act-sub">${sub}</div></div>
+    <div class="act-time">${time}</div>
+  </div>`;
+}
+
+function topMunicTable(podeExportar){
+  const exp = podeExportar
+    ? `<button class="btn btn-secondary btn-sm"><i class="fas fa-download"></i> CSV</button>` : '';
+  return `
+  <div class="card">
+    <div class="card-hd">
+      <div><div class="card-title">Top Municípios — Índice de Força · 2024</div>
+           <div class="card-sub">Calculado por votos, tendência e consistência histórica</div></div>
+      ${exp}
+    </div>
+    <div class="tbl-wrap"><table class="tbl">
+      <thead><tr><th>#</th><th>Município</th><th>Zona</th><th>Votos 2024</th><th>% Válidos</th><th>Var. 2022</th><th style="width:150px">Índice de Força</th><th>Classificação</th></tr></thead>
+      <tbody>
+        <tr><td style="color:var(--gray-400);font-weight:700">1</td><td class="td-bold">Goiânia</td><td>1ª–14ª</td><td>79.840</td><td>38,2%</td><td class="tag-up">+4,1 p.p.</td>
+          <td><div style="display:flex;align-items:center;gap:8px"><div style="flex:1;height:5px;background:var(--gray-100);border-radius:4px;overflow:hidden"><div style="width:82%;height:100%;background:linear-gradient(90deg,var(--brand-700),var(--brand-400));border-radius:4px"></div></div><span style="font-size:12px;font-weight:800;color:var(--brand-700)">82</span></div></td>
+          <td><span class="badge badge-consolidado"><i class="fas fa-circle" style="font-size:6px"></i>Consolidado</span></td></tr>
+        <tr><td style="color:var(--gray-400);font-weight:700">2</td><td class="td-bold">Anápolis</td><td>15ª–17ª</td><td>12.180</td><td>41,7%</td><td class="tag-up">+7,3 p.p.</td>
+          <td><div style="display:flex;align-items:center;gap:8px"><div style="flex:1;height:5px;background:var(--gray-100);border-radius:4px;overflow:hidden"><div style="width:79%;height:100%;background:linear-gradient(90deg,var(--brand-600),var(--brand-400));border-radius:4px"></div></div><span style="font-size:12px;font-weight:800;color:var(--brand-700)">79</span></div></td>
+          <td><span class="badge badge-forca"><i class="fas fa-circle" style="font-size:6px"></i>Zona de Força</span></td></tr>
+        <tr><td style="color:var(--gray-400);font-weight:700">3</td><td class="td-bold">Rio Verde</td><td>42ª</td><td>8.920</td><td>35,4%</td><td class="tag-up">+12,8 p.p.</td>
+          <td><div style="display:flex;align-items:center;gap:8px"><div style="flex:1;height:5px;background:var(--gray-100);border-radius:4px;overflow:hidden"><div style="width:71%;height:100%;background:linear-gradient(90deg,var(--t-expansao),#86efac);border-radius:4px"></div></div><span style="font-size:12px;font-weight:800;color:#16a34a">71</span></div></td>
+          <td><span class="badge badge-expansao"><i class="fas fa-circle" style="font-size:6px"></i>Zona de Expansão</span></td></tr>
+        <tr><td style="color:var(--gray-400);font-weight:700">4</td><td class="td-bold">Aparecida de Goiânia</td><td>2ª–3ª</td><td>7.340</td><td>29,1%</td><td class="tag-dn">–2,4 p.p.</td>
+          <td><div style="display:flex;align-items:center;gap:8px"><div style="flex:1;height:5px;background:var(--gray-100);border-radius:4px;overflow:hidden"><div style="width:54%;height:100%;background:linear-gradient(90deg,var(--t-disputa),#fcd34d);border-radius:4px"></div></div><span style="font-size:12px;font-weight:800;color:var(--warning-700)">54</span></div></td>
+          <td><span class="badge badge-disputa"><i class="fas fa-circle" style="font-size:6px"></i>Zona em Disputa</span></td></tr>
+        <tr><td style="color:var(--gray-400);font-weight:700">5</td><td class="td-bold">Caldas Novas</td><td>53ª</td><td>3.120</td><td>22,6%</td><td class="tag-dn">–5,1 p.p.</td>
+          <td><div style="display:flex;align-items:center;gap:8px"><div style="flex:1;height:5px;background:var(--gray-100);border-radius:4px;overflow:hidden"><div style="width:38%;height:100%;background:linear-gradient(90deg,var(--t-adversario),#f87171);border-radius:4px"></div></div><span style="font-size:12px;font-weight:800;color:var(--danger-700)">38</span></div></td>
+          <td><span class="badge badge-adversario"><i class="fas fa-circle" style="font-size:6px"></i>Adversário</span></td></tr>
+      </tbody>
+    </table></div>
+  </div>`;
+}
+
+function candBanner(cand, perfil){
+  const corPerfil = {gestor:'#15803d',analista:'var(--brand-600)',assessor:'#b45309'};
+  const iconePerfil = {gestor:'fa-user-tie',analista:'fa-chart-bar',assessor:'fa-eye'};
+  const labelPerfil = {gestor:'Gestor',analista:'Analista',assessor:'Assessor'};
+  return `
+  <div style="display:flex;align-items:center;gap:16px;padding:16px 20px;background:linear-gradient(135deg,var(--brand-50),var(--brand-100));border:1px solid var(--brand-200);border-radius:var(--r-lg);margin-bottom:20px">
+    <div style="width:48px;height:48px;border-radius:13px;background:linear-gradient(135deg,var(--brand-700),var(--brand-950));display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:#fff;flex-shrink:0">${cand.siglas}</div>
+    <div style="flex:1">
+      <div style="font-size:16px;font-weight:800;color:var(--brand-900)">${cand.nome}</div>
+      <div style="font-size:12.5px;color:var(--brand-600);margin-top:2px">${cand.cargo}</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:6px;padding:5px 12px;background:#fff;border:1px solid var(--brand-200);border-radius:99px">
+      <i class="fas ${iconePerfil[perfil]}" style="font-size:11px;color:${corPerfil[perfil]}"></i>
+      <span style="font-size:12px;font-weight:700;color:${corPerfil[perfil]}">${labelPerfil[perfil]}</span>
+    </div>
+  </div>`;
+}
+
+function renderPainel(user){
+  const pg = el('page-painel');
+  if(!pg) return;
+  const p  = user.perfil;
+  const isAdmin = p === 'administrador';
+  const podeExp = ['administrador','gestor','analista'].includes(p);
+  const podeComp = ['administrador','analista'].includes(p);
+  const cand = user.candidato;
+
+  // ── ADMINISTRADOR ────────────────────────────────────────────
+  if(isAdmin){
+    pg.innerHTML = `
+    <div class="ph">
+      <div><div class="ph-title">Painel Principal</div>
+           <div class="ph-sub">Visão geral da plataforma · todos os candidatos · Goiás 2024</div></div>
+      <div class="ph-r">
+        <button class="btn btn-secondary"><i class="fas fa-download"></i> Exportar</button>
+        <button class="btn btn-primary" onclick="navigateTo('importacao')"><i class="fas fa-file-import"></i> Importar dados</button>
+      </div>
+    </div>
+
+    <div class="kpi-grid">
+      ${kpiHtml(48,'Candidatos','fa-user-tie','blue','<i class="fas fa-arrow-up"></i> 12 pré-candidatos','trend-up',"navigateTo('candidatos')")}
+      ${kpiHtml(246,'Territórios','fa-map','green','<i class="fas fa-check"></i> 100% mapeados','trend-green',"navigateTo('mapa')")}
+      ${kpiHtml(61,'Zonas de Força','fa-location-dot','amber','<i class="fas fa-arrow-up"></i> +7 vs 2022','trend-up','')}
+      ${kpiHtml(14,'Pesquisas','fa-clipboard-list','purple','<i class="fas fa-clock"></i> Última: 12 mai','trend-neutral',"navigateTo('pesquisas')")}
+      ${kpiHtml(9,'Importações TSE','fa-database','teal','<i class="fas fa-clock"></i> Última: 02 jun','trend-neutral',"navigateTo('importacao')")}
+    </div>
+
+    <div class="three-col" style="margin-bottom:16px">
+      <div class="card">
+        <div class="card-hd"><div><div class="card-title">Evolução Geral de Votos</div><div class="card-sub">Todos os candidatos · 2016–2024</div></div><span class="badge badge-blue">Plataforma</span></div>
+        <div class="card-bd">${barChart([
+          {lbl:'2016',val:'142.890',w:48,cor:'var(--t-expansao)'},
+          {lbl:'2018',val:'198.120',w:67,cor:'var(--t-forca)'},
+          {lbl:'2020',val:'167.744',w:57,cor:'var(--t-disputa)'},
+          {lbl:'2022',val:'231.391',w:78,cor:'var(--t-forca)'},
+          {lbl:'2024',val:'296.840',w:100,cor:'var(--t-consolidado)'},
+        ])}</div>
+      </div>
+      <div class="card">
+        <div class="card-hd"><div class="card-title">Classificação Territorial</div><div class="card-sub" style="font-size:11px;color:var(--gray-400)">Todos os candidatos</div></div>
+        <div class="card-bd">${barChart([
+          {lbl:'Consolidado',val:'22%',w:22,cor:'var(--t-consolidado)'},
+          {lbl:'Zona de Força',val:'25%',w:25,cor:'var(--t-forca)'},
+          {lbl:'Expansão',val:'15%',w:15,cor:'var(--t-expansao)'},
+          {lbl:'Em Disputa',val:'18%',w:18,cor:'var(--t-disputa)'},
+          {lbl:'Adversário',val:'12%',w:12,cor:'var(--t-adversario)'},
+          {lbl:'Volátil',val:'8%',w:8,cor:'var(--t-volatil)'},
+        ])}</div>
+      </div>
+      <div class="card">
+        <div class="card-hd"><div class="card-title">Atividade Recente</div><div class="card-sub" style="font-size:11px;color:var(--gray-400)">Toda a plataforma</div></div>
+        <div class="card-bd" style="padding:4px 20px"><div class="act-list">
+          ${actItem('fa-file-import','#f0fdf4','var(--t-forca)','Importação TSE 2024 GO','12.847 registros importados','2h')}
+          ${actItem('fa-clipboard-list','var(--brand-50)','var(--brand-600)','Pesquisa #14 importada','Goiânia · mai 2024','5h')}
+          ${actItem('fa-map-pin','#f0fdf4','var(--t-expansao)','3 territórios reclassificados','Zona de Expansão · João F.','1d')}
+          ${actItem('fa-user-plus','#fffbeb','var(--warning-500)','Pré-candidata cadastrada','Maria L. · Anápolis','2d')}
+          ${actItem('fa-users','var(--brand-50)','var(--brand-600)','Novo usuário criado','Pedro Lima · Assessor','3d')}
+        </div></div>
+      </div>
+    </div>
+    ${topMunicTable(true)}`;
+    return;
+  }
+
+  // ── GESTOR ───────────────────────────────────────────────────
+  if(p === 'gestor'){
+    pg.innerHTML = `
+    <div class="ph">
+      <div><div class="ph-title">Meu Painel</div>
+           <div class="ph-sub">${cand.nome} · Goiás 2024</div></div>
+      <div class="ph-r">
+        <button class="btn btn-secondary"><i class="fas fa-download"></i> Exportar</button>
+      </div>
+    </div>
+    ${candBanner(cand,'gestor')}
+
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:20px">
+      ${kpiHtml(246,'Territórios','fa-map','green','<i class="fas fa-check"></i> 100% mapeados','trend-green',"navigateTo('mapa')")}
+      ${kpiHtml(61,'Zonas de Força','fa-location-dot','amber','<i class="fas fa-arrow-up"></i> +7 vs 2022','trend-up','')}
+      ${kpiHtml(14,'Pesquisas','fa-clipboard-list','purple','<i class="fas fa-clock"></i> Última: 12 mai','trend-neutral',"navigateTo('pesquisas')")}
+      ${kpiHtml('02/06','Última atualização','fa-rotate','teal','<i class="fas fa-check"></i> TSE 2024','trend-green','')}
+    </div>
+
+    <div class="two-col" style="margin-bottom:16px">
+      <div class="card">
+        <div class="card-hd"><div><div class="card-title">Evolução de Votos</div><div class="card-sub">${cand.nome} · 2016–2024</div></div><span class="badge badge-blue">${cand.cargo.split('·')[1]?.trim()}</span></div>
+        <div class="card-bd">${barChart([
+          {lbl:'2016',val:'42.890',w:46,cor:'var(--t-expansao)'},
+          {lbl:'2018',val:'56.120',w:61,cor:'var(--t-forca)'},
+          {lbl:'2020',val:'38.744',w:41,cor:'var(--t-disputa)'},
+          {lbl:'2022',val:'68.391',w:74,cor:'var(--t-forca)'},
+          {lbl:'2024',val:'79.840',w:86,cor:'var(--t-consolidado)'},
+        ])}</div>
+      </div>
+      <div class="card">
+        <div class="card-hd"><div class="card-title">Classificação Territorial</div><div class="card-sub" style="font-size:11px;color:var(--gray-400)">${cand.nome.split(' ')[0]} · Goiás 2024</div></div>
+        <div class="card-bd">${barChart([
+          {lbl:'Consolidado',val:'22%',w:22,cor:'var(--t-consolidado)'},
+          {lbl:'Zona de Força',val:'25%',w:25,cor:'var(--t-forca)'},
+          {lbl:'Expansão',val:'15%',w:15,cor:'var(--t-expansao)'},
+          {lbl:'Em Disputa',val:'18%',w:18,cor:'var(--t-disputa)'},
+          {lbl:'Adversário',val:'12%',w:12,cor:'var(--t-adversario)'},
+          {lbl:'Volátil',val:'8%',w:8,cor:'var(--t-volatil)'},
+        ])}</div>
+      </div>
+    </div>
+    ${topMunicTable(true)}`;
+    return;
+  }
+
+  // ── ANALISTA ─────────────────────────────────────────────────
+  if(p === 'analista'){
+    pg.innerHTML = `
+    <div class="ph">
+      <div><div class="ph-title">Meu Painel</div>
+           <div class="ph-sub">${cand.nome} · Goiás 2024</div></div>
+      <div class="ph-r">
+        <button class="btn btn-secondary"><i class="fas fa-download"></i> Exportar</button>
+        <button class="btn btn-primary" onclick="navigateTo('comparacao')"><i class="fas fa-scale-balanced"></i> Comparar candidatos</button>
+      </div>
+    </div>
+    ${candBanner(cand,'analista')}
+
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:20px">
+      ${kpiHtml(246,'Territórios','fa-map','green','<i class="fas fa-check"></i> 100% mapeados','trend-green',"navigateTo('mapa')")}
+      ${kpiHtml(61,'Zonas de Força','fa-location-dot','amber','<i class="fas fa-arrow-up"></i> +7 vs 2022','trend-up','')}
+      ${kpiHtml(14,'Pesquisas','fa-clipboard-list','purple','<i class="fas fa-clock"></i> Última: 12 mai','trend-neutral',"navigateTo('pesquisas')")}
+      ${kpiHtml(47,'Candidatos p/ comparar','fa-scale-balanced','teal','<i class="fas fa-eye"></i> somente leitura','trend-neutral',"navigateTo('comparacao')")}
+    </div>
+
+    <!-- Aviso de comparação disponível -->
+    <div style="display:flex;align-items:center;gap:12px;padding:14px 18px;background:var(--brand-50);border:1px solid var(--brand-200);border-radius:var(--r-lg);margin-bottom:16px;cursor:pointer" onclick="navigateTo('comparacao')">
+      <div style="width:36px;height:36px;border-radius:9px;background:linear-gradient(135deg,var(--brand-500),var(--brand-800));display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;flex-shrink:0"><i class="fas fa-scale-balanced"></i></div>
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:700;color:var(--brand-800)">Comparação disponível para você</div>
+        <div style="font-size:12px;color:var(--brand-600);margin-top:2px">Como analista, você pode comparar ${cand.nome.split(' ')[0]} com outros 47 candidatos da plataforma — apenas visualização.</div>
+      </div>
+      <i class="fas fa-arrow-right" style="color:var(--brand-500);font-size:13px"></i>
+    </div>
+
+    <div class="two-col" style="margin-bottom:16px">
+      <div class="card">
+        <div class="card-hd"><div><div class="card-title">Evolução de Votos</div><div class="card-sub">${cand.nome} · 2016–2024</div></div><span class="badge badge-blue">${cand.cargo.split('·')[1]?.trim()}</span></div>
+        <div class="card-bd">${barChart([
+          {lbl:'2016',val:'42.890',w:46,cor:'var(--t-expansao)'},
+          {lbl:'2018',val:'56.120',w:61,cor:'var(--t-forca)'},
+          {lbl:'2020',val:'38.744',w:41,cor:'var(--t-disputa)'},
+          {lbl:'2022',val:'68.391',w:74,cor:'var(--t-forca)'},
+          {lbl:'2024',val:'79.840',w:86,cor:'var(--t-consolidado)'},
+        ])}</div>
+      </div>
+      <div class="card">
+        <div class="card-hd"><div class="card-title">Atividade Recente</div><div class="card-sub" style="font-size:11px;color:var(--gray-400)">${cand.nome.split(' ')[0]}</div></div>
+        <div class="card-bd" style="padding:4px 20px"><div class="act-list">
+          ${actItem('fa-map-pin','#f0fdf4','var(--t-forca)','Goiânia — 79.840 votos','Resultado 2024 · Consolidado','2024')}
+          ${actItem('fa-map-pin','#f0fdf4','var(--t-forca)','Anápolis — 12.180 votos','Resultado 2024 · Zona de Força','2024')}
+          ${actItem('fa-map-pin','#f0fdf4','var(--t-expansao)','Rio Verde — 8.920 votos','Resultado 2024 · Expansão','2024')}
+          ${actItem('fa-clipboard-list','var(--brand-50)','var(--brand-600)','Pesquisa #14 — 42%','Intenção de voto · Goiânia','12/mai')}
+        </div></div>
+      </div>
+    </div>
+    ${topMunicTable(true)}`;
+    return;
+  }
+
+  // ── ASSESSOR ─────────────────────────────────────────────────
+  if(p === 'assessor'){
+    pg.innerHTML = `
+    <div class="ph">
+      <div><div class="ph-title">Meu Painel</div>
+           <div class="ph-sub">${cand.nome} · Goiás 2024</div></div>
+      <div class="ph-r">
+        <span style="display:flex;align-items:center;gap:6px;padding:5px 12px;background:var(--gray-100);border-radius:99px;font-size:12px;color:var(--gray-500)">
+          <i class="fas fa-eye"></i> Somente visualização
+        </span>
+      </div>
+    </div>
+    ${candBanner(cand,'assessor')}
+
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:20px">
+      ${kpiHtml(246,'Territórios','fa-map','green','<i class="fas fa-check"></i> 100% mapeados','trend-green',"navigateTo('mapa')")}
+      ${kpiHtml(61,'Zonas de Força','fa-location-dot','amber','<i class="fas fa-arrow-up"></i> +7 vs 2022','trend-up','')}
+      ${kpiHtml(14,'Pesquisas','fa-clipboard-list','purple','<i class="fas fa-clock"></i> Última: 12 mai','trend-neutral',"navigateTo('pesquisas')")}
+    </div>
+
+    <!-- Aviso somente leitura -->
+    <div style="display:flex;align-items:center;gap:10px;padding:12px 16px;background:#fffbeb;border:1px solid #fde68a;border-radius:var(--r-md);margin-bottom:16px">
+      <i class="fas fa-circle-info" style="color:var(--warning-500);flex-shrink:0"></i>
+      <span style="font-size:13px;color:#92400e">Seu perfil é <strong>Assessor</strong> — acesso somente leitura. Exportação e comparação não estão disponíveis. Fale com o administrador para mais permissões.</span>
+    </div>
+
+    <div class="two-col" style="margin-bottom:16px">
+      <div class="card">
+        <div class="card-hd"><div><div class="card-title">Evolução de Votos</div><div class="card-sub">${cand.nome} · 2016–2024</div></div><span class="badge badge-blue">${cand.cargo.split('·')[1]?.trim()}</span></div>
+        <div class="card-bd">${barChart([
+          {lbl:'2016',val:'42.890',w:46,cor:'var(--t-expansao)'},
+          {lbl:'2018',val:'56.120',w:61,cor:'var(--t-forca)'},
+          {lbl:'2020',val:'38.744',w:41,cor:'var(--t-disputa)'},
+          {lbl:'2022',val:'68.391',w:74,cor:'var(--t-forca)'},
+          {lbl:'2024',val:'79.840',w:86,cor:'var(--t-consolidado)'},
+        ])}</div>
+      </div>
+      <div class="card">
+        <div class="card-hd"><div class="card-title">Classificação Territorial</div><div class="card-sub" style="font-size:11px;color:var(--gray-400)">${cand.nome.split(' ')[0]} · Goiás 2024</div></div>
+        <div class="card-bd">${barChart([
+          {lbl:'Consolidado',val:'22%',w:22,cor:'var(--t-consolidado)'},
+          {lbl:'Zona de Força',val:'25%',w:25,cor:'var(--t-forca)'},
+          {lbl:'Expansão',val:'15%',w:15,cor:'var(--t-expansao)'},
+          {lbl:'Em Disputa',val:'18%',w:18,cor:'var(--t-disputa)'},
+          {lbl:'Adversário',val:'12%',w:12,cor:'var(--t-adversario)'},
+        ])}</div>
+      </div>
+    </div>
+    ${topMunicTable(false)}`;
+    return;
+  }
+}
+
 // ── Mapa ─────────────────────────────────────────────────────────
 document.querySelectorAll('.map-tb').forEach(b => {
   b.addEventListener('click', () => {
@@ -1754,6 +2488,123 @@ function selectTerr(nome, classif, cor, votos, pct, indice){
       <button class="btn btn-secondary btn-sm" onclick="voltarLegenda()">← Voltar</button>
     </div>`;
 }
+
+// ── Sidebar toggle ───────────────────────────────────────────────
+function toggleSidebar(){
+  const collapsed = el('sidebar').classList.toggle('collapsed');
+  el('sb-arrow-icon').className = collapsed ? 'fas fa-chevron-right' : 'fas fa-chevron-left';
+  el('sb-arrow').title = collapsed ? 'Expandir menu' : 'Recolher menu';
+}
+
+// ── Menu mobile (drawer) ─────────────────────────────────────────
+function toggleMobileMenu(){
+  const wrap = document.querySelector('.sidebar-wrap');
+  wrap.classList.toggle('mobile-open');
+}
+// Fechar drawer ao clicar no overlay
+document.addEventListener('click', e => {
+  const wrap = document.querySelector('.sidebar-wrap');
+  if(wrap && wrap.classList.contains('mobile-open')){
+    // Clicou fora da sidebar
+    if(!e.target.closest('.sidebar') && !e.target.closest('.tb-mobile-menu')){
+      wrap.classList.remove('mobile-open');
+    }
+  }
+});
+// Fechar drawer ao navegar (mobile)
+const _origNavigateTo = typeof navigateTo !== 'undefined' ? navigateTo : null;
+document.querySelectorAll('[data-page]').forEach(l => {
+  l.addEventListener('click', () => {
+    if(window.innerWidth <= 768){
+      document.querySelector('.sidebar-wrap')?.classList.remove('mobile-open');
+    }
+  });
+});
+
+// ── Usuários — Modais ────────────────────────────────────────────
+
+function toggleCandidatoField(wrapId, perfil){
+  const wrap = document.getElementById(wrapId);
+  if(!wrap) return;
+  wrap.style.display = (perfil === 'administrador' || perfil === '') ? 'none' : '';
+}
+
+function openEditarUsuario(u){
+  el('eu-titulo').textContent = 'Editar — ' + u.nome;
+  el('eu-subtitulo').textContent = u.email + ' · ' + (PERFIL_LABELS[u.perfil] || u.perfil);
+  el('eu-nome').value = u.nome;
+  el('eu-email').value = u.email;
+  el('eu-perfil').value = u.perfil;
+  // candidato
+  const sel = el('eu-candidato');
+  for(let i=0;i<sel.options.length;i++){
+    if(sel.options[i].text.startsWith(u.candidato.split(' ')[0])) sel.selectedIndex = i;
+  }
+  toggleCandidatoField('eu-cand-wrap', u.perfil);
+  el('eu-perm-exportar').checked = u.exportar;
+  el('eu-perm-comparar').checked = u.comparar;
+  el('eu-ativo').checked = u.ativo;
+  document.getElementById('modal-editar-usuario').classList.add('open');
+}
+
+function salvarUsuario(){
+  toast('Alterações salvas com sucesso!', 'success');
+  document.getElementById('modal-editar-usuario').classList.remove('open');
+}
+
+function criarUsuario(){
+  const nome = el('nu-nome').value.trim();
+  const email = el('nu-email').value.trim();
+  const perfil = el('nu-perfil').value;
+  const senha = el('nu-senha').value;
+  const senha2 = el('nu-senha2').value;
+  if(!nome || !email || !perfil){
+    toast('Preencha nome, e-mail e perfil.', 'error'); return;
+  }
+  if(senha !== senha2){
+    toast('As senhas não coincidem.', 'error'); return;
+  }
+  toast(`Usuário ${nome.split(' ')[0]} criado com sucesso!`, 'success');
+  document.getElementById('modal-novo-usuario').classList.remove('open');
+  // Reset form
+  ['nu-nome','nu-email','nu-senha','nu-senha2'].forEach(id => { const e = el(id); if(e) e.value = ''; });
+  el('nu-perfil').value = '';
+  el('nu-perm-exportar').checked = true;
+  el('nu-perm-comparar').checked = false;
+}
+
+function savePerms(){
+  // Os cards na página já estão vinculados diretamente via id
+}
+
+function syncPermCard(perfil, perm, val){
+  // Sincroniza o card da página com o modal de permissões e vice-versa
+  const cardId = `perm-${perfil}-${perm}`;
+  const card = document.getElementById(cardId);
+  if(card) card.checked = val;
+  const modalId = `mp-${perfil}-${perm}`;
+  const modal = document.getElementById(modalId);
+  if(modal) modal.checked = val;
+}
+
+function salvarPerms(){
+  toast('Permissões dos perfis salvas com sucesso!', 'success');
+  document.getElementById('modal-perms').classList.remove('open');
+}
+
+// Manter cards da página e modal sincronizados
+document.addEventListener('DOMContentLoaded', () => {
+  ['gestor','analista','assessor'].forEach(p => {
+    ['exportar','comparar'].forEach(perm => {
+      const cardEl = document.getElementById(`perm-${p}-${perm}`);
+      const modalEl = document.getElementById(`mp-${p}-${perm}`);
+      if(cardEl && modalEl){
+        cardEl.addEventListener('change', () => { modalEl.checked = cardEl.checked; });
+        modalEl.addEventListener('change', () => { cardEl.checked = modalEl.checked; });
+      }
+    });
+  });
+});
 
 function renderLegenda(){
   el('mp-body').innerHTML = `

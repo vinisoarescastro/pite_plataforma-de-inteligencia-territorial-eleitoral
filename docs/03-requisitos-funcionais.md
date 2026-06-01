@@ -99,6 +99,16 @@
 | RF-PA03 | O sistema deve permitir exportação de dados e tabelas em formato CSV | MVP | HU-CC05, HU-A06 |
 | RF-PA04 | O sistema deve exibir gráficos de evolução eleitoral por território ao longo de múltiplas eleições | MVP | HU-A07 |
 | RF-PA05 | O sistema deve exibir o espectro político histórico de cada território | Importante | HU-CE04 |
+| RF-PA06 | O conteúdo do painel (home) deve ser renderizado dinamicamente de acordo com o perfil do usuário autenticado — nunca exibir o painel do administrador para outros perfis | MVP | — |
+
+### Painel por perfil
+
+| Perfil | KPIs exibidos | Ações disponíveis | Escopo dos dados |
+|---|---|---|---|
+| `administrador` | Candidatos (total), Territórios, Zonas de Força, Pesquisas, Importações TSE | Exportar, Importar dados | Todos os candidatos da plataforma |
+| `gestor` | Territórios, Zonas de Força, Pesquisas, Última atualização | Exportar | Candidato vinculado |
+| `analista` | Territórios, Zonas de Força, Pesquisas, Candidatos disponíveis para comparação | Exportar, Comparar candidatos | Candidato vinculado (comparação: todos, somente leitura) |
+| `assessor` | Territórios, Zonas de Força, Pesquisas | Nenhuma (somente visualização) | Candidato vinculado |
 
 ---
 
@@ -117,10 +127,24 @@
 | RF-U09 | O sistema deve exibir o candidato vinculado em destaque na barra lateral para perfis não-administradores | MVP | — |
 | RF-U10 | O sistema deve pré-selecionar o candidato vinculado automaticamente em todos os filtros de análise | MVP | — |
 | RF-U11 | O perfil `analista` deve poder acessar a tela de comparação e visualizar dados de outros candidatos em modo leitura | MVP | — |
-| RF-U12 | O perfil `assessor` não deve ter acesso à função de exportação em nenhuma tela | MVP | — |
-| RF-U13 | O perfil `gestor` deve poder exportar qualquer dado que consiga visualizar | MVP | — |
-| RF-U14 | Somente o `administrador` pode criar, editar e desativar usuários | MVP | — |
-| RF-U15 | Somente o `administrador` pode importar dados do TSE e gerenciar eleições e candidaturas | MVP | — |
-| RF-U16 | Toda exportação deve ser registrada em log com usuário, data, escopo e formato | MVP | — |
+| RF-U12 | As permissões de exportação e comparação são configuráveis por perfil (`gestor`, `analista`, `assessor`) — o administrador define os padrões de cada perfil na tela de Usuários | MVP | HU-ADM02 |
+| RF-U13 | O administrador pode sobrescrever as permissões padrão do perfil para um usuário específico (permissão individual) | MVP | HU-ADM02 |
+| RF-U14 | A importação de dados TSE é sempre exclusiva do `administrador` e não pode ser delegada a nenhum outro perfil | MVP | — |
+| RF-U15 | Somente o `administrador` pode criar, editar, desativar e reativar usuários | MVP | HU-ADM01 |
+| RF-U16 | Somente o `administrador` pode importar dados do TSE e gerenciar eleições e candidaturas | MVP | — |
+| RF-U17 | Toda exportação deve ser registrada em log com usuário, data, escopo e formato | MVP | — |
+| RF-U18 | O formulário de criação de usuário deve exigir: nome, e-mail, senha temporária, perfil e candidato vinculado (obrigatório para perfis não-admin) | MVP | HU-ADM01 |
+| RF-U19 | O formulário de edição de usuário deve permitir alterar: nome, e-mail, perfil, candidato vinculado, permissões individuais e status ativo/inativo | MVP | HU-ADM01 |
+| RF-U20 | O administrador deve poder configurar as permissões padrão de cada perfil (`gestor`, `analista`, `assessor`) em um painel dedicado na tela de Usuários, com efeito imediato sobre novos usuários criados | MVP | HU-ADM02 |
+| RF-U21 | Permissões individuais de um usuário específico sobrepõem as permissões padrão do perfil — essa sobreposição deve ser visualmente indicada na tela de edição | Importante | HU-ADM02 |
+
+### Permissões configuráveis por perfil
+
+| Permissão | `administrador` | `gestor` | `analista` | `assessor` |
+|---|---|---|---|---|
+| Exportar dados | Sempre ativo (fixo) | Configurável | Configurável | Configurável |
+| Comparar candidatos | Sempre ativo (fixo) | Configurável | Configurável | Configurável |
+| Importar dados TSE | Sempre ativo (fixo) | Sempre bloqueado (fixo) | Sempre bloqueado (fixo) | Sempre bloqueado (fixo) |
+| Gerenciar usuários | Sempre ativo (fixo) | Sempre bloqueado (fixo) | Sempre bloqueado (fixo) | Sempre bloqueado (fixo) |
 
 > **Nota:** O sistema não suporta múltiplas organizações isoladas (multi-tenant). Cada instalação serve uma única organização. O isolamento de dados é feito por vínculo de candidato, não por organização.
