@@ -232,6 +232,7 @@ python geo/import_municipalities.py --file ../data/geo/municipalities/municipios
 | [11 — Backlog Inicial](docs/11-backlog-inicial.md) | Épicos e tarefas por prioridade |
 | [12 — Dicionário de Dados](docs/12-dicionario-de-dados.md) | Glossário técnico |
 | [13 — Guia de Nomenclatura](docs/13-guia-de-nomenclatura.md) | Padrões de código |
+| [14 — Guia de Desenvolvimento](docs/14-guia-de-desenvolvimento.md) | Setup local, migrations, módulos implementados e troubleshooting |
 
 ---
 
