@@ -6,6 +6,74 @@
 
 ---
 
+## Tabelas Implementadas (MVP — estado atual)
+
+As tabelas abaixo estão criadas e ativas no banco. As demais seções deste documento descrevem o modelo completo planejado.
+
+### `users`
+Gerenciada por `backend/models/user.py`. Migrations: `0f08b7443f87` + `b9e3f1a2c847`.  
+Ver seção [17. usuario](#17-usuario) para detalhes.
+
+### `municipio_tse_ibge`
+Criada pela migration `c3d4e5f6a7b8`. Populada com 5.571 municípios via `scripts/importar_municipios_tse.py`.
+
+| Campo | Tipo | Descrição |
+|---|---|---|
+| `id` | Integer (PK) | Identificador interno |
+| `cd_tse` | String (unique) | Código do município no TSE (`CD_MUNICIPIO`) |
+| `cd_ibge` | String (unique) | Código do município no IBGE (`CD_MUN`) |
+| `sg_uf` | String(2) | Sigla da UF |
+| `nm_municipio` | String | Nome do município |
+
+### `eleicoes`
+Criada pela migration `c3d4e5f6a7b8`. Gerenciada por `backend/models/eleitoral.py`.
+
+| Campo | Tipo | Descrição |
+|---|---|---|
+| `id` | UUID (PK) | Identificador único |
+| `ano` | Integer | Ano da eleição (ex: 2024) |
+| `turno` | Integer | Turno (1 ou 2) |
+| `tipo` | String | `municipal`, `federal` ou `estadual` |
+| `descricao` | String | Descrição textual |
+| `created_at` | DateTime | Data de criação |
+
+Constraint única: `(ano, turno, tipo)`.
+
+### `candidatos`
+Criada pela migration `c3d4e5f6a7b8`. Gerenciada por `backend/models/eleitoral.py`.
+
+| Campo | Tipo | Descrição |
+|---|---|---|
+| `id` | UUID (PK) | Identificador único |
+| `nr_candidato` | String | Número nas urnas (`NR_CANDIDATO`) |
+| `nm_candidato` | String | Nome do candidato (`NM_CANDIDATO`) |
+| `nm_partido` | String | Nome do partido |
+| `sg_partido` | String | Sigla do partido |
+| `sg_uf` | String(2) | UF do candidato |
+| `cargo` | String | Cargo disputado (`DS_CARGO`) |
+| `created_at` | DateTime | Data de criação |
+
+### `resultados_eleitorais`
+Criada pela migration `c3d4e5f6a7b8`. Gerenciada por `backend/models/eleitoral.py`.
+
+| Campo | Tipo | Descrição |
+|---|---|---|
+| `id` | UUID (PK) | Identificador único |
+| `eleicao_id` | UUID (FK → eleicoes) | Eleição de referência |
+| `candidato_id` | UUID (FK → candidatos) | Candidato de referência |
+| `cd_municipio_ibge` | String | Código IBGE do município |
+| `qt_votos_nominais` | Integer | Total de votos nominais no município |
+| `qt_votos_validos` | Integer | Total de votos válidos |
+| `qt_aptos` | Integer | Eleitores aptos |
+| `qt_abstencoes` | Integer | Abstenções |
+| `created_at` | DateTime | Data de criação |
+
+Constraint única: `(eleicao_id, candidato_id, cd_municipio_ibge)`.
+
+> **Observação:** Este modelo é simplificado para o MVP. O modelo completo planejado (com `zona_eleitoral`, `secao_eleitoral`, `local_votacao` etc.) está descrito nas seções abaixo.
+
+---
+
 ## Visão Geral do Modelo
 
 ```
@@ -450,18 +518,22 @@ GROUP BY b.nome ORDER BY total_votos DESC
 
 **Objetivo:** Representa os usuários com acesso à plataforma. Usuários não-administradores são obrigatoriamente vinculados a um candidato e enxergam apenas os dados desse candidato.
 
-| Campo | Tipo | Descrição |
+> **Tabela real no banco:** `users` (SQLAlchemy model em `backend/models/user.py`)
+
+| Campo (banco) | Tipo | Descrição |
 |---|---|---|
-| `usuario_id` | UUID (PK) | Identificador único |
-| `nome` | VARCHAR | Nome do usuário |
-| `email` | VARCHAR | E-mail (único) |
-| `senha_hash` | VARCHAR | Hash bcrypt da senha |
-| `perfil_acesso` | ENUM | `administrador`, `gestor`, `analista`, `assessor` |
-| `candidato_id` | UUID (FK → candidato) | Candidato ao qual o usuário está vinculado — **obrigatório para gestor, analista e assessor; nulo para administrador** |
-| `pode_comparar` | BOOLEAN | Se o usuário pode ver dados de comparação com outros candidatos — `true` para administrador e analista; `false` para gestor e assessor |
-| `ativo` | BOOLEAN | Status ativo |
-| `ultimo_acesso_em` | TIMESTAMP | Data do último acesso |
-| `criado_em` | TIMESTAMP | Data de criação |
+| `id` | UUID (PK) | Identificador único |
+| `name` | VARCHAR(120) | Nome completo do usuário |
+| `email` | VARCHAR(255) | E-mail único (index) |
+| `password_hash` | VARCHAR(255) | Hash bcrypt da senha — nunca texto puro |
+| `profile` | ENUM | `administrador`, `gestor`, `analista`, `assessor` |
+| `candidate_name` | VARCHAR(255) | Nome do candidato vinculado — nulo para administrador |
+| `can_export` | BOOLEAN | Permite exportar dados (padrão: `true`) |
+| `can_compare` | BOOLEAN | Permite comparar candidatos (padrão: `false`) |
+| `is_active` | BOOLEAN | Conta ativa ou inativa (padrão: `true`) |
+| `last_login` | TIMESTAMP | Data/hora do último login (atualizado pela API) |
+| `created_at` | TIMESTAMP | Data de criação (automático) |
+| `updated_at` | TIMESTAMP | Última atualização (automático) |
 
 **Perfis de acesso:**
 

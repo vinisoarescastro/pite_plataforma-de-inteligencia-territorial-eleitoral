@@ -1,0 +1,157 @@
+.sidebar {
+  width: 228px;
+  height: 100%;
+  border-right: 1px solid #e4eaf8;
+  display: flex;
+  flex-direction: column;
+  transition: width 350ms cubic-bezier(.4,0,.2,1);
+  overflow: hidden;
+  z-index: 100;
+  background-color: #f8faff;
+  background-image:
+    linear-gradient(rgba(59,110,242,.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(59,110,242,.07) 1px, transparent 1px);
+  background-size: 10px 10px;
+}
+
+.sidebar.collapsed { width: 76px; }
+
+/* ── Header ── */
+.sbHd {
+  height: 58px;
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  gap: 10px;
+  flex-shrink: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  position: relative;
+}
+
+.sbHd::before, .sbHd::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, var(--brand-700), rgba(59,110,242,.06));
+  pointer-events: none; z-index: 1;
+}
+.sbHd::before { top: 0; }
+.sbHd::after  { bottom: 0; }
+
+.sbLogoExpanded {
+  height: 32px;
+  width: auto;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.sbLogoCollapsed {
+  display: none;
+  height: 28px;
+  width: auto;
+  object-fit: contain;
+}
+
+.collapsed .sbLogoExpanded { display: none; }
+.collapsed .sbLogoCollapsed { display: block; }
+.collapsed .sbHd { justify-content: center; padding: 0; }
+
+.sbLogoFt {
+  height: 24px;
+  width: auto;
+  object-fit: contain;
+  margin: 0 6px 8px;
+  opacity: .7;
+}
+
+.collapsed .sbLogoFt { display: none; }
+
+/* ── Nav ── */
+.sbNav {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 4px 0 10px;
+}
+.sbNav::-webkit-scrollbar { width: 3px; }
+.sbNav::-webkit-scrollbar-thumb { background: var(--gray-200); border-radius: 99px; }
+
+.sbSec {
+  font-size: 9px; font-weight: 700; letter-spacing: 1.2px;
+  text-transform: uppercase; color: var(--gray-400);
+  padding: 14px 16px 4px;
+  white-space: nowrap;
+  opacity: 1;
+  transition: opacity 220ms var(--ease);
+}
+.collapsed .sbSec { opacity: 0; pointer-events: none; padding-top: 6px; }
+
+.sbLink {
+  display: flex; align-items: center;
+  padding: 7px 12px; margin: 1px 6px;
+  border-radius: var(--r-md);
+  color: var(--gray-500);
+  font-size: 13px; font-weight: 500; cursor: pointer;
+  transition: all 150ms var(--ease);
+  white-space: nowrap; overflow: hidden;
+}
+
+.sbLink:hover { background: rgba(59,110,242,.06); color: var(--gray-800); }
+
+.sbLink.active {
+  background: linear-gradient(90deg, rgba(59,110,242,.18) 0%, rgba(59,110,242,.04) 100%);
+  color: var(--brand-800); font-weight: 700;
+}
+
+.sbIcon {
+  width: 36px; height: 36px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; border-radius: 8px; color: var(--gray-400);
+  transition: color 150ms var(--ease);
+}
+.sbLink:hover .sbIcon { color: var(--gray-700); }
+.sbLink.active .sbIcon { color: var(--brand-600); }
+
+.sbLbl { flex: 1; overflow: hidden; text-overflow: ellipsis; margin-left: 2px; }
+
+.collapsed .sbLbl { display: none; }
+.collapsed .sbLink { justify-content: center; padding: 7px 0; margin: 1px 8px; }
+.collapsed .sbLink.active {
+  background: linear-gradient(135deg, rgba(59,110,242,.18), rgba(59,110,242,.06));
+}
+
+/* ── Footer ── */
+.sbFt {
+  padding: 10px 6px;
+  flex-shrink: 0;
+  background: var(--brand-950);
+  position: relative;
+}
+.sbFt::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, var(--brand-700), rgba(59,110,242,.06));
+  pointer-events: none;
+}
+
+.sbUser {
+  display: flex; align-items: center;
+  padding: 8px 6px; border-radius: var(--r-md);
+  cursor: pointer; overflow: hidden; white-space: nowrap;
+  transition: background 150ms var(--ease);
+}
+.sbUser:hover { background: rgba(255,255,255,.07); }
+
+.sbAv {
+  width: 36px; height: 36px; flex-shrink: 0; border-radius: 10px;
+  background: linear-gradient(135deg, var(--brand-500), var(--brand-700));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700; color: #fff;
+}
+
+.sbUi { margin-left: 10px; overflow: hidden; }
+.sbUname { font-size: 12.5px; font-weight: 600; color: #fff; overflow: hidden; text-overflow: ellipsis; }
+.sbUrole { font-size: 11px; color: rgba(255,255,255,.45); }
+
+.collapsed .sbUi { display: none; }
+.collapsed .sbUser { justify-content: center; }

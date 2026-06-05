@@ -1,0 +1,111 @@
+.topbar {
+  height: 58px;
+  flex-shrink: 0;
+  background: #fff;
+  border-bottom: 1px solid var(--gray-100);
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  gap: 12px;
+}
+
+.breadcrumb {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.bcItem { color: var(--gray-400); }
+.bcSep  { color: var(--gray-200); font-size: 10px; }
+.bcCur  { color: var(--gray-800); font-weight: 600; }
+
+.search {
+  position: relative;
+  width: 220px;
+}
+
+.search i {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 12px;
+  color: var(--gray-300);
+  pointer-events: none;
+}
+
+.search input {
+  width: 100%;
+  height: 34px;
+  padding: 0 10px 0 32px;
+  background: var(--gray-50);
+  border: 1px solid var(--gray-100);
+  border-radius: var(--r-md);
+  font-size: 13px;
+  color: var(--gray-700);
+  outline: none;
+  transition: all 220ms var(--ease);
+}
+
+.search input:focus {
+  background: #fff;
+  border-color: var(--brand-400);
+  box-shadow: 0 0 0 3px rgba(59,110,242,.12);
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tbBtn {
+  width: 34px; height: 34px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--gray-100);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--gray-400);
+  font-size: 14px;
+  cursor: pointer;
+  position: relative;
+  transition: all 150ms var(--ease);
+  background: transparent;
+}
+
+.tbBtn:hover {
+  background: var(--gray-50);
+  color: var(--gray-700);
+  border-color: var(--gray-200);
+}
+
+.logoutBtn {
+  color: var(--danger-500);
+  border-color: var(--danger-50);
+}
+
+.logoutBtn:hover {
+  background: var(--danger-50) !important;
+  border-color: rgba(239,68,68,.2) !important;
+  color: var(--danger-700) !important;
+}
+
+.notifDot {
+  width: 6px; height: 6px;
+  background: var(--brand-500);
+  border-radius: 50%;
+  position: absolute;
+  top: 7px; right: 7px;
+  border: 1.5px solid #fff;
+}
+
+.avatar {
+  width: 34px; height: 34px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--brand-500), var(--brand-800));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700; color: #fff;
+  cursor: pointer;
+  flex-shrink: 0;
+}

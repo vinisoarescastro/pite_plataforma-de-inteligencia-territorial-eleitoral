@@ -1,0 +1,80 @@
+.card {
+  background: #fff;
+  border: 1px solid var(--gray-100);
+  border-radius: var(--r-lg);
+  padding: 20px 22px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.07);
+  transition: all 150ms var(--ease);
+  position: relative;
+  overflow: hidden;
+}
+
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  border-radius: var(--r-lg) var(--r-lg) 0 0;
+}
+
+.card:nth-child(1)::before { background: linear-gradient(90deg, var(--brand-500), var(--brand-300)); }
+.card:nth-child(2)::before { background: linear-gradient(90deg, #1a7a4a, #4ade80); }
+.card:nth-child(3)::before { background: linear-gradient(90deg, #f5a623, #fbbf24); }
+.card:nth-child(4)::before { background: linear-gradient(90deg, #9b59b6, #c084fc); }
+.card:nth-child(5)::before { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
+
+.clickable { cursor: pointer; }
+.clickable:hover {
+  border-color: var(--gray-200);
+  box-shadow: 0 4px 12px rgba(0,0,0,.09);
+  transform: translateY(-2px);
+}
+
+.top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.valor {
+  font-size: 36px;
+  font-weight: 800;
+  color: var(--gray-900);
+  line-height: 1;
+  letter-spacing: -2px;
+}
+
+.label {
+  font-size: 13px;
+  color: var(--gray-500);
+  font-weight: 500;
+  margin-top: 4px;
+}
+
+.icone {
+  width: 44px; height: 44px;
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+}
+
+.blue   { background: var(--brand-50);  color: var(--brand-600); }
+.green  { background: #f0fdf4;          color: #1a7a4a; }
+.amber  { background: #fffbeb;          color: #f59e0b; }
+.purple { background: #faf5ff;          color: #9b59b6; }
+.teal   { background: var(--info-50);   color: #1d4ed8; }
+
+.trend {
+  font-size: 11.5px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 99px;
+  font-weight: 600;
+}
+
+.trendUp      { background: var(--brand-50);  color: var(--brand-700); }
+.trendGreen   { background: #f0fdf4;           color: #15803d; }
+.trendNeutral { background: var(--gray-100);   color: var(--gray-600); }

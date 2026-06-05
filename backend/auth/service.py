@@ -1,5 +1,6 @@
 # Lógica de autenticação: verifica e-mail, senha e retorna o token JWT.
 
+from datetime import datetime, timezone
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 from models.user import User
@@ -24,12 +25,17 @@ def authenticate(email: str, password: str, db: Session):
             detail="E-mail ou senha incorretos.",
         )
 
-    # Cria o token com o ID e perfil do usuário — esses dados ficam "dentro" do JWT
     token = create_access_token({"sub": str(user.id), "profile": user.profile.value})
+
+    user.last_login = datetime.now(timezone.utc)
+    db.commit()
 
     return {
         "access_token": token,
         "token_type": "bearer",
         "user_name": user.name,
         "user_profile": user.profile.value,
+        "user_candidate": user.candidate_name,
+        "user_can_export": user.can_export,
+        "user_can_compare": user.can_compare,
     }

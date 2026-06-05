@@ -9,8 +9,8 @@
 ```
 ┌──────────────────────────────────────────────────────┐
 │              NAVEGADOR — SPA React                   │
-│    React 18 + JavaScript | Leaflet | React Router    │
-│    Context API (estado global)                       │
+│    React 19 + TypeScript | Leaflet | React Router    │
+│    CSS Modules | localStorage (auth)                 │
 └─────────────────────────┬────────────────────────────┘
                            │ HTTP / REST / JSON
 ┌─────────────────────────▼────────────────────────────┐
@@ -38,24 +38,24 @@
 
 | Decisão | Escolha |
 |---|---|
-| Framework | React 18 (Hooks, Context API) |
-| Linguagem | JavaScript (TypeScript pode ser adicionado futuramente) |
+| Framework | React 19 (Hooks) |
+| Linguagem | TypeScript |
 | Build | Vite |
-| Mapas | Leaflet + React-Leaflet |
-| Roteamento | React Router |
-| Estado global | Context API |
-| Gráficos | Recharts |
-| Estilização | Tailwind CSS |
-| Testes | Vitest + Testing Library |
+| Mapas | Leaflet (direto, sem react-leaflet — instância via `useRef`) |
+| Roteamento | React Router DOM v7 |
+| Estado | useState / useEffect (local por página) |
+| Estilização | CSS Modules |
+| Ícones | Font Awesome 6.5 (CDN) |
+| Fontes | Plus Jakarta Sans (Google Fonts CDN) |
+| Testes | Vitest + Testing Library (planejado) |
 
-**Por que JavaScript sem TypeScript inicialmente?**
-TypeScript adiciona uma camada extra de complexidade (configuração, tipos, interfaces, generics). Para uma pessoa iniciante, começar com JavaScript puro acelera o aprendizado. TypeScript pode ser migrado futuramente, quando o código já estiver funcionando.
-
-**Uso do Leaflet:**
-- Renderizar camadas de municípios, zonas eleitorais, seções eleitorais e bairros.
-- Exibir camadas temáticas por classificação territorial (zona de força, disputa, expansão, adversário, neutro, consolidado, volátil).
-- Suportar interatividade: clique em território, zoom, filtros visuais e painel lateral de detalhes.
-- Exibir locais de votação como marcadores.
+**Uso do Leaflet — implementado:**
+- GeoJSON de 5.572 municípios (IBGE 2022) carregado via fetch e renderizado com `L.geoJSON`.
+- Navegação hierárquica em 4 níveis: Brasil → Região → Estado → Município.
+- Contornos dissolvidos por nível (sem bordas internas) via arquivos GeoJSON pré-computados com Shapely.
+- Painel lateral dinâmico com estatísticas e dados eleitorais por nível de navegação.
+- Breadcrumb interativo sobre o mapa para navegação reversa.
+- Dados eleitorais (votos, %, aptos, abstenções, histórico) consumidos da API e exibidos no painel do município.
 
 ---
 
@@ -149,17 +149,23 @@ Os arquivos do TSE são CSVs grandes, com encoding especial e nomes inconsistent
 
 ### 2.7 Camada de Autenticação e Autorização
 
-- JWT com access token de curta duração (15 min) e refresh token (7 dias).
-- Perfis: `administrador`, `analista`, `visualizador`.
-- **Single-tenant**: todos os usuários pertencem à mesma instalação. Não há separação por organização.
-- Log de acessos e ações sensíveis via `servico_auditoria`.
+- JWT com access token de curta duração (padrão: 15 min, configurável via `JWT_EXPIRATION_MINUTES` no `.env`).
+- Perfis: `administrador`, `gestor`, `analista`, `assessor`.
+- **Single-tenant**: todos os usuários pertencem à mesma instalação.
+- `last_login` gravado no banco a cada login bem-sucedido.
+- Tela de boas-vindas exibida uma vez por sessão, com conteúdo dinâmico por perfil.
 
-**Implementação no FastAPI:**
+**Dependências de autenticação (`backend/dependencies.py`):**
 ```python
-# Exemplo simples de rota protegida
-@roteador.get("/candidatos")
-def listar_candidatos(usuario_atual = Depends(obter_usuario_atual)):
-    return servico_candidato.listar()
+# Rota protegida — qualquer usuário autenticado
+@router.get("/dados")
+def listar(user: User = Depends(get_current_user)):
+    ...
+
+# Rota restrita ao administrador
+@router.get("/users")
+def listar_usuarios(_: User = Depends(require_admin)):
+    ...
 ```
 
 ---
@@ -178,63 +184,62 @@ def listar_candidatos(usuario_atual = Depends(obter_usuario_atual)):
 ```
 pite/
 │
-├── docs/                   # toda a documentação do projeto
+├── docs/                       # toda a documentação do projeto
 │
-├── frontend/               # SPA React + Vite
+├── scripts/                    # scripts utilitários (rodados uma vez)
+│   ├── gerar_contornos.py      # gera GeoJSON dissolvidos (Brasil, Regiões, Estados) com Shapely
+│   ├── importar_municipios_tse.py  # popula tabela municipio_tse_ibge (5.571 municípios)
+│   └── importar_resultados_tse.py  # importa CSV do TSE → tabelas de eleição/resultado
+│
+├── frontend/                   # SPA React + Vite
+│   ├── vite.config.ts          # proxy /auth, /users, /eleicoes, /candidatos, /resultados → :8000
 │   └── src/
-│       ├── ativos/         # imagens, ícones, fontes
-│       ├── componentes/
-│       │   ├── comuns/
-│       │   ├── mapa/
-│       │   ├── graficos/
-│       │   └── layout/
-│       ├── modulos/
-│       │   ├── candidato/
-│       │   ├── eleicao/
-│       │   ├── territorio/
-│       │   ├── pesquisa/
-│       │   ├── painel/
-│       │   ├── importacao/
-│       │   └── usuario/
-│       ├── nucleo/         # autenticação, contextos, hooks globais
-│       ├── servicos/       # chamadas HTTP para a API
-│       ├── utilitarios/
-│       └── configuracoes/
+│       ├── pages/
+│       │   ├── LoginPage.tsx
+│       │   ├── WelcomePage.tsx
+│       │   ├── HomePage.tsx    # shell principal (sidebar + topbar + conteúdo)
+│       │   ├── MapaPage.tsx    # mapa territorial com navegação hierárquica
+│       │   └── UsuariosPage.tsx
+│       ├── services/
+│       │   ├── auth.ts
+│       │   ├── users.ts
+│       │   └── eleitoral.ts    # listarEleicoes, listarCandidatos, buscarResultado…
+│       └── components/
+│           ├── Sidebar.tsx
+│           ├── Topbar.tsx
+│           ├── painel/
+│           └── usuarios/
+│   └── public/
+│       └── geo/
+│           ├── municipios_br.json      # GeoJSON IBGE 2022 (59 MB, 5.572 municípios)
+│           ├── brasil_outline.json     # contorno Brasil dissolvido (95 KB)
+│           ├── regioes_outline.json    # contornos 5 regiões dissolvidos (185 KB)
+│           └── estados_outline.json   # contornos 27 estados dissolvidos (374 KB)
 │
-├── backend/                # API Python + FastAPI
-│   ├── main.py             # ponto de entrada da API
-│   ├── configuracoes.py    # variáveis de ambiente
-│   ├── banco_dados.py      # conexão com PostgreSQL via SQLAlchemy
-│   ├── dependencias.py     # injeção de dependências (auth, db session)
-│   ├── requirements.txt    # dependências Python
-│   ├── modulos/
-│   │   ├── candidato/
-│   │   │   ├── roteador.py
-│   │   │   ├── esquemas.py
-│   │   │   ├── servico.py
-│   │   │   └── repositorio.py
-│   │   ├── eleicao/
-│   │   ├── territorio/
-│   │   ├── resultado_eleitoral/
-│   │   ├── pesquisa/
-│   │   ├── importacao/
-│   │   └── usuario/
-│   ├── modelos/            # modelos SQLAlchemy (tabelas)
-│   ├── migracoes/          # migrações Alembic
-│   │   └── versoes/        # arquivos de migração versionados
-│   ├── sementes/           # dados iniciais (partidos, cargos)
-│   ├── processamento/      # cálculos: índice de força, classificação
-│   └── testes/
-│       └── modulos/
+├── backend/                    # API Python + FastAPI
+│   ├── main.py                 # registra todos os routers
+│   ├── settings.py             # variáveis de ambiente
+│   ├── database.py             # conexão SQLAlchemy
+│   ├── dependencies.py         # get_current_user, require_admin
+│   ├── security.py             # JWT, bcrypt
+│   ├── requirements.txt        # inclui pandas
+│   ├── models/
+│   │   ├── user.py             # tabela users
+│   │   └── eleitoral.py        # MunicipioTSE, Eleicao, Candidato, ResultadoEleitoral
+│   ├── auth/                   # POST /auth/login
+│   ├── users/                  # GET/POST/PUT /users
+│   ├── eleicoes/               # GET/POST/DELETE /eleicoes
+│   ├── resultados/             # /candidatos, /resultados/municipio/{cd}, /resultados/mapa
+│   ├── migrations/
+│   │   └── versions/
+│   │       ├── 0f08b7443f87_create_users_table.py
+│   │       ├── b9e3f1a2c847_add_user_permissions_and_last_login.py
+│   │       └── c3d4e5f6a7b8_create_electoral_tables.py
+│   └── seeds/
 │
-├── importacao/             # scripts de importação de dados externos
-│   ├── tse/                # scripts para CSVs do TSE (Pandas)
-│   └── geografico/         # scripts para GeoJSON/Shapefile (GeoPandas)
-│
-├── data/                   # dados brutos do TSE (não versionar arquivos grandes)
-│
+├── municipio_tse_ibge.csv      # mapeamento TSE→IBGE (fonte: TSE) — não versionar se grande
 ├── .gitignore
-├── .env.exemplo            # variáveis de ambiente de exemplo (sem valores reais)
+├── .env.example
 └── README.md
 ```
 
@@ -262,7 +267,7 @@ Pandas (limpeza) → Staging → Validação → PostgreSQL/PostGIS
 
 | Decisão | Justificativa |
 |---|---|
-| React 18 + JavaScript | Interface interativa com mapas e dashboards; JavaScript sem TypeScript é mais simples para iniciante |
+| React 19 + TypeScript + CSS Modules | Interface interativa com mapas e dashboards; TypeScript adotado desde o início para segurança de tipos |
 | Leaflet | Biblioteca de mapas open-source leve; suporte robusto a GeoJSON |
 | Python + FastAPI | Linguagem mais legível para iniciante; FastAPI gera Swagger automaticamente; melhor ecossistema para dados |
 | Pydantic | Validação automática de dados com mensagens de erro claras; incluso no FastAPI |
@@ -284,7 +289,7 @@ Pandas (limpeza) → Staging → Validação → PostgreSQL/PostGIS
 | Backend | Node.js + TypeScript + Fastify | Python + FastAPI | Python é mais simples para iniciante e melhor para dados |
 | ORM | Knex ou Prisma | SQLAlchemy + GeoAlchemy2 | Suporte nativo a PostGIS; ecossistema Python |
 | Validação | Zod | Pydantic (incluso no FastAPI) | Menos dependências; automático |
-| Frontend | React + TypeScript | React + JavaScript | TypeScript pode ser adicionado depois |
+| Frontend | React + TypeScript | React 19 + TypeScript + CSS Modules | TypeScript adotado desde o início |
 | Filas | BullMQ | Sem fila no MVP (Celery no futuro) | Complexidade desnecessária no início |
 | Multi-tenant | Sim | Não — single-tenant | Simplifica autenticação, banco e queries |
 | Importação CSV | TypeScript/Node.js | Python + Pandas | Pandas é muito superior para este caso |

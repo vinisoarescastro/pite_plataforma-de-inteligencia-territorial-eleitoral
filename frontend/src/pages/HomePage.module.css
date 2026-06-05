@@ -1,0 +1,92 @@
+.shell {
+  display: flex;
+  flex-direction: row;
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+}
+
+.sidebarWrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.sbArrow {
+  position: absolute;
+  right: -13px;
+  top: calc(58px / 2);
+  transform: translateY(-50%);
+  z-index: 200;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #fff;
+  border: 1.5px solid var(--gray-200);
+  color: var(--gray-400);
+  font-size: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,.10);
+  transition: all 150ms var(--ease);
+}
+
+.sbArrow:hover {
+  background: var(--brand-50);
+  border-color: var(--brand-400);
+  color: var(--brand-600);
+  box-shadow: 0 4px 14px rgba(59,110,242,.22);
+  transform: translateY(-50%) scale(1.1);
+}
+
+.arrowFlipped {
+  transform: rotate(180deg);
+}
+
+.appBody {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 0;
+}
+
+.contentArea {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.contentArea::-webkit-scrollbar { width: 6px; }
+.contentArea::-webkit-scrollbar-thumb { background: var(--gray-200); border-radius: 99px; }
+
+.emptyPage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 12px;
+  color: var(--gray-300);
+  min-height: 60vh;
+}
+
+.emptyPage i {
+  font-size: 36px;
+  opacity: .5;
+}
+
+.emptyPage h2 {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--gray-500);
+}
+
+.emptyPage p {
+  font-size: 13px;
+  color: var(--gray-400);
+}

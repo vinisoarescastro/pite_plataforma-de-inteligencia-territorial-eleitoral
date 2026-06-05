@@ -22,10 +22,10 @@
 - [x] Validar histórias de usuário com representantes de cada perfil.
 - [x] Definir stack tecnológica: React + JavaScript + Python + FastAPI + Leaflet + PostgreSQL/PostGIS.
 - [x] Definir arquitetura single-tenant (uma organização por instalação).
-- [ ] Configurar repositório Git com estrutura de pastas definida.
+- [x] Configurar repositório Git com estrutura de pastas definida.
 - [ ] Configurar ambiente de desenvolvimento local com Docker.
-- [ ] Criar migrações iniciais do banco de dados com Alembic.
-- [ ] Definir e documentar o modelo de dados final.
+- [x] Criar migrações iniciais do banco de dados com Alembic.
+- [x] Definir e documentar o modelo de dados final.
 
 ---
 
@@ -40,13 +40,13 @@
 - Painéis e Indicadores — parcial (T49–T53)
 
 **Entregas:**
-- [ ] Configurar projeto FastAPI com estrutura de módulos e Alembic.
-- [ ] Configurar projeto React + Vite + Leaflet.
-- [ ] Implementar autenticação JWT (python-jose) e controle de acesso RBAC (single-tenant).
-- [ ] Importar dados do TSE para as eleições selecionadas (Python + Pandas).
-- [ ] Implementar módulo de candidatos e pré-candidatos.
+- [x] Configurar projeto FastAPI com estrutura de módulos e Alembic.
+- [x] Configurar projeto React + Vite + Leaflet.
+- [x] Implementar autenticação JWT (python-jose) e controle de acesso RBAC (single-tenant).
+- [x] Importar dados do TSE para as eleições selecionadas (Python + Pandas) — scripts prontos; mapeamento TSE→IBGE importado (5.571 municípios).
+- [ ] Implementar módulo de candidatos e pré-candidatos (CRUD frontend).
 - [ ] Implementar visualização de histórico eleitoral com filtros.
-- [ ] Implementar mapa interativo com Leaflet e classificação territorial automática.
+- [x] Implementar mapa interativo com Leaflet — navegação hierárquica Brasil→Região→Estado→Município, contornos dissolvidos, painel lateral com dados eleitorais.
 - [ ] Implementar painel analítico principal com indicadores.
 - [ ] Implementar exportação de dados em CSV.
 - [ ] Testes com usuários representativos dos perfis definidos.

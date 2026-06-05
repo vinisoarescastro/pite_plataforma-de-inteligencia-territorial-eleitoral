@@ -12,7 +12,10 @@ class LoginRequest(BaseModel):
 
 class TokenResponse(BaseModel):
     """Dados que a API devolve após um login bem-sucedido."""
-    access_token: str    # O token JWT para usar nas próximas requisições
+    access_token: str
     token_type: str = "bearer"
-    user_name: str       # Nome do usuário logado
-    user_profile: str    # Perfil: administrador, gestor, analista ou assessor
+    user_name: str
+    user_profile: str
+    user_candidate: str | None = None
+    user_can_export: bool = True
+    user_can_compare: bool = False
