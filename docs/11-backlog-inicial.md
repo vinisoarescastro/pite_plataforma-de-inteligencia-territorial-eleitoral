@@ -9,13 +9,13 @@
 
 | ID | Tarefa | Prioridade | HU Relacionada |
 |---|---|---|---|
-| T01 | Configurar repositório, estrutura de pastas e padrões de código | MVP | — |
+| T01 | ✅ Configurar repositório, estrutura de pastas e padrões de código | MVP | — |
 | T02 | Configurar PostgreSQL + PostGIS via Docker Compose | MVP | — |
 | T03 | Criar migrações iniciais do banco de dados com Alembic | MVP | — |
-| T04 | Configurar API Python + FastAPI com SQLAlchemy e estrutura de módulos | MVP | — |
-| T05 | Configurar SPA React + Vite + Leaflet (JavaScript) | MVP | — |
-| T06 | Implementar autenticação JWT com python-jose e passlib (bcrypt) | MVP | — |
-| T07 | Implementar RBAC single-tenant (perfis: administrador, analista, visualizador) | MVP | — |
+| T04 | ✅ Configurar API Python + FastAPI com SQLAlchemy e estrutura de módulos | MVP | — |
+| T05 | ✅ Configurar SPA React + Vite + Leaflet (TypeScript) | MVP | — |
+| T06 | ✅ Implementar autenticação JWT com python-jose e passlib (bcrypt) | MVP | — |
+| T07 | ✅ Implementar RBAC single-tenant (perfis: administrador, gestor, analista, assessor) | MVP | — |
 | T08 | Configurar Docker Compose e ambiente de desenvolvimento | MVP | — |
 | T09 | Configurar pipeline CI/CD básico (GitHub Actions) | Importante | — |
 | T10 | Configurar Redis para cache (opcional no MVP) | Importante | — |
@@ -26,12 +26,12 @@
 
 | ID | Tarefa | Prioridade | HU Relacionada |
 |---|---|---|---|
-| T11 | Desenvolver `servico_importacao_tse` em Python + Pandas (CSV do TSE) | MVP | HU-PQ01, HU-A05 |
-| T12 | Desenvolver normalizador e validador de dados TSE com Pandas | MVP | — |
-| T13 | Importar municípios, zonas eleitorais e seções | MVP | — |
-| T14 | Importar candidaturas, partidos e cargos históricos | MVP | — |
+| T11 | ✅ Desenvolver `servico_importacao_tse` em Python + Pandas (CSV do TSE) | MVP | HU-PQ01, HU-A05 |
+| T12 | ✅ Desenvolver normalizador e validador de dados TSE com Pandas | MVP | — |
+| T13 | ✅ Importar municípios, zonas eleitorais e seções | MVP | — |
+| T14 | ✅ Importar candidaturas, partidos e cargos históricos | MVP | — |
 | T15 | Importar locais de votação | MVP | HU-CC06 |
-| T16 | Importar dados geográficos (GeoJSON/Shapefile) com GeoPandas para Leaflet | MVP | — |
+| T16 | ✅ Importar dados geográficos (GeoJSON/Shapefile — IBGE) para Leaflet | MVP | — |
 | T17 | Implementar rastreabilidade via `importacao_dados` | MVP | HU-A05 |
 | T18 | Tela de gerenciamento e histórico de importações | Importante | HU-A05 |
 
@@ -67,16 +67,16 @@
 
 | ID | Tarefa | Prioridade | HU Relacionada |
 |---|---|---|---|
-| T31 | Implementar mapa interativo com Leaflet + React-Leaflet | MVP | HU-C01, HU-CC01 |
-| T32 | Camada de municípios com dados eleitorais | MVP | HU-C01 |
+| T31 | ✅ Implementar mapa interativo com Leaflet (Vanilla, sem React-Leaflet) + navegação hierárquica Brasil → Região → Estado → Município | MVP | HU-C01, HU-CC01 |
+| T32 | ✅ Camada de municípios com dados eleitorais — colorização por degradê proporcional ao % de votos do candidato selecionado | MVP | HU-C01 |
 | T33 | Camada de zonas eleitorais | MVP | HU-CC01, HU-CC02 |
 | T34 | Camada de seções eleitorais | MVP | HU-CC02 |
 | T35 | Camada de bairros | Importante | HU-CC02 |
 | T36 | Camada de locais de votação (marcadores) | Importante | HU-CC06 |
 | T37 | Classificação automática de territórios | MVP | HU-CC01, HU-PP01 |
 | T38 | Camadas de classificação territorial (cores temáticas) | MVP | HU-CC01 |
-| T39 | Painel lateral de detalhes ao clicar no território | MVP | HU-CC01 |
-| T40 | Filtros do mapa por eleição, cargo, candidato, partido | MVP | HU-CC01 |
+| T39 | ✅ Painel lateral de detalhes ao clicar no município — votos por zona (com candidato) ou ranking por cargo (sem candidato) | MVP | HU-CC01 |
+| T40 | ✅ Filtros do mapa por eleição, turno, cargo e candidato — exibidos como card colapsável sobreposto ao mapa | MVP | HU-CC01 |
 | T41 | Calcular e exibir `indice_forca` por território | MVP | HU-A02 |
 | T42 | Mapa comparativo entre dois candidatos | Futuro | HU-CE01 |
 

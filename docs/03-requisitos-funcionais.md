@@ -44,13 +44,14 @@
 | RF-T01 | O sistema deve exibir mapa interativo com camadas de municípios, zonas eleitorais, bairros e locais de votação | MVP | HU-C01 |
 | RF-T02 | O sistema deve classificar territórios automaticamente segundo os critérios documentados | MVP | HU-CC01 |
 | RF-T03 | O sistema deve exibir camadas temáticas por classificação territorial com cores distintas | MVP | HU-CC01 |
-| RF-T04 | O sistema deve exibir painel lateral com detalhes ao clicar em um território | MVP | HU-CC01 |
+| RF-T04 | O sistema deve exibir painel lateral com detalhes ao clicar em um território — incluindo votos por zona (com candidato selecionado) ou ranking dos mais votados por cargo (sem candidato selecionado) | MVP | HU-CC01 |
 | RF-T05 | O sistema deve calcular o índice de força territorial de 0 a 100 | MVP | HU-A02 |
 | RF-T06 | O sistema deve exibir os componentes do índice de força de forma transparente | MVP | HU-A02 |
 | RF-T07 | O sistema deve permitir classificação manual de território com justificativa registrada | Importante | HU-CE03 |
 | RF-T08 | O sistema deve exibir locais de votação como marcadores (pins) no mapa com a quantidade de votos por seção | MVP | HU-CC06 |
-| RF-T09 | O sistema deve permitir filtros do mapa por eleição, cargo, candidato e partido | MVP | HU-CC01 |
-| RF-T10 | O sistema deve suportar zoom e navegação por nível territorial (estado → município → bairro → zona → local de votação) | MVP | HU-CC02 |
+| RF-T09 | O sistema deve exibir os filtros (eleição, turno, cargo, candidato) diretamente sobre o mapa como card colapsável — ao selecionar um candidato, o mapa coloriza os municípios em degradê proporcional ao percentual de votos obtidos | MVP | HU-CC01 |
+| RF-T10 | O sistema deve suportar navegação hierárquica por nível territorial: Brasil → Região → Estado → Município — com zoom automático ao selecionar cada nível; clicar em município já selecionado desseleciona e retorna ao nível de estado | MVP | HU-CC02 |
+| RF-T15 | O sistema deve colorizar os municípios no mapa com gradiente contínuo de cor (branco → azul claro → azul escuro) proporcional ao percentual de votos do candidato selecionado em relação ao total de votos válidos do município | MVP | HU-C01 |
 | RF-T11 | O sistema deve geocodificar automaticamente o endereço dos locais de votação (via Nominatim/OpenStreetMap) para obter lat/lng | MVP | — |
 | RF-T12 | O sistema deve vincular automaticamente cada local de votação ao bairro correspondente via consulta espacial PostGIS | Importante | — |
 | RF-T13 | O sistema deve exibir análise de votos agregados por bairro, incluindo mapa colorido por desempenho | Importante | HU-CC02 |

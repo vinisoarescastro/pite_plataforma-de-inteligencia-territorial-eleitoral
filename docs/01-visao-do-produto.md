@@ -59,7 +59,7 @@ Fornecer uma plataforma SPA de inteligência territorial eleitoral que permita a
 
 | Camada | Decisão |
 |---|---|
-| Front-end | React 18 + JavaScript + Vite |
+| Front-end | React 18 + TypeScript + Vite |
 | Back-end | Python 3.12 + FastAPI |
 | Validação | Pydantic (incluso no FastAPI) |
 | ORM | SQLAlchemy + GeoAlchemy2 |
@@ -78,15 +78,15 @@ Fornecer uma plataforma SPA de inteligência territorial eleitoral que permita a
 
 ### 7.1 Funcionalidades Essenciais
 
-- [ ] Importação e normalização de dados eleitorais públicos do TSE.
+- [x] Importação e normalização de dados eleitorais públicos do TSE.
 - [ ] Cadastro de candidatos com e sem histórico eleitoral (pré-candidatos).
 - [ ] Cadastro de partidos e cargos.
-- [ ] Visualização de histórico eleitoral por candidato, partido, cargo e território.
-- [ ] Mapa interativo (Leaflet) com camadas territoriais classificadas.
+- [x] Visualização de histórico eleitoral por candidato, partido, cargo e território.
+- [x] Mapa interativo (Leaflet) com camadas territoriais classificadas.
 - [ ] Classificação automática de territórios (zona de força, disputa, expansão, adversário, neutro).
 - [ ] Cadastro e importação de pesquisas eleitorais próprias.
-- [ ] Painel analítico com filtros por eleição, cargo, partido, candidato e município.
-- [ ] Autenticação com controle de acesso por perfil (RBAC).
+- [x] Painel analítico com filtros por eleição, cargo, partido, candidato e município.
+- [x] Autenticação com controle de acesso por perfil (RBAC).
 - [ ] Exportação básica de dados (CSV).
 
 ### 7.2 Funcionalidades para Versões Futuras

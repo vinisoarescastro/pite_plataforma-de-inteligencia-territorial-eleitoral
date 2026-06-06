@@ -139,3 +139,41 @@ export const listarCargos = (eleicaoId: string, nr_turno?: number) => {
   if (nr_turno != null) p.set('nr_turno', String(nr_turno))
   return get<string[]>(`/secoes/cargos?${p}`)
 }
+
+// ── Ranking por município ──────────────────────────────────────
+export interface RankingCandidatoItem {
+  nr_votavel: string
+  nm_votavel: string
+  ds_cargo: string | null
+  total_votos: number
+  pct_votos: number | null
+}
+
+export interface RankingPorCargo {
+  ds_cargo: string
+  total_votos_cargo: number
+  candidatos: RankingCandidatoItem[]
+}
+
+export const buscarRankingMunicipio = (
+  cdIbge: string,
+  eleicaoId: string,
+  params: { nr_turno?: number; ds_cargo?: string; limit?: number } = {}
+) => {
+  const p = new URLSearchParams({ eleicao_id: eleicaoId })
+  if (params.nr_turno != null) p.set('nr_turno', String(params.nr_turno))
+  if (params.ds_cargo)         p.set('ds_cargo', params.ds_cargo)
+  if (params.limit != null)    p.set('limit', String(params.limit))
+  return get<RankingPorCargo[]>(`/secoes/ranking/ibge/${cdIbge}?${p}`)
+}
+
+export const buscarZonasPorIbge = (
+  cdIbge: string,
+  eleicaoId: string,
+  params: { nr_votavel?: string; nr_turno?: number } = {}
+) => {
+  const p = new URLSearchParams({ eleicao_id: eleicaoId })
+  if (params.nr_votavel)       p.set('nr_votavel', params.nr_votavel)
+  if (params.nr_turno != null) p.set('nr_turno', String(params.nr_turno))
+  return get<VotacaoZona[]>(`/secoes/zonas/ibge/${cdIbge}?${p}`)
+}

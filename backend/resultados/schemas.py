@@ -92,3 +92,18 @@ class VotavelOut(BaseModel):
     nm_votavel: str
     ds_cargo: str | None
     sg_partido: str | None
+
+
+# ── Ranking por município ─────────────────────────────────────────
+class RankingCandidatoItem(BaseModel):
+    nr_votavel: str
+    nm_votavel: str
+    ds_cargo: str | None
+    total_votos: int
+    pct_votos: float | None  # % em relação ao total do cargo no município
+
+
+class RankingPorCargoOut(BaseModel):
+    ds_cargo: str
+    total_votos_cargo: int
+    candidatos: list[RankingCandidatoItem]

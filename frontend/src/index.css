@@ -64,3 +64,8 @@ input { font-family: var(--font); }
   white-space: nowrap;
 }
 .mapa-tooltip::before { display: none !important; }
+
+/* Remove o outline retangular do browser ao clicar em polígonos do Leaflet */
+.leaflet-interactive:focus {
+  outline: none;
+}

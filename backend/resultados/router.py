@@ -9,6 +9,7 @@ from .schemas import (
     CandidatoCreate, CandidatoOut,
     ResultadoMunicipioOut, ResultadoHistoricoItem, ResultadoMapaItem,
     VotacaoSecaoItem, VotacaoZonaAgregada, VotacaoMunicipioAgregada, VotavelOut,
+    RankingCandidatoItem, RankingPorCargoOut,
 )
 
 router = APIRouter(tags=["Resultados"])
@@ -341,7 +342,6 @@ def listar_votaveis(
     eleicao_id: UUID = Query(...),
     nr_turno: int    = Query(None),
     ds_cargo: str    = Query(None),
-    sg_partido: str  = Query(None),
     db: Session = Depends(get_db),
     _: object = Depends(get_current_user),
 ):
@@ -372,6 +372,159 @@ def listar_votaveis(
                    ds_cargo=r.ds_cargo, sg_partido=None)
         for r in rows
     ]
+
+
+@router.get("/secoes/ranking/ibge/{cd_ibge}", response_model=list[RankingPorCargoOut])
+def ranking_municipio_por_ibge(
+    cd_ibge: str,
+    eleicao_id: UUID = Query(...),
+    nr_turno: int    = Query(None),
+    ds_cargo: str    = Query(None),
+    limit: int       = Query(10),
+    db: Session = Depends(get_db),
+    _: object = Depends(get_current_user),
+):
+    """
+    Ranking por código IBGE — converte para TSE internamente.
+    """
+    from models.eleitoral import MunicipioTSE
+    mun = db.query(MunicipioTSE).filter(MunicipioTSE.cd_ibge == cd_ibge).first()
+    if not mun:
+        # tenta sem o dígito verificador (6 dígitos)
+        mun = db.query(MunicipioTSE).filter(MunicipioTSE.cd_ibge == cd_ibge[:6]).first()
+    if not mun:
+        return []
+    return _ranking_por_tse(mun.cd_tse, eleicao_id, nr_turno, ds_cargo, limit, db)
+
+
+@router.get("/secoes/zonas/ibge/{cd_ibge}", response_model=list[VotacaoZonaAgregada])
+def zonas_por_ibge(
+    cd_ibge: str,
+    eleicao_id: UUID = Query(...),
+    nr_votavel: str  = Query(None),
+    nr_turno: int    = Query(None),
+    db: Session = Depends(get_db),
+    _: object = Depends(get_current_user),
+):
+    """
+    Votos por zona usando código IBGE — converte para TSE internamente.
+    """
+    from models.eleitoral import MunicipioTSE
+    mun = db.query(MunicipioTSE).filter(MunicipioTSE.cd_ibge == cd_ibge).first()
+    if not mun:
+        mun = db.query(MunicipioTSE).filter(MunicipioTSE.cd_ibge == cd_ibge[:6]).first()
+    if not mun:
+        return []
+
+    q = (
+        db.query(
+            VotacaoSecao.cd_municipio_tse,
+            VotacaoSecao.nr_zona,
+            VotacaoSecao.nr_votavel,
+            VotacaoSecao.nm_votavel,
+            VotacaoSecao.ds_cargo,
+            func.sum(VotacaoSecao.qt_votos).label("total_votos"),
+        )
+        .filter_by(eleicao_id=eleicao_id, cd_municipio_tse=mun.cd_tse)
+    )
+    if nr_votavel:
+        q = q.filter(VotacaoSecao.nr_votavel == nr_votavel)
+    if nr_turno is not None:
+        q = q.filter(VotacaoSecao.nr_turno == nr_turno)
+
+    rows = q.group_by(
+        VotacaoSecao.cd_municipio_tse,
+        VotacaoSecao.nr_zona,
+        VotacaoSecao.nr_votavel,
+        VotacaoSecao.nm_votavel,
+        VotacaoSecao.ds_cargo,
+    ).order_by(VotacaoSecao.nr_zona).all()
+
+    return [
+        VotacaoZonaAgregada(
+            cd_municipio_tse=r.cd_municipio_tse,
+            nr_zona=r.nr_zona,
+            nr_votavel=r.nr_votavel,
+            nm_votavel=r.nm_votavel,
+            ds_cargo=r.ds_cargo,
+            total_votos=r.total_votos,
+        )
+        for r in rows
+    ]
+
+
+def _ranking_por_tse(
+    cd_municipio_tse: str,
+    eleicao_id,
+    nr_turno,
+    ds_cargo,
+    limit: int,
+    db: Session,
+) -> list[RankingPorCargoOut]:
+    """Lógica compartilhada de ranking, reutilizada pelos endpoints TSE e IBGE."""
+    q = (
+        db.query(
+            VotacaoSecao.ds_cargo,
+            VotacaoSecao.nr_votavel,
+            VotacaoSecao.nm_votavel,
+            func.sum(VotacaoSecao.qt_votos).label("total_votos"),
+        )
+        .filter(
+            VotacaoSecao.eleicao_id == eleicao_id,
+            VotacaoSecao.cd_municipio_tse == cd_municipio_tse,
+            VotacaoSecao.nr_votavel.notin_(["95", "96", "97"]),
+        )
+    )
+    if nr_turno is not None:
+        q = q.filter(VotacaoSecao.nr_turno == nr_turno)
+    if ds_cargo:
+        q = q.filter(func.upper(VotacaoSecao.ds_cargo) == ds_cargo.upper())
+
+    rows = (
+        q.group_by(VotacaoSecao.ds_cargo, VotacaoSecao.nr_votavel, VotacaoSecao.nm_votavel)
+        .order_by(VotacaoSecao.ds_cargo, func.sum(VotacaoSecao.qt_votos).desc())
+        .all()
+    )
+
+    from collections import defaultdict
+    grupos: dict[str, list] = defaultdict(list)
+    for r in rows:
+        grupos[r.ds_cargo or ""].append(r)
+
+    resultado = []
+    for cargo_nome, candidatos in grupos.items():
+        top = candidatos[:limit]
+        total_cargo = sum(c.total_votos for c in candidatos)
+        resultado.append(RankingPorCargoOut(
+            ds_cargo=cargo_nome,
+            total_votos_cargo=total_cargo,
+            candidatos=[
+                RankingCandidatoItem(
+                    nr_votavel=c.nr_votavel,
+                    nm_votavel=c.nm_votavel,
+                    ds_cargo=c.ds_cargo,
+                    total_votos=c.total_votos,
+                    pct_votos=round(c.total_votos / total_cargo * 100, 1) if total_cargo > 0 else None,
+                )
+                for c in top
+            ],
+        ))
+
+    resultado.sort(key=lambda x: x.total_votos_cargo, reverse=True)
+    return resultado
+
+
+@router.get("/secoes/municipio/{cd_municipio_tse}/ranking", response_model=list[RankingPorCargoOut])
+def ranking_municipio(
+    cd_municipio_tse: str,
+    eleicao_id: UUID = Query(...),
+    nr_turno: int    = Query(None),
+    ds_cargo: str    = Query(None),
+    limit: int       = Query(10),
+    db: Session = Depends(get_db),
+    _: object = Depends(get_current_user),
+):
+    return _ranking_por_tse(cd_municipio_tse, eleicao_id, nr_turno, ds_cargo, limit, db)
 
 
 @router.get("/secoes/cargos", response_model=list[str])
