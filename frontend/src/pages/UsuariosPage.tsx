@@ -102,6 +102,7 @@ export default function UsuariosPage() {
         email: atualizado.email,
         perfil: atualizado.perfil,
         candidato: atualizado.candidato,
+        candidato_id: atualizado.candidato_id,
         podeExportar: atualizado.podeExportar,
         podeComparar: atualizado.podeComparar,
         ativo: atualizado.ativo,

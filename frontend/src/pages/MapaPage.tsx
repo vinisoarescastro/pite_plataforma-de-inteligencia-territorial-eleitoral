@@ -41,9 +41,9 @@ interface NavState {
 const NAV_INICIAL: NavState = { nivel: 'brasil', regiao: null, estado: null, municipio: null }
 
 // Degradê contínuo: mínimo → meio → máximo
-const COR_MIN = '#eff6ff'   // quase branco — poucos votos
-const COR_MID = '#60a5fa'   // azul claro-médio — metade
-const COR_MAX = '#1e3a8a'   // azul-marinho escuro — muitos votos
+const COR_MIN = '#fef9c3'   // amarelo claro — poucos votos
+const COR_MID = '#f97316'   // laranja — metade
+const COR_MAX = '#7f1d1d'   // vermelho escuro — muitos votos
 
 function hexToRgb(hex: string): [number, number, number] {
   return [
@@ -511,85 +511,129 @@ export default function MapaPage() {
           <div className={styles.filterCard}>
             {/* Cabeçalho clicável para recolher/expandir */}
             <button
-              className={styles.filterCardTitle}
+              className={`${styles.filterCardTitle} ${!filtrosAbertos ? styles.filterCardTitleCollapsed : ''}`}
               onClick={() => setFiltrosAbertos(v => !v)}
             >
               <div className={styles.filterCardTitleLeft}>
                 <i className="fa-solid fa-sliders fa-xs" />
                 <span>Filtros</span>
-                {!filtrosAbertos && nrVotavel && (
-                  <span className={styles.fcResumo}>
-                    {votaveis.find(v => v.nr_votavel === nrVotavel)?.nm_votavel ?? ''}
-                  </span>
-                )}
               </div>
-              <i className={`fa-solid fa-chevron-${filtrosAbertos ? 'up' : 'down'} fa-xs`} style={{ color: 'var(--gray-400)' }} />
+              {!filtrosAbertos && (() => {
+                const qtd = [eleicaoBase, cargo, nrVotavel].filter(Boolean).length
+                if (qtd === 0) return null
+                const nomeCand = nrVotavel ? (nomeVotavelSel || votaveis.find(v => v.nr_votavel === nrVotavel)?.nm_votavel || '') : ''
+                return (
+                  <div className={styles.fcResumoWrap}>
+                    <span className={styles.fcResumoBadge}>{qtd} filtro{qtd > 1 ? 's' : ''}</span>
+                    {nomeCand && <span className={styles.fcResumoCand}>{nomeCand}</span>}
+                  </div>
+                )
+              })()}
+              <i className={`fa-solid fa-chevron-${filtrosAbertos ? 'up' : 'down'} fa-xs`} style={{ color: 'var(--gray-400)', flexShrink: 0 }} />
             </button>
 
             {filtrosAbertos && (
               <>
                 {/* Eleição */}
                 <div className={styles.fcItem}>
-                  <label className={styles.fcLabel}>Eleição</label>
-                  <select
-                    className={styles.fcSel}
-                    value={eleicaoBase}
-                    onChange={e => setEleicaoBase(e.target.value)}
-                  >
-                    {eleicoes.length === 0
-                      ? <option value="">Nenhuma eleição</option>
-                      : [...new Map(eleicoes.map(el => [`${el.ano}|${el.tipo}`, el])).values()]
-                          .map(el => {
-                            const key = `${el.ano}|${el.tipo}`
-                            return <option key={key} value={key}>{el.ano} — {el.tipo.charAt(0).toUpperCase() + el.tipo.slice(1)}</option>
-                          })
-                    }
-                  </select>
+                  <div className={styles.fcLabelRow}>
+                    <span className={`${styles.fcStep} ${eleicaoBase ? styles.fcStepDone : ''}`}>1</span>
+                    <label className={styles.fcLabel}>Eleição</label>
+                  </div>
+                  <div className={styles.fcSelWrap}>
+                    <select
+                      className={styles.fcSel}
+                      value={eleicaoBase}
+                      onChange={e => setEleicaoBase(e.target.value)}
+                    >
+                      {eleicoes.length === 0
+                        ? <option value="">Nenhuma eleição</option>
+                        : [...new Map(eleicoes.map(el => [`${el.ano}|${el.tipo}`, el])).values()]
+                            .map(el => {
+                              const key = `${el.ano}|${el.tipo}`
+                              return <option key={key} value={key}>{el.ano} — {el.tipo.charAt(0).toUpperCase() + el.tipo.slice(1)}</option>
+                            })
+                      }
+                    </select>
+                    <i className="fa-solid fa-chevron-down fa-xs" style={{ position: 'absolute', right: 9, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'var(--gray-400)', fontSize: 10 }} />
+                  </div>
                 </div>
 
                 {/* Turno */}
                 {turnos.length > 1 && (
                   <div className={styles.fcItem}>
-                    <label className={styles.fcLabel}>Turno</label>
-                    <select className={styles.fcSel} value={turno ?? ''} onChange={e => setTurno(Number(e.target.value))}>
-                      {turnos.map(t => <option key={t} value={t}>{t}º turno</option>)}
-                    </select>
+                    <div className={styles.fcLabelRow}>
+                      <span className={`${styles.fcStep} ${turno != null ? styles.fcStepDone : ''}`}>2</span>
+                      <label className={styles.fcLabel}>Turno</label>
+                    </div>
+                    <div className={styles.fcSelWrap}>
+                      <select className={styles.fcSel} value={turno ?? ''} onChange={e => setTurno(Number(e.target.value))}>
+                        {turnos.map(t => <option key={t} value={t}>{t}º turno</option>)}
+                      </select>
+                      <i className="fa-solid fa-chevron-down fa-xs" style={{ position: 'absolute', right: 9, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'var(--gray-400)', fontSize: 10 }} />
+                    </div>
                   </div>
                 )}
 
                 {/* Cargo */}
                 <div className={styles.fcItem}>
-                  <label className={styles.fcLabel}>Cargo</label>
-                  <select
-                    className={styles.fcSel}
-                    value={cargo}
-                    onChange={e => setCargo(e.target.value)}
-                    disabled={loadingFiltros || cargos.length === 0}
-                  >
-                    <option value="">Selecione…</option>
-                    {cargos.map(c => <option key={c} value={c}>{c}</option>)}
-                  </select>
+                  <div className={styles.fcLabelRow}>
+                    <span className={`${styles.fcStep} ${cargo ? styles.fcStepDone : ''}`}>{turnos.length > 1 ? '3' : '2'}</span>
+                    <label className={styles.fcLabel}>Cargo</label>
+                    {loadingFiltros && !cargo && <i className="fa-solid fa-spinner fa-spin" style={{ fontSize: 10, color: 'var(--brand-400)' }} />}
+                    {cargos.length > 0 && !cargo && <span className={styles.fcCount}>{cargos.length}</span>}
+                  </div>
+                  <div className={styles.fcSelWrap}>
+                    <select
+                      className={styles.fcSel}
+                      value={cargo}
+                      onChange={e => setCargo(e.target.value)}
+                      disabled={loadingFiltros || cargos.length === 0}
+                    >
+                      <option value="">Selecione…</option>
+                      {cargos.map(c => <option key={c} value={c}>{c}</option>)}
+                    </select>
+                    {loadingFiltros && !cargo
+                      ? <i className="fa-solid fa-spinner fa-spin" style={{ position: 'absolute', right: 9, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'var(--brand-400)', fontSize: 10 }} />
+                      : <i className="fa-solid fa-chevron-down fa-xs" style={{ position: 'absolute', right: 9, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'var(--gray-400)', fontSize: 10 }} />
+                    }
+                  </div>
                 </div>
 
                 {/* Candidato */}
                 <div className={styles.fcItem}>
-                  <label className={styles.fcLabel}>Candidato</label>
+                  <div className={styles.fcLabelRow}>
+                    <span className={`${styles.fcStep} ${nrVotavel ? styles.fcStepDone : ''}`}>{turnos.length > 1 ? '4' : '3'}</span>
+                    <label className={styles.fcLabel}>Candidato</label>
+                    {loadingFiltros && cargo && <i className="fa-solid fa-spinner fa-spin" style={{ fontSize: 10, color: 'var(--brand-400)' }} />}
+                    {votaveisUnicos.length > 0 && !nrVotavel && <span className={styles.fcCount}>{votaveisUnicos.length}</span>}
+                  </div>
                   <div
                     ref={candRef}
                     className={styles.fcCandWrap}
-                    style={{ opacity: (!cargo || loadingFiltros) ? 0.45 : 1, pointerEvents: (!cargo || loadingFiltros) ? 'none' : 'auto' }}
                   >
-                    <div className={styles.fcCandTrigger} onClick={() => cargo && setCandAberto(v => !v)}>
+                    <div
+                      className={`${styles.fcCandTrigger} ${!cargo || loadingFiltros ? styles.fcCandDisabled : ''} ${candAberto ? styles.fcCandTriggerOpen : ''}`}
+                      onClick={() => cargo && !loadingFiltros && setCandAberto(v => !v)}
+                    >
                       <span className={nrVotavel ? styles.fcCandValor : styles.fcCandPlaceholder}>
                         {nrVotavel
-                          ? (votaveis.find(v => v.nr_votavel === nrVotavel)?.nm_votavel ?? 'Selecione…')
+                          ? (nomeVotavelSel || votaveis.find(v => v.nr_votavel === nrVotavel)?.nm_votavel || 'Selecione…')
                           : 'Selecione…'}
                       </span>
-                      <i className={`fa-solid fa-chevron-${candAberto ? 'up' : 'down'} fa-xs`} style={{ color: 'var(--gray-400)', flexShrink: 0 }} />
+                      {nrVotavel
+                        ? <i className="fa-solid fa-xmark fa-xs" style={{ color: 'var(--gray-400)', flexShrink: 0 }} onClick={e => { e.stopPropagation(); setNrVotavel(''); setNomeVotavelSel(''); setBuscaCand('') }} />
+                        : <i className={`fa-solid fa-chevron-${candAberto ? 'up' : 'down'} fa-xs`} style={{ color: 'var(--gray-400)', flexShrink: 0 }} />
+                      }
                     </div>
 
                     {candAberto && (
                       <div className={styles.fcCandDropdown}>
+                        {votaveisUnicos.length > 0 && (
+                          <div className={styles.fcCandDropHd}>
+                            <span>{votaveisFiltrados.length === votaveisUnicos.length ? `${votaveisUnicos.length} candidatos` : `${votaveisFiltrados.length} de ${votaveisUnicos.length}`}</span>
+                          </div>
+                        )}
                         <div className={styles.candSearch}>
                           <i className="fa-solid fa-magnifying-glass fa-xs" />
                           <input
@@ -629,13 +673,16 @@ export default function MapaPage() {
                 </div>
 
                 {/* Limpar */}
-                {nrVotavel && (
-                  <button
-                    className={styles.fcLimpar}
-                    onClick={() => { setNrVotavel(''); setCargo(''); setBuscaCand('') }}
-                  >
-                    <i className="fa-solid fa-xmark fa-xs" /> Limpar filtros
-                  </button>
+                {(cargo || nrVotavel) && (
+                  <>
+                    <div className={styles.fcDivider} />
+                    <button
+                      className={styles.fcLimpar}
+                      onClick={() => { setNrVotavel(''); setNomeVotavelSel(''); setCargo(''); setBuscaCand('') }}
+                    >
+                      <i className="fa-solid fa-rotate-left fa-xs" /> Limpar filtros
+                    </button>
+                  </>
                 )}
               </>
             )}
@@ -664,12 +711,12 @@ export default function MapaPage() {
               <div className={styles.legTitle}>Votos relativos</div>
               <div
                 className={styles.legGradBar}
-                style={{ background: `linear-gradient(to top, ${COR_MIN}, ${COR_MID}, ${COR_MAX})` }}
+                style={{ background: `linear-gradient(to right, ${COR_MIN}, ${COR_MID}, ${COR_MAX})` }}
               />
               <div className={styles.legGradLabels}>
-                <span>100%</span>
-                <span>50%</span>
                 <span>0%</span>
+                <span>50%</span>
+                <span>100%</span>
               </div>
             </div>
           )}

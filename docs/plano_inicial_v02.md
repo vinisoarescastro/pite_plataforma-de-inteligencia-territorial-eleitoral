@@ -1063,24 +1063,19 @@ plataforma-inteligencia-territorial-eleitoral/
 ---
 
 ### 6.6 `partido`
-**Objetivo:** Representa os partidos políticos registrados no TSE.
+**Objetivo:** Representa os partidos políticos cadastrados na plataforma.  
+**Status:** ✅ Implementado (estrutura simplificada para o MVP).
 
 | Campo | Tipo | Descrição |
 |---|---|---|
-| `partido_id` | UUID (PK) | Identificador único |
-| `sigla` | VARCHAR (12) | Sigla do partido |
-| `nome_completo` | VARCHAR | Nome por extenso |
-| `numero_eleitoral` | INTEGER | Número nas urnas |
-| `espectro_politico` | ENUM | esquerda, centro_esquerda, centro, centro_direita, direita |
-| `data_fundacao` | DATE | Data de fundação |
-| `data_extincao` | DATE | Data de extinção (nulo se ativo) |
-| `ativo` | BOOLEAN | Status atual |
-| `logotipo_url` | VARCHAR | URL do logotipo |
-| `criado_em` | TIMESTAMP | Data de criação |
-| `atualizado_em` | TIMESTAMP | Data de atualização |
+| `id` | UUID (PK) | Identificador único |
+| `sigla` | VARCHAR(20) UNIQUE | Sigla em maiúsculas (ex.: PT) |
+| `nome` | VARCHAR(120) | Nome por extenso (opcional) |
+| `numero` | INTEGER | Número eleitoral (opcional) |
+| `created_at` | TIMESTAMP | Data de criação |
 
-**Índices:** `sigla`, `numero_eleitoral`.  
-**Observações:** A classificação de espectro político deve ser baseada em critérios objetivos e documentados. Manter histórico de fusões e extinções de partidos.
+**Índices:** `sigla` (unique).  
+**Observações MVP:** Campos como `espectro_politico`, `data_fundacao`, `logotipo_url` e `ativo` fazem parte do modelo completo (seções futuras). A vinculação partido ↔ candidato é feita pela tabela `candidaturas` (um candidato pode ter partidos diferentes em eleições distintas).
 
 ---
 
@@ -1118,49 +1113,44 @@ plataforma-inteligencia-territorial-eleitoral/
 ---
 
 ### 6.9 `candidato`
-**Objetivo:** Representa candidatos com histórico eleitoral e pré-candidatos sem histórico.
+**Objetivo:** Representa candidatos registrados na plataforma.  
+**Status:** ✅ Implementado (estrutura simplificada para o MVP).
 
 | Campo | Tipo | Descrição |
 |---|---|---|
-| `candidato_id` | UUID (PK) | Identificador único |
-| `nome_urna` | VARCHAR | Nome na urna eleitoral |
-| `nome_completo` | VARCHAR | Nome civil completo |
-| `cpf_hash` | VARCHAR | Hash SHA-256 do CPF (sem texto puro) |
-| `data_nascimento` | DATE | Data de nascimento |
-| `genero` | ENUM | masculino, feminino, outro |
-| `partido_atual_id` | UUID (FK) | Partido atual (nulo se sem partido) |
-| `descricao_perfil_politico` | TEXT | Descrição do perfil político |
-| `espectro_politico_declarado` | ENUM | Espectro político declarado |
-| `eh_pre_candidato` | BOOLEAN | Indica pré-candidato sem histórico |
-| `ativo` | BOOLEAN | Status ativo na plataforma |
-| `foto_url` | VARCHAR | URL da foto |
-| `criado_em` | TIMESTAMP | Data de criação |
-| `atualizado_em` | TIMESTAMP | Data de atualização |
+| `id` | UUID (PK) | Identificador único |
+| `nm_candidato` | VARCHAR(160) | Nome do candidato em maiúsculas (obrigatório) |
+| `nr_candidato` | VARCHAR(10) | Número nas urnas — **opcional**, varia por eleição |
+| `nm_partido` | VARCHAR(80) | Nome do partido principal (referência rápida, opcional) |
+| `sg_partido` | VARCHAR(20) | Sigla do partido principal (referência rápida, opcional) |
+| `sg_uf` | VARCHAR(2) | UF de atuação (opcional) |
+| `cargo` | VARCHAR(60) | Cargo principal (referência rápida, opcional) |
+| `created_at` | TIMESTAMP | Data de criação |
 
-**Índices:** `cpf_hash`, `nome_urna`, `partido_atual_id`, `eh_pre_candidato`.  
-**Observações:** **CPF nunca em texto puro.** Hash unidirecional apenas para deduplicação. Dados biográficos coletados de fontes públicas (TSE).
+**Observações MVP:** `nr_candidato` e `cargo` são opcionais pois variam por eleição — os valores definitivos estão na `candidatura` vinculada via `sq_candidato_tse`. O partido definitivo por eleição também está na `candidatura`. Os campos `nm_partido`/`sg_partido` do perfil são apenas referência rápida, preenchida ao selecionar um partido no cadastro. Campos como `cpf_hash`, `data_nascimento`, `foto_url`, `eh_pre_candidato` etc. fazem parte do modelo completo para versões futuras.
 
 ---
 
 ### 6.10 `candidatura`
-**Objetivo:** Une candidato, eleição, cargo e partido — representa a participação em uma eleição.
+**Objetivo:** Liga um candidato cadastrado à sua participação em uma eleição específica, com os dados vindos do TSE.  
+**Status:** ✅ Implementado.
 
 | Campo | Tipo | Descrição |
 |---|---|---|
-| `candidatura_id` | UUID (PK) | Identificador único |
-| `candidato_id` | UUID (FK) | Candidato |
-| `eleicao_id` | UUID (FK) | Eleição |
-| `cargo_id` | UUID (FK) | Cargo disputado |
-| `partido_id` | UUID (FK) | Partido na eleição |
-| `municipio_id` | UUID (FK) | Município (cargos municipais) |
-| `uf` | CHAR (2) | Estado (cargos estaduais/federais) |
-| `numero_candidato` | INTEGER | Número nas urnas |
-| `situacao_candidatura` | ENUM | deferida, indeferida, cassada, eleito, nao_eleito |
-| `codigo_tse` | VARCHAR | Código único do TSE |
-| `fonte_dados_id` | UUID (FK) | Fonte de dados |
-| `criado_em` | TIMESTAMP | Data de criação |
+| `id` | UUID (PK) | Identificador único |
+| `candidato_id` | UUID (FK → candidatos) | Candidato cadastrado na plataforma |
+| `eleicao_id` | UUID (FK → eleicoes) | Eleição |
+| `partido_id` | UUID (FK → partidos, nullable) | Partido **nesta eleição** — pode diferir do partido atual do candidato |
+| `sq_candidato_tse` | BIGINT | Sequencial único do TSE — **chave de ligação com os dados importados** |
+| `nr_votavel` | VARCHAR(10) | Número nas urnas nesta eleição (auto-preenchido via TSE) |
+| `nm_votavel` | VARCHAR(160) | Nome exato nas urnas (auto-preenchido via TSE) |
+| `ds_cargo` | VARCHAR(60) | Cargo disputado (auto-preenchido via TSE ao buscar por SQ ou nome) |
+| `situacao` | VARCHAR(30) | deferida, indeferida, cassada, eleito, nao_eleito, segundo_turno |
+| `created_at` | TIMESTAMP | Data de criação |
 
-**Índices:** `candidato_id`, `eleicao_id`, `codigo_tse`, `partido_id`.
+**Restrição:** `UNIQUE(candidato_id, eleicao_id)` — um candidato tem no máximo uma candidatura por eleição.  
+**Índices:** `candidato_id`, `eleicao_id`, `partido_id`.  
+**Observações:** O `ds_cargo` não é inserido manualmente — é auto-preenchido ao localizar o candidato nos dados TSE (`votacao_secao`) via `sq_candidato_tse` ou busca por nome na urna. O `SQ_CANDIDATO` é o identificador único por candidato por eleição no TSE — dois candidatos com o mesmo nome na urna terão SQs diferentes.
 
 ---
 
@@ -2071,6 +2061,68 @@ const COR_CLASSIFICACAO_TERRITORIAL = {
 - [ ] Painéis comparativos avançados (múltiplos candidatos, múltiplas eleições).
 - [ ] Módulo colaborativo para equipes de campanha.
 - [ ] API pública de dados consolidados.
+
+---
+
+---
+
+## 14. Estado de Implementação (atualizado em 2026-06-06)
+
+> Registro do que foi efetivamente construído e está em produção.
+
+### Infraestrutura e Autenticação
+- ✅ Backend FastAPI com autenticação JWT (`python-jose` + `passlib`)
+- ✅ PostgreSQL + SQLAlchemy + Alembic (migrations versionadas)
+- ✅ Frontend React 18 + TypeScript + Vite + CSS Modules
+- ✅ Proxy Vite configurado para todas as rotas da API (`/auth`, `/users`, `/eleicoes`, `/candidatos`, `/candidaturas`, `/partidos`, `/resultados`, `/secoes`)
+
+### Módulo de Usuários (RBAC)
+- ✅ Perfis: `administrador`, `gestor`, `analista`, `assessor`
+- ✅ Criação, edição e desativação de usuários (somente admin)
+- ✅ Permissões individuais: `can_export`, `can_compare`
+- ✅ Vínculo `users.candidato_id → candidatos.id` — salvo corretamente via API
+- ✅ Controle de visibilidade: não-admins veem apenas o candidato vinculado à sua conta via `/candidatos`
+
+### Módulo de Candidatos
+- ✅ CRUD completo de candidatos (`/candidatos`)
+- ✅ `nr_candidato` e `cargo` opcionais (variam por eleição)
+- ✅ Seleção de partido via dropdown da tabela `partidos` no modal de cadastro
+- ✅ Visibilidade restrita por perfil (admin vê todos; demais veem só o próprio)
+
+### Módulo de Partidos
+- ✅ Tabela `partidos` com sigla (unique), nome e número
+- ✅ CRUD completo (`/partidos`) — somente admin pode criar/editar/excluir
+- ✅ Página `PartidosPage` com busca e modal inline
+- ✅ Navegação no sidebar (`fa-flag`)
+
+### Módulo de Candidaturas
+- ✅ Tabela `candidaturas` com FK para `candidatos`, `eleicoes` e `partidos`
+- ✅ Vínculo via busca no TSE: por nome na urna (busca `ilike`) ou por `sq_candidato_tse`
+- ✅ Agrupamento por `sq_candidato` (identificador único TSE) — resolve homônimos
+- ✅ `ds_cargo` auto-preenchido a partir dos dados TSE
+- ✅ Dropdown de eleições mostra turno explícito (ex.: "2024 · Municipal · 1º turno") — evita confusão com eleições de 2º turno sem dados de vereador
+- ✅ `sq_candidato_tse` salvo na candidatura ao vincular
+- ✅ Partido selecionável por eleição (Passo 3 do modal)
+
+### Módulo de Mapa Territorial
+- ✅ Mapa Leaflet com filtros em cascata: eleição → turno → cargo → candidato
+- ✅ Filtro colapsável com badge de contagem e nome do candidato selecionado
+- ✅ Legenda horizontal com gradiente amarelo → laranja → vermelho escuro
+- ✅ Visualização por município, zona eleitoral e seção
+- ✅ Painel de detalhes com ranking por cargo ao clicar em município
+- ✅ Busca por nome de candidato no filtro (debounced)
+
+### Migrations Aplicadas (em ordem)
+| Revisão | Descrição |
+|---|---|
+| `0f08b7443f87` | Criar tabela `users` |
+| `b9e3f1a2c847` | Adicionar permissões e `last_login` |
+| `c3d4e5f6a7b8` | Criar tabelas eleitorais (`eleicoes`, `candidatos`, `resultados_eleitorais`, `municipio_tse_ibge`) |
+| `d1e2f3a4b5c6` | Adicionar `votacao_secao` |
+| `e2f3a4b5c6d7` | Adicionar `nr_turno` em `votacao_secao` |
+| `f3a4b5c6d7e8` | Criar `candidaturas` + FK `users.candidato_id` |
+| `g4b5c6d7e8f9` | Criar `partidos` + FK `candidaturas.partido_id` |
+| `h5c6d7e8f9a0` | Tornar `nr_candidato` e `cargo` nullable em `candidatos` |
 
 ---
 

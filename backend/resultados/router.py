@@ -4,9 +4,12 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func
 from database import get_db
 from dependencies import get_current_user, require_admin
-from models.eleitoral import Candidato, ResultadoEleitoral, Eleicao, VotacaoSecao
+from models.user import User
+from models.eleitoral import Candidato, Candidatura, Partido, ResultadoEleitoral, Eleicao, VotacaoSecao
 from .schemas import (
+    PartidoCreate, PartidoOut,
     CandidatoCreate, CandidatoOut,
+    CandidaturaCreate, CandidaturaOut,
     ResultadoMunicipioOut, ResultadoHistoricoItem, ResultadoMapaItem,
     VotacaoSecaoItem, VotacaoZonaAgregada, VotacaoMunicipioAgregada, VotavelOut,
     RankingCandidatoItem, RankingPorCargoOut,
@@ -16,16 +19,62 @@ router = APIRouter(tags=["Resultados"])
 
 
 # ══════════════════════════════════════════════════════════════════
+# PARTIDOS
+# ══════════════════════════════════════════════════════════════════
+
+@router.get("/partidos", response_model=list[PartidoOut])
+def listar_partidos(db: Session = Depends(get_db), _: object = Depends(get_current_user)):
+    return db.query(Partido).order_by(Partido.sigla).all()
+
+
+@router.post("/partidos", response_model=PartidoOut, status_code=201)
+def criar_partido(body: PartidoCreate, db: Session = Depends(get_db), _: object = Depends(require_admin)):
+    if db.query(Partido).filter(Partido.sigla == body.sigla.upper()).first():
+        raise HTTPException(400, "Já existe um partido com esta sigla.")
+    partido = Partido(**body.model_dump() | {"sigla": body.sigla.upper()})
+    db.add(partido)
+    db.commit()
+    db.refresh(partido)
+    return partido
+
+
+@router.put("/partidos/{partido_id}", response_model=PartidoOut)
+def atualizar_partido(partido_id: UUID, body: PartidoCreate, db: Session = Depends(get_db), _: object = Depends(require_admin)):
+    partido = db.query(Partido).filter(Partido.id == partido_id).first()
+    if not partido:
+        raise HTTPException(404, "Partido não encontrado.")
+    for field, value in body.model_dump(exclude_unset=True).items():
+        setattr(partido, field, value.upper() if field == "sigla" else value)
+    db.commit()
+    db.refresh(partido)
+    return partido
+
+
+@router.delete("/partidos/{partido_id}", status_code=204)
+def excluir_partido(partido_id: UUID, db: Session = Depends(get_db), _: object = Depends(require_admin)):
+    partido = db.query(Partido).filter(Partido.id == partido_id).first()
+    if not partido:
+        raise HTTPException(404, "Partido não encontrado.")
+    db.delete(partido)
+    db.commit()
+
+
+# ══════════════════════════════════════════════════════════════════
 # CANDIDATOS
 # ══════════════════════════════════════════════════════════════════
 
 @router.get("/candidatos", response_model=list[CandidatoOut])
 def listar_candidatos(
     db: Session = Depends(get_db),
-    _: object = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
 ):
-    """Lista todos os candidatos cadastrados."""
-    return db.query(Candidato).order_by(Candidato.nm_candidato).all()
+    """Admin vê todos os candidatos. Demais perfis veem só o candidato vinculado à sua conta."""
+    if current_user.profile.value == "administrador":
+        return db.query(Candidato).order_by(Candidato.nm_candidato).all()
+    if current_user.candidato_id:
+        candidato = db.query(Candidato).filter(Candidato.id == current_user.candidato_id).first()
+        return [candidato] if candidato else []
+    return []
 
 
 @router.post("/candidatos", response_model=CandidatoOut, status_code=201)
@@ -40,6 +89,177 @@ def criar_candidato(
     db.commit()
     db.refresh(candidato)
     return candidato
+
+
+@router.put("/candidatos/{candidato_id}", response_model=CandidatoOut)
+def atualizar_candidato(
+    candidato_id: UUID,
+    body: CandidatoCreate,
+    db: Session = Depends(get_db),
+    _: object = Depends(require_admin),
+):
+    """Atualiza os dados de um candidato."""
+    candidato = db.query(Candidato).filter(Candidato.id == candidato_id).first()
+    if not candidato:
+        raise HTTPException(404, "Candidato não encontrado.")
+    for field, value in body.model_dump(exclude_unset=True).items():
+        setattr(candidato, field, value)
+    db.commit()
+    db.refresh(candidato)
+    return candidato
+
+
+@router.delete("/candidatos/{candidato_id}", status_code=204)
+def excluir_candidato(
+    candidato_id: UUID,
+    db: Session = Depends(get_db),
+    _: object = Depends(require_admin),
+):
+    """Remove um candidato. Falha se houver resultados eleitorais associados."""
+    candidato = db.query(Candidato).filter(Candidato.id == candidato_id).first()
+    if not candidato:
+        raise HTTPException(404, "Candidato não encontrado.")
+    db.delete(candidato)
+    db.commit()
+
+
+# ══════════════════════════════════════════════════════════════════
+# CANDIDATURAS
+# ══════════════════════════════════════════════════════════════════
+
+@router.get("/candidatos/{candidato_id}/candidaturas", response_model=list[CandidaturaOut])
+def listar_candidaturas(
+    candidato_id: UUID,
+    db: Session = Depends(get_db),
+    _: object = Depends(get_current_user),
+):
+    """Lista todas as candidaturas de um candidato."""
+    return (
+        db.query(Candidatura)
+        .filter(Candidatura.candidato_id == candidato_id)
+        .order_by(Candidatura.eleicao_id)
+        .all()
+    )
+
+
+@router.post("/candidaturas", response_model=CandidaturaOut, status_code=201)
+def criar_candidatura(
+    body: CandidaturaCreate,
+    db: Session = Depends(get_db),
+    _: object = Depends(require_admin),
+):
+    """Vincula um candidato a uma eleição."""
+    existe = db.query(Candidatura).filter_by(
+        candidato_id=body.candidato_id, eleicao_id=body.eleicao_id
+    ).first()
+    if existe:
+        raise HTTPException(400, "Este candidato já está vinculado a esta eleição.")
+
+    # Auto-preenche dados do TSE se sq_candidato_tse for fornecido
+    nr_votavel = body.nr_votavel
+    nm_votavel = body.nm_votavel
+    ds_cargo   = body.ds_cargo
+
+    if body.sq_candidato_tse and not (nr_votavel and nm_votavel):
+        secao = (
+            db.query(VotacaoSecao)
+            .filter(
+                VotacaoSecao.eleicao_id == body.eleicao_id,
+                VotacaoSecao.sq_candidato == str(body.sq_candidato_tse),
+            )
+            .first()
+        )
+        if secao:
+            nr_votavel = nr_votavel or secao.nr_votavel
+            nm_votavel = nm_votavel or secao.nm_votavel
+            ds_cargo   = ds_cargo   or secao.ds_cargo
+
+    candidatura = Candidatura(
+        candidato_id=body.candidato_id,
+        eleicao_id=body.eleicao_id,
+        sq_candidato_tse=body.sq_candidato_tse,
+        nr_votavel=nr_votavel,
+        nm_votavel=nm_votavel,
+        ds_cargo=ds_cargo,
+        situacao=body.situacao,
+    )
+    db.add(candidatura)
+    db.commit()
+    db.refresh(candidatura)
+    return candidatura
+
+
+@router.put("/candidaturas/{candidatura_id}", response_model=CandidaturaOut)
+def atualizar_candidatura(
+    candidatura_id: UUID,
+    body: CandidaturaCreate,
+    db: Session = Depends(get_db),
+    _: object = Depends(require_admin),
+):
+    """Atualiza dados de uma candidatura."""
+    c = db.query(Candidatura).filter(Candidatura.id == candidatura_id).first()
+    if not c:
+        raise HTTPException(404, "Candidatura não encontrada.")
+    for field, value in body.model_dump(exclude_unset=True).items():
+        setattr(c, field, value)
+    db.commit()
+    db.refresh(c)
+    return c
+
+
+@router.delete("/candidaturas/{candidatura_id}", status_code=204)
+def excluir_candidatura(
+    candidatura_id: UUID,
+    db: Session = Depends(get_db),
+    _: object = Depends(require_admin),
+):
+    """Remove o vínculo de um candidato com uma eleição."""
+    c = db.query(Candidatura).filter(Candidatura.id == candidatura_id).first()
+    if not c:
+        raise HTTPException(404, "Candidatura não encontrada.")
+    db.delete(c)
+    db.commit()
+
+
+@router.get("/candidaturas/buscar-votavel", response_model=list[VotavelOut])
+def buscar_votavel_por_sq(
+    eleicao_id: UUID = Query(...),
+    sq_candidato_tse: int = Query(None),
+    nome: str = Query(None),
+    db: Session = Depends(get_db),
+    _: object = Depends(require_admin),
+):
+    """
+    Busca votáveis em VotacaoSecao por sq_candidato_tse ou nome,
+    para ajudar a preencher o vínculo da candidatura.
+    """
+    q = db.query(
+        VotacaoSecao.sq_candidato,
+        func.max(VotacaoSecao.nr_votavel).label("nr_votavel"),
+        func.max(VotacaoSecao.nm_votavel).label("nm_votavel"),
+        func.max(VotacaoSecao.ds_cargo).label("ds_cargo"),
+    ).filter(
+        VotacaoSecao.eleicao_id == eleicao_id,
+        VotacaoSecao.sq_candidato.isnot(None),
+    )
+
+    if sq_candidato_tse:
+        q = q.filter(VotacaoSecao.sq_candidato == str(sq_candidato_tse))
+    elif nome:
+        q = q.filter(VotacaoSecao.nm_votavel.ilike(f"%{nome}%"))
+    else:
+        return []
+
+    rows = q.group_by(VotacaoSecao.sq_candidato).limit(30).all()
+    return [
+        VotavelOut(
+            sq_candidato=r.sq_candidato,
+            nr_votavel=r.nr_votavel,
+            nm_votavel=r.nm_votavel,
+            ds_cargo=r.ds_cargo,
+        )
+        for r in rows
+    ]
 
 
 # ══════════════════════════════════════════════════════════════════
@@ -249,8 +469,8 @@ def votacao_por_zona(
             VotacaoSecao.cd_municipio_tse,
             VotacaoSecao.nr_zona,
             VotacaoSecao.nr_votavel,
-            VotacaoSecao.nm_votavel,
-            VotacaoSecao.ds_cargo,
+            func.max(VotacaoSecao.nm_votavel).label("nm_votavel"),
+            func.max(VotacaoSecao.ds_cargo).label("ds_cargo"),
             func.sum(VotacaoSecao.qt_votos).label("total_votos"),
         )
         .filter_by(eleicao_id=eleicao_id, cd_municipio_tse=cd_municipio_tse)
@@ -266,8 +486,6 @@ def votacao_por_zona(
         VotacaoSecao.cd_municipio_tse,
         VotacaoSecao.nr_zona,
         VotacaoSecao.nr_votavel,
-        VotacaoSecao.nm_votavel,
-        VotacaoSecao.ds_cargo,
     ).order_by(VotacaoSecao.nr_zona).all()
 
     return [
@@ -368,8 +586,7 @@ def listar_votaveis(
 
     rows = q.order_by(VotacaoSecao.nm_votavel).all()
     return [
-        VotavelOut(nr_votavel=r.nr_votavel, nm_votavel=r.nm_votavel,
-                   ds_cargo=r.ds_cargo, sg_partido=None)
+        VotavelOut(nr_votavel=r.nr_votavel, nm_votavel=r.nm_votavel, ds_cargo=r.ds_cargo)
         for r in rows
     ]
 
@@ -421,8 +638,8 @@ def zonas_por_ibge(
             VotacaoSecao.cd_municipio_tse,
             VotacaoSecao.nr_zona,
             VotacaoSecao.nr_votavel,
-            VotacaoSecao.nm_votavel,
-            VotacaoSecao.ds_cargo,
+            func.max(VotacaoSecao.nm_votavel).label("nm_votavel"),
+            func.max(VotacaoSecao.ds_cargo).label("ds_cargo"),
             func.sum(VotacaoSecao.qt_votos).label("total_votos"),
         )
         .filter_by(eleicao_id=eleicao_id, cd_municipio_tse=mun.cd_tse)
@@ -436,8 +653,6 @@ def zonas_por_ibge(
         VotacaoSecao.cd_municipio_tse,
         VotacaoSecao.nr_zona,
         VotacaoSecao.nr_votavel,
-        VotacaoSecao.nm_votavel,
-        VotacaoSecao.ds_cargo,
     ).order_by(VotacaoSecao.nr_zona).all()
 
     return [

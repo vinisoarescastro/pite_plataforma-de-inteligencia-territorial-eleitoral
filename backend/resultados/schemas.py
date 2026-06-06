@@ -3,9 +3,25 @@ from datetime import datetime
 from pydantic import BaseModel
 
 
+# ── Partidos ──────────────────────────────────────────────────────
+class PartidoCreate(BaseModel):
+    sigla: str
+    nome: str | None = None
+    numero: int | None = None
+
+
+class PartidoOut(BaseModel):
+    id: UUID
+    sigla: str
+    nome: str | None
+    numero: int | None
+
+    model_config = {"from_attributes": True}
+
+
 # ── Candidatos ────────────────────────────────────────────────────
 class CandidatoCreate(BaseModel):
-    nr_candidato: str
+    nr_candidato: str | None = None
     nm_candidato: str
     nm_partido: str | None = None
     sg_partido: str | None = None
@@ -15,12 +31,50 @@ class CandidatoCreate(BaseModel):
 
 class CandidatoOut(BaseModel):
     id: UUID
-    nr_candidato: str
+    nr_candidato: str | None
     nm_candidato: str
     nm_partido: str | None
     sg_partido: str | None
     sg_uf: str | None
     cargo: str | None
+
+    model_config = {"from_attributes": True}
+
+
+# ── Candidaturas ─────────────────────────────────────────────────
+class CandidaturaCreate(BaseModel):
+    candidato_id: UUID
+    eleicao_id: UUID
+    partido_id: UUID | None = None
+    sq_candidato_tse: int | None = None
+    nr_votavel: str | None = None
+    nm_votavel: str | None = None
+    ds_cargo: str | None = None
+    situacao: str | None = None
+
+
+class CandidaturaEleicaoOut(BaseModel):
+    id: UUID
+    ano: int
+    turno: int
+    tipo: str
+    descricao: str | None
+
+    model_config = {"from_attributes": True}
+
+
+class CandidaturaOut(BaseModel):
+    id: UUID
+    candidato_id: UUID
+    eleicao_id: UUID
+    partido_id: UUID | None
+    sq_candidato_tse: int | None
+    nr_votavel: str | None
+    nm_votavel: str | None
+    ds_cargo: str | None
+    situacao: str | None
+    eleicao: CandidaturaEleicaoOut | None = None
+    partido: PartidoOut | None = None
 
     model_config = {"from_attributes": True}
 
@@ -88,10 +142,10 @@ class VotacaoMunicipioAgregada(BaseModel):
 
 
 class VotavelOut(BaseModel):
+    sq_candidato: str | None = None
     nr_votavel: str
     nm_votavel: str
     ds_cargo: str | None
-    sg_partido: str | None
 
 
 # ── Ranking por município ─────────────────────────────────────────

@@ -1,0 +1,154 @@
+.page {
+  padding: 24px;
+  display: flex; flex-direction: column; gap: 20px;
+  height: 100%; box-sizing: border-box;
+}
+
+.topbar {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+}
+.topLeft { display: flex; align-items: center; gap: 12px; }
+
+.searchWrap {
+  display: flex; align-items: center; gap: 8px;
+  background: #fff; border: 1px solid var(--gray-200);
+  border-radius: 8px; padding: 0 12px; height: 38px;
+  font-size: 13px; color: var(--gray-400);
+}
+.searchInput {
+  border: none; outline: none; background: transparent;
+  font-size: 13px; color: var(--gray-900); font-family: var(--font);
+  width: 220px;
+}
+
+.count { font-size: 12px; color: var(--gray-400); font-weight: 500; }
+
+.btnNovo {
+  display: inline-flex; align-items: center; gap: 7px;
+  height: 38px; padding: 0 18px; border-radius: 8px;
+  background: linear-gradient(135deg, var(--brand-500), var(--brand-800));
+  color: #fff; font-size: 13px; font-weight: 700; border: none; cursor: pointer;
+  font-family: var(--font); transition: all 150ms;
+}
+.btnNovo:hover { box-shadow: 0 4px 14px rgba(59,110,242,.35); transform: translateY(-1px); }
+
+.loading, .empty {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 12px; padding: 60px 0; color: var(--gray-400); font-size: 14px;
+}
+.empty i { font-size: 36px; }
+
+.tableWrap { overflow: auto; }
+.table {
+  width: 100%; border-collapse: collapse;
+  background: #fff; border-radius: 12px; overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0,0,0,.06);
+}
+.table th {
+  padding: 10px 16px; background: var(--gray-50);
+  font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px;
+  color: var(--gray-500); text-align: left; border-bottom: 1px solid var(--gray-100);
+}
+.table td {
+  padding: 12px 16px; font-size: 13px; color: var(--gray-700);
+  border-bottom: 1px solid var(--gray-50);
+}
+.table tr:last-child td { border-bottom: none; }
+.table tr:hover td { background: var(--gray-50); }
+
+.sigla {
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--brand-50); color: var(--brand-700);
+  font-size: 12px; font-weight: 800; padding: 2px 10px; border-radius: 6px;
+}
+.nome { font-weight: 500; }
+.vazio { color: var(--gray-300); }
+
+.acoes { display: flex; gap: 6px; align-items: center; }
+.btnEdit, .btnDel {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 30px; height: 30px; border-radius: 7px; border: none; cursor: pointer;
+  font-size: 12px; transition: all 150ms;
+}
+.btnEdit { background: var(--gray-100); color: var(--gray-600); }
+.btnEdit:hover { background: var(--brand-50); color: var(--brand-600); }
+.btnDel { background: var(--gray-100); color: var(--gray-500); }
+.btnDel:hover { background: #fff1f2; color: #be123c; }
+.btnConfirm {
+  background: #be123c; color: #fff; border: none; border-radius: 6px;
+  padding: 4px 10px; font-size: 12px; font-weight: 700; cursor: pointer;
+}
+.btnCancel {
+  background: var(--gray-100); color: var(--gray-700); border: none; border-radius: 6px;
+  padding: 4px 10px; font-size: 12px; font-weight: 600; cursor: pointer;
+}
+
+/* Modal */
+.backdrop {
+  position: fixed; inset: 0; z-index: 1000;
+  background: rgba(0,0,0,.45); backdrop-filter: blur(3px);
+  display: flex; align-items: center; justify-content: center;
+}
+.modalCard {
+  background: #fff; border-radius: 14px;
+  width: 440px; max-width: calc(100vw - 32px);
+  box-shadow: 0 24px 64px rgba(0,0,0,.22);
+  overflow: hidden;
+}
+.modalHd {
+  display: flex; align-items: center; gap: 12px;
+  padding: 20px 24px 16px; border-bottom: 1px solid var(--gray-100);
+}
+.modalIcon {
+  width: 38px; height: 38px; border-radius: 10px; flex-shrink: 0;
+  background: var(--brand-50); color: var(--brand-600);
+  display: flex; align-items: center; justify-content: center; font-size: 16px;
+}
+.modalTitle { font-size: 15px; font-weight: 800; color: var(--gray-900); }
+.modalSub   { font-size: 12px; color: var(--gray-400); margin-top: 1px; }
+.closeBtn {
+  margin-left: auto; background: none; border: none; cursor: pointer;
+  color: var(--gray-400); font-size: 16px; padding: 4px;
+  border-radius: 6px; transition: background 150ms;
+}
+.closeBtn:hover { background: var(--gray-100); color: var(--gray-700); }
+
+.modalBody { padding: 20px 24px 24px; display: flex; flex-direction: column; gap: 14px; }
+
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: end; }
+.field, .fieldSm { display: flex; flex-direction: column; gap: 5px; }
+
+.label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--gray-500); }
+.req { color: var(--brand-500); }
+
+.input {
+  height: 36px; padding: 0 10px;
+  background: var(--gray-50); border: 1px solid var(--gray-200);
+  border-radius: 8px; font-size: 13px; font-weight: 500;
+  color: var(--gray-900); font-family: var(--font);
+  outline: none; width: 100%; box-sizing: border-box;
+  transition: border-color 150ms, box-shadow 150ms;
+}
+.input:focus { border-color: var(--brand-400); box-shadow: 0 0 0 3px rgba(99,102,241,.12); background: #fff; }
+
+.erro {
+  display: flex; align-items: center; gap: 7px; padding: 10px 12px;
+  border-radius: 8px; background: #fff1f2; border: 1px solid #fecdd3;
+  color: #be123c; font-size: 12px; font-weight: 500;
+}
+
+.ft { display: flex; justify-content: flex-end; gap: 8px; margin-top: 4px; }
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  height: 38px; padding: 0 18px; border-radius: 8px;
+  font-size: 13px; font-weight: 700; cursor: pointer;
+  border: none; font-family: var(--font); transition: all 150ms;
+}
+.btnSec { background: var(--gray-100); color: var(--gray-700); }
+.btnSec:hover { background: var(--gray-200); }
+.btnPrimary {
+  background: linear-gradient(135deg, var(--brand-500), var(--brand-800));
+  color: #fff; box-shadow: 0 2px 8px rgba(59,110,242,.28);
+}
+.btnPrimary:hover { box-shadow: 0 4px 14px rgba(59,110,242,.4); transform: translateY(-1px); }
+.btnPrimary:disabled, .btnSec:disabled { opacity: .5; cursor: not-allowed; transform: none; }

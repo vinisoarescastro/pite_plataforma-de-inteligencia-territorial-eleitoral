@@ -15,6 +15,7 @@ const NAV: (NavItem | { section: string })[] = [
   { section: 'Análise' },
   { id: 'mapa',         icon: 'fa-map',             label: 'Mapa Territorial' },
   { id: 'candidatos',   icon: 'fa-user-tie',        label: 'Candidatos' },
+  { id: 'partidos',     icon: 'fa-flag',            label: 'Partidos' },
   { id: 'pesquisas',    icon: 'fa-clipboard-list',  label: 'Pesquisas' },
   { id: 'comparacao',   icon: 'fa-scale-balanced',  label: 'Comparação' },
   { id: 'eleicoes',     icon: 'fa-landmark',        label: 'Eleições',     adminOnly: true },

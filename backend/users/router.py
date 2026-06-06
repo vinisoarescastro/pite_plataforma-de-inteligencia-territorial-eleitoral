@@ -28,6 +28,7 @@ def create_user(body: UserCreate, db: Session = Depends(get_db), _: User = Depen
         password_hash=hash_password(body.password),
         profile=UserProfile(body.profile),
         candidate_name=body.candidate_name,
+        candidato_id=body.candidato_id,
         can_export=body.can_export,
         can_compare=body.can_compare,
         is_active=True,

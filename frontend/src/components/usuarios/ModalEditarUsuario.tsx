@@ -1,12 +1,11 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import type { Usuario } from '../../pages/UsuariosPage'
 import m from './Modal.module.css'
-
-const CANDIDATOS = ['João Ferreira da Silva', 'Ana Paula Rodrigues', 'Carlos Alberto Nunes', 'Maria Luíza Conceição']
+import { listarCandidatos, type Candidato } from '../../services/candidatos'
 
 interface Props {
-  usuario: Usuario
-  onSalvar: (u: Usuario) => void
+  usuario: Usuario & { candidato_id?: string | null }
+  onSalvar: (u: Usuario & { candidato_id?: string | null }) => void
   onDesativar: (id: string) => void
   onFechar: () => void
 }
@@ -15,18 +14,23 @@ export default function ModalEditarUsuario({ usuario, onSalvar, onDesativar, onF
   const [nome, setNome]         = useState(usuario.nome)
   const [email, setEmail]       = useState(usuario.email)
   const [perfil, setPerfil]     = useState(usuario.perfil)
-  const [candidato, setCandidato] = useState(usuario.candidato ?? '')
+  const [candidatoId, setCandidatoId] = useState(usuario.candidato_id ?? '')
+  const [candidatos, setCandidatos]   = useState<Candidato[]>([])
   const [exportar, setExportar] = useState(usuario.podeExportar)
   const [comparar, setComparar] = useState(usuario.podeComparar)
   const [ativo, setAtivo]       = useState(usuario.ativo)
 
+  useEffect(() => { listarCandidatos().then(setCandidatos).catch(() => {}) }, [])
+
   const precisaCandidato = perfil !== 'administrador'
+  const candSelecionado  = candidatos.find(c => c.id === candidatoId)
 
   function handleSalvar() {
     onSalvar({
       ...usuario,
       nome, email, perfil,
-      candidato: precisaCandidato ? candidato || null : null,
+      candidato: precisaCandidato ? (candSelecionado?.nm_candidato ?? usuario.candidato ?? null) : null,
+      candidato_id: precisaCandidato ? candidatoId || null : null,
       podeExportar: exportar,
       podeComparar: comparar,
       ativo,
@@ -72,9 +76,13 @@ export default function ModalEditarUsuario({ usuario, onSalvar, onDesativar, onF
             </div>
             <div className={m.formG}>
               <label className={m.lbl}>Candidato vinculado</label>
-              <select className={m.sel} value={candidato} onChange={e => setCandidato(e.target.value)} disabled={!precisaCandidato}>
-                <option value="">— todos (admin)</option>
-                {CANDIDATOS.map(c => <option key={c}>{c}</option>)}
+              <select className={m.sel} value={candidatoId} onChange={e => setCandidatoId(e.target.value)} disabled={!precisaCandidato}>
+                <option value="">— Nenhum (admin) —</option>
+                {candidatos.map(c => (
+                  <option key={c.id} value={c.id}>
+                    {c.nm_candidato}{c.sg_partido ? ` · ${c.sg_partido}` : ''}{c.sg_uf ? ` · ${c.sg_uf}` : ''}
+                  </option>
+                ))}
               </select>
             </div>
           </div>

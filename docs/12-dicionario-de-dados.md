@@ -11,17 +11,18 @@
 |---|---|---|---|
 | `uf` | Unidade federativa brasileira | Entidade | GO, SP, MG |
 | `municipio` | Município brasileiro com polígono geográfico (IBGE) | Entidade | Goiânia — código TSE 09200 |
+| `municipio_tse_ibge` | Tabela de correspondência entre código TSE e código IBGE do município | Entidade | cd_tse=09200 → cd_ibge=5208707 |
 | `bairro` | Região urbana dentro de um município com polígono geográfico | Entidade | Setor Bueno, Goiânia |
 | `zona_eleitoral` | Unidade de organização eleitoral do TSE dentro de um município | Entidade | 1ª Zona Eleitoral de Goiânia |
 | `local_votacao` | Local físico onde ocorre a votação — geocodificado com lat/lng | Entidade | Escola Estadual X — Rua Y, nº Z |
 | `secao_eleitoral` | Menor unidade eleitoral — equivale a uma urna de votação | Entidade | Seção 0042 da Zona 01 |
-| `candidato` | Pessoa que disputou ou disputa uma eleição, registrada na plataforma | Entidade | João da Silva |
-| `pre_candidato` | Pessoa que pretende disputar eleições mas ainda não tem histórico eleitoral registrado | Atributo de `candidato` (`eh_pre_candidato = true`) | Maria Souza |
-| `partido` | Organização política registrada no TSE | Entidade | PT, MDB, PL |
-| `cargo` | Cargo eletivo disputado em uma eleição | Entidade | Vereador, Prefeito, Deputado Federal |
-| `eleicao` | Ciclo eleitoral em uma UF e turno específicos — cobre múltiplos cargos | Entidade | 2024 · GO · 1º Turno |
-| `candidatura` | Participação de um candidato em um cargo específico de uma eleição, vinculada ao TSE via `sq_candidato_tse` | Entidade | João Silva · PT · Dep. Federal · GO 2024 · SQ 280000614682 |
-| `resultado_eleitoral` | Votos brutos por seção eleitoral, importados do CSV do TSE | Entidade | SQ 280000614682 obteve 87 votos na Seção 0042 |
+| `candidato` | Pessoa que disputou ou disputa uma eleição, registrada na plataforma | Entidade | JOÃO DA SILVA |
+| `partido` | Partido político cadastrado na plataforma — vinculado às candidaturas por eleição | Entidade | PT — Partido dos Trabalhadores (13) |
+| `cargo` | Cargo eletivo disputado em uma eleição — provém do campo `ds_cargo` dos dados TSE | Entidade | VEREADOR, PREFEITO, DEPUTADO FEDERAL |
+| `eleicao` | Ciclo eleitoral com ano, turno e tipo — cobre múltiplos cargos e candidatos | Entidade | 2024 · Municipal · 1º Turno |
+| `candidatura` | Participação de um candidato em uma eleição específica, vinculada ao TSE via `sq_candidato_tse`. Armazena o partido da eleição (pode diferir do partido atual do candidato) | Entidade | JOÃO SILVA · PT · VEREADOR · 2024 · SQ 280000614682 |
+| `votacao_secao` | Votos brutos por seção eleitoral — granularidade máxima dos dados importados do TSE | Entidade | nr_votavel=13123 obteve 12 votos na Seção 0042 da Zona 01 |
+| `resultado_eleitoral` | Votos agregados por município por candidato — gerado a partir da `votacao_secao` | Entidade | JOÃO SILVA obteve 4.231 votos em Goiânia nas Municipais 2024 |
 | `territorio` | Recorte geográfico para análise estratégica (município, zona, bairro ou personalizado) | Entidade | Zona Eleitoral 001 de Goiânia |
 | `classificacao_territorial` | Classificação estratégica de um território em relação a um candidato ou partido | Entidade | Zona 001 = Zona de Força para João Silva (2024) |
 | `pesquisa_eleitoral` | Levantamento de intenção de voto, aprovação ou rejeição realizado pela equipe | Entidade | Pesquisa de intenção de voto — jun/2024 |
@@ -55,6 +56,69 @@
 | `centro` | Partidos/candidatos classificados no centro do espectro político |
 | `centro_direita` | Partidos/candidatos classificados no centro-direita |
 | `direita` | Partidos/candidatos classificados no espectro político de direita |
+
+---
+
+## Tabelas Implementadas — Estrutura Atual do Banco
+
+### `partidos`
+
+| Campo | Tipo | Descrição |
+|---|---|---|
+| `id` | UUID (PK) | Identificador único |
+| `sigla` | VARCHAR(20) UNIQUE | Sigla do partido em maiúsculas (ex.: PT, MDB) |
+| `nome` | VARCHAR(120) | Nome por extenso (opcional) |
+| `numero` | INTEGER | Número eleitoral (opcional) |
+| `created_at` | TIMESTAMP | Data de criação |
+
+**Observações:** Um candidato pode ter concorrido por partidos diferentes em eleições distintas. O vínculo partido ↔ eleição está na tabela `candidaturas`.
+
+---
+
+### `candidatos`
+
+| Campo | Tipo | Descrição |
+|---|---|---|
+| `id` | UUID (PK) | Identificador único |
+| `nm_candidato` | VARCHAR(160) | Nome do candidato (obrigatório, em maiúsculas) |
+| `nr_candidato` | VARCHAR(10) | Número nas urnas — **opcional**, pois varia por eleição |
+| `nm_partido` | VARCHAR(80) | Nome do partido principal — denormalizado para referência rápida |
+| `sg_partido` | VARCHAR(20) | Sigla do partido principal |
+| `sg_uf` | VARCHAR(2) | UF de atuação |
+| `cargo` | VARCHAR(60) | Cargo principal — **opcional**, pois varia por eleição |
+| `created_at` | TIMESTAMP | Data de criação |
+
+**Observações:** `nr_candidato` e `cargo` são campos secundários no perfil do candidato. Os valores definitivos por eleição estão na `candidatura`, preenchidos a partir dos dados TSE via `sq_candidato_tse`.
+
+---
+
+### `candidaturas`
+
+| Campo | Tipo | Descrição |
+|---|---|---|
+| `id` | UUID (PK) | Identificador único |
+| `candidato_id` | UUID (FK → candidatos) | Candidato |
+| `eleicao_id` | UUID (FK → eleicoes) | Eleição |
+| `partido_id` | UUID (FK → partidos, nullable) | Partido na **esta** eleição específica |
+| `sq_candidato_tse` | BIGINT | **Chave principal de ligação com os dados TSE** — único por candidato por eleição |
+| `nr_votavel` | VARCHAR(10) | Número nas urnas nesta eleição |
+| `nm_votavel` | VARCHAR(160) | Nome exato como aparece nas urnas (TSE) |
+| `ds_cargo` | VARCHAR(60) | Cargo disputado nesta eleição (preenchido via TSE) |
+| `situacao` | VARCHAR(30) | deferida, indeferida, cassada, eleito, nao_eleito, segundo_turno |
+| `created_at` | TIMESTAMP | Data de criação |
+
+**Restrição:** `UNIQUE(candidato_id, eleicao_id)` — um candidato só pode ter uma candidatura por eleição.  
+**Observações:** O cargo não é inserido manualmente — é auto-preenchido ao buscar o candidato no TSE pelo `sq_candidato_tse` ou pelo nome na urna. O partido pode ser diferente do `sg_partido` no perfil do candidato.
+
+---
+
+### `users` (campos relevantes)
+
+| Campo | Tipo | Descrição |
+|---|---|---|
+| `candidato_id` | UUID (FK → candidatos, nullable) | Candidato vinculado ao usuário |
+
+**Controle de acesso:** Usuários com perfil `administrador` têm acesso a todos os candidatos. Demais perfis (`gestor`, `analista`, `assessor`) visualizam apenas o candidato vinculado ao seu `candidato_id`.
 
 ---
 

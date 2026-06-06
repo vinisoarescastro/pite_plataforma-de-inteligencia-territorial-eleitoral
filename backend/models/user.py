@@ -2,9 +2,10 @@
 
 import uuid
 import enum
-from sqlalchemy import Column, String, Boolean, Enum as PgEnum, DateTime
+from sqlalchemy import Column, String, Boolean, Enum as PgEnum, DateTime, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func
+from sqlalchemy.orm import relationship
 from database import Base
 
 
@@ -36,10 +37,13 @@ class User(Base):
     password_hash = Column(String(255), nullable=False)   # nunca salvar senha em texto puro
     profile       = Column(PgEnum(UserProfile), nullable=False)
     is_active      = Column(Boolean, default=True)
-    candidate_name = Column(String(255), nullable=True)
+    candidate_name = Column(String(255), nullable=True)   # legado — mantido para compatibilidade
+    candidato_id   = Column(UUID(as_uuid=True), ForeignKey("candidatos.id", ondelete="SET NULL"), nullable=True)
     can_export     = Column(Boolean, default=True,  nullable=False, server_default='true')
     can_compare    = Column(Boolean, default=False, nullable=False, server_default='false')
     last_login     = Column(DateTime(timezone=True), nullable=True)
+
+    candidato = relationship("Candidato", foreign_keys=[candidato_id], lazy="joined")
 
     # server_default=func.now() faz o banco preencher o campo automaticamente
     created_at    = Column(DateTime(timezone=True), server_default=func.now())

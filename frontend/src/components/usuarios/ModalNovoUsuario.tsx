@@ -1,8 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import type { Usuario } from '../../pages/UsuariosPage'
 import m from './Modal.module.css'
-
-const CANDIDATOS = ['João Ferreira da Silva', 'Ana Paula Rodrigues', 'Carlos Alberto Nunes', 'Maria Luíza Conceição']
+import { listarCandidatos, type Candidato } from '../../services/candidatos'
 
 interface Props {
   onCriar: (u: Omit<Usuario, 'id' | 'ultimoAcesso'> & { senha: string }) => void
@@ -15,23 +14,28 @@ export default function ModalNovoUsuario({ onCriar, onFechar }: Props) {
   const [senha, setSenha]     = useState('')
   const [senha2, setSenha2]   = useState('')
   const [perfil, setPerfil]   = useState<Usuario['perfil'] | ''>('')
-  const [candidato, setCandidato] = useState('')
+  const [candidatoId, setCandidatoId] = useState('')
+  const [candidatos, setCandidatos]   = useState<Candidato[]>([])
   const [exportar, setExportar]   = useState(true)
   const [comparar, setComparar]   = useState(false)
   const [erro, setErro]           = useState('')
 
+  useEffect(() => { listarCandidatos().then(setCandidatos).catch(() => {}) }, [])
+
   const precisaCandidato = perfil !== '' && perfil !== 'administrador'
+  const candSelecionado  = candidatos.find(c => c.id === candidatoId)
 
   function handleSubmit() {
     if (!nome || !email || !senha || !perfil) { setErro('Preencha todos os campos obrigatórios.'); return }
     if (senha !== senha2) { setErro('As senhas não coincidem.'); return }
-    if (precisaCandidato && !candidato) { setErro('Selecione o candidato vinculado.'); return }
+    if (precisaCandidato && !candidatoId) { setErro('Selecione o candidato vinculado.'); return }
     if (senha.length < 8) { setErro('A senha deve ter no mínimo 8 caracteres.'); return }
     setErro('')
     onCriar({
       nome, email, senha,
       perfil: perfil as Usuario['perfil'],
-      candidato: precisaCandidato ? candidato : null,
+      candidato: precisaCandidato ? (candSelecionado?.nm_candidato ?? null) : null,
+      candidato_id: precisaCandidato ? candidatoId || null : null,
       podeExportar: perfil === 'administrador' ? true : exportar,
       podeComparar: perfil === 'administrador' ? true : comparar,
       ativo: true,
@@ -86,9 +90,13 @@ export default function ModalNovoUsuario({ onCriar, onFechar }: Props) {
             {precisaCandidato && (
               <div className={m.formG}>
                 <label className={m.lbl}>Candidato vinculado <span className={m.required}>★</span></label>
-                <select className={m.sel} value={candidato} onChange={e => setCandidato(e.target.value)}>
-                  <option value="">Selecionar candidato...</option>
-                  {CANDIDATOS.map(c => <option key={c}>{c}</option>)}
+                <select className={m.sel} value={candidatoId} onChange={e => setCandidatoId(e.target.value)}>
+                  <option value="">Selecionar candidato…</option>
+                  {candidatos.map(c => (
+                    <option key={c.id} value={c.id}>
+                      {c.nm_candidato}{c.sg_partido ? ` · ${c.sg_partido}` : ''}{c.sg_uf ? ` · ${c.sg_uf}` : ''}
+                    </option>
+                  ))}
                 </select>
               </div>
             )}

@@ -8,6 +8,9 @@ from sqlalchemy.orm import relationship
 from database import Base
 
 
+
+
+
 class MunicipioTSE(Base):
     """Tabela de correspondência entre o código do TSE e o código IBGE do município."""
     __tablename__ = "municipio_tse_ibge"
@@ -48,7 +51,7 @@ class Candidato(Base):
     __tablename__ = "candidatos"
 
     id           = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    nr_candidato = Column(String(10),  nullable=False)
+    nr_candidato = Column(String(10),  nullable=True)
     nm_candidato = Column(String(160), nullable=False)
     nm_partido   = Column(String(80),  nullable=True)
     sg_partido   = Column(String(20),  nullable=True)
@@ -56,7 +59,45 @@ class Candidato(Base):
     cargo        = Column(String(60),  nullable=True)
     created_at   = Column(DateTime(timezone=True), server_default=func.now())
 
-    resultados = relationship("ResultadoEleitoral", back_populates="candidato")
+    resultados   = relationship("ResultadoEleitoral", back_populates="candidato")
+    candidaturas = relationship("Candidatura", back_populates="candidato", cascade="all, delete-orphan")
+
+
+class Partido(Base):
+    """Partido político."""
+    __tablename__ = "partidos"
+
+    id         = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    sigla      = Column(String(20),  nullable=False, unique=True)
+    nome       = Column(String(120), nullable=True)
+    numero     = Column(Integer,     nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    candidaturas = relationship("Candidatura", back_populates="partido")
+
+
+class Candidatura(Base):
+    """Liga um candidato cadastrado à sua participação em uma eleição específica."""
+    __tablename__ = "candidaturas"
+
+    id                = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    candidato_id      = Column(UUID(as_uuid=True), ForeignKey("candidatos.id", ondelete="CASCADE"), nullable=False, index=True)
+    eleicao_id        = Column(UUID(as_uuid=True), ForeignKey("eleicoes.id",   ondelete="CASCADE"), nullable=False, index=True)
+    partido_id        = Column(UUID(as_uuid=True), ForeignKey("partidos.id",   ondelete="SET NULL"), nullable=True, index=True)
+    sq_candidato_tse  = Column(BigInteger,   nullable=True)
+    nr_votavel        = Column(String(10),   nullable=True)
+    nm_votavel        = Column(String(160),  nullable=True)
+    ds_cargo          = Column(String(60),   nullable=True)
+    situacao          = Column(String(30),   nullable=True)
+    created_at        = Column(DateTime(timezone=True), server_default=func.now())
+
+    candidato = relationship("Candidato", back_populates="candidaturas")
+    eleicao   = relationship("Eleicao")
+    partido   = relationship("Partido",   back_populates="candidaturas")
+
+    __table_args__ = (
+        UniqueConstraint("candidato_id", "eleicao_id", name="uq_candidatura_candidato_eleicao"),
+    )
 
 
 class ResultadoEleitoral(Base):

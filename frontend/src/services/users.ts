@@ -4,6 +4,7 @@ export interface Usuario {
   email: string
   perfil: 'administrador' | 'gestor' | 'analista' | 'assessor'
   candidato: string | null
+  candidato_id: string | null
   podeExportar: boolean
   podeComparar: boolean
   ativo: boolean
@@ -21,7 +22,8 @@ function mapUser(u: any): Usuario {
     nome: u.name,
     email: u.email,
     perfil: u.profile,
-    candidato: u.candidate_name ?? null,
+    candidato: u.candidato?.nm_candidato ?? u.candidate_name ?? null,
+    candidato_id: u.candidato_id ?? null,
     podeExportar: u.can_export,
     podeComparar: u.can_compare,
     ativo: u.is_active,
@@ -42,7 +44,7 @@ export async function listarUsuarios(): Promise<Usuario[]> {
 
 export async function criarUsuario(payload: {
   nome: string; email: string; senha: string
-  perfil: string; candidato: string | null
+  perfil: string; candidato: string | null; candidato_id?: string | null
   podeExportar: boolean; podeComparar: boolean
 }): Promise<Usuario> {
   const res = await fetch('/users', {
@@ -54,6 +56,7 @@ export async function criarUsuario(payload: {
       password: payload.senha,
       profile: payload.perfil,
       candidate_name: payload.candidato || null,
+      candidato_id: payload.candidato_id || null,
       can_export: payload.podeExportar,
       can_compare: payload.podeComparar,
     }),
@@ -64,16 +67,18 @@ export async function criarUsuario(payload: {
 
 export async function atualizarUsuario(id: string, payload: {
   nome?: string; email?: string; perfil?: string
-  candidato?: string | null; podeExportar?: boolean; podeComparar?: boolean; ativo?: boolean
+  candidato?: string | null; candidato_id?: string | null
+  podeExportar?: boolean; podeComparar?: boolean; ativo?: boolean
 }): Promise<Usuario> {
   const body: Record<string, unknown> = {}
-  if (payload.nome      !== undefined) body.name           = payload.nome
-  if (payload.email     !== undefined) body.email          = payload.email
-  if (payload.perfil    !== undefined) body.profile        = payload.perfil
-  if (payload.candidato !== undefined) body.candidate_name = payload.candidato || null
-  if (payload.podeExportar !== undefined) body.can_export  = payload.podeExportar
-  if (payload.podeComparar !== undefined) body.can_compare = payload.podeComparar
-  if (payload.ativo     !== undefined) body.is_active      = payload.ativo
+  if (payload.nome         !== undefined) body.name           = payload.nome
+  if (payload.email        !== undefined) body.email          = payload.email
+  if (payload.perfil       !== undefined) body.profile        = payload.perfil
+  if (payload.candidato    !== undefined) body.candidate_name = payload.candidato || null
+  if (payload.candidato_id !== undefined) body.candidato_id   = payload.candidato_id || null
+  if (payload.podeExportar !== undefined) body.can_export     = payload.podeExportar
+  if (payload.podeComparar !== undefined) body.can_compare    = payload.podeComparar
+  if (payload.ativo        !== undefined) body.is_active      = payload.ativo
 
   const res = await fetch(`/users/${id}`, {
     method: 'PUT',

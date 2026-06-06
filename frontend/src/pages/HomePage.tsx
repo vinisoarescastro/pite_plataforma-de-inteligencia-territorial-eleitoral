@@ -7,9 +7,11 @@ import Painel from '../components/painel/Painel'
 import UsuariosPage from './UsuariosPage'
 import WelcomePage from './WelcomePage'
 import MapaPage from './MapaPage'
+import CandidatosPage from './CandidatosPage'
+import PartidosPage from './PartidosPage'
 
 export type PageId =
-  | 'painel' | 'mapa' | 'candidatos' | 'pesquisas'
+  | 'painel' | 'mapa' | 'candidatos' | 'partidos' | 'pesquisas'
   | 'comparacao' | 'eleicoes' | 'candidaturas'
   | 'importacao' | 'geografia' | 'usuarios'
 
@@ -17,6 +19,7 @@ export const PAGE_NAMES: Record<PageId, string> = {
   painel:       'Painel Principal',
   mapa:         'Mapa Territorial',
   candidatos:   'Candidatos',
+  partidos:     'Partidos',
   pesquisas:    'Pesquisas Eleitorais',
   comparacao:   'Comparação de Eleições',
   eleicoes:     'Eleições',
@@ -116,7 +119,9 @@ export default function HomePage() {
             )}
             {activePage === 'usuarios' && <UsuariosPage />}
             {activePage === 'mapa' && <MapaPage />}
-            {activePage !== 'painel' && activePage !== 'usuarios' && activePage !== 'mapa' && (
+            {activePage === 'candidatos' && <CandidatosPage isAdmin={profile === 'administrador'} />}
+            {activePage === 'partidos' && <PartidosPage isAdmin={profile === 'administrador'} />}
+            {activePage !== 'painel' && activePage !== 'usuarios' && activePage !== 'mapa' && activePage !== 'candidatos' && activePage !== 'partidos' && (
               <div className={styles.emptyPage}>
                 <i className="fa-solid fa-hammer" />
                 <h2>{PAGE_NAMES[activePage]}</h2>
