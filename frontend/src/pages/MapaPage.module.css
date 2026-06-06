@@ -102,6 +102,101 @@
   outline: none; cursor: pointer;
 }
 
+/* ── Filtros no painel lateral ── */
+.filtrosSection {
+  display: flex; flex-direction: column; gap: 10px; margin-bottom: 4px;
+}
+.filtroItem {
+  display: flex; flex-direction: column; gap: 4px;
+}
+.filtroLabel {
+  font-size: 10px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .6px; color: var(--gray-500);
+}
+.filtroSel {
+  width: 100%; height: 34px; padding: 0 10px;
+  background: #fff; border: 1px solid var(--gray-200);
+  border-radius: 6px; font-size: 12px; font-weight: 500;
+  color: var(--gray-900); font-family: var(--font);
+  outline: none; cursor: pointer;
+  transition: border-color 150ms, box-shadow 150ms;
+}
+.filtroSel:hover   { border-color: var(--gray-300); }
+.filtroSel:focus   { border-color: var(--brand-400); box-shadow: 0 0 0 3px rgba(99,102,241,.08); }
+.filtroSel:disabled { opacity: 0.4; cursor: not-allowed; background: var(--gray-50); }
+.filtroLimpar {
+  align-self: flex-start; margin-top: 2px;
+  background: none; border: none; cursor: pointer;
+  font-family: var(--font); font-size: 11px; font-weight: 600;
+  color: var(--gray-400); padding: 0;
+  display: inline-flex; align-items: center; gap: 4px;
+  transition: color 150ms;
+}
+.filtroLimpar:hover { color: var(--gray-700); }
+
+/* ── Combobox candidato ── */
+.candWrap {
+  position: relative;
+}
+.candTrigger {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 6px; cursor: pointer; min-width: 180px; user-select: none;
+}
+.candTriggerPanel {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 6px; cursor: pointer; user-select: none;
+  width: 100%; height: 34px; padding: 0 10px;
+  background: #fff; border: 1px solid var(--gray-200);
+  border-radius: 6px; font-size: 12px; font-weight: 500;
+  transition: border-color 150ms, box-shadow 150ms;
+}
+.candTriggerPanel:hover { border-color: var(--gray-300); }
+.candTriggerPanel:focus-within { border-color: var(--brand-400); box-shadow: 0 0 0 3px rgba(99,102,241,.08); }
+.candDropdownPanel {
+  width: 100%; background: #fff;
+  border: 1px solid var(--gray-200); border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.13);
+  overflow: hidden; margin-top: 4px;
+}
+.candPlaceholder { color: var(--gray-400); flex: 1; font-weight: 400; }
+.candValor       { color: var(--gray-900); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+.candDropdown {
+  position: absolute; top: calc(100% + 4px); right: 0;
+  width: 280px; background: #fff;
+  border: 1px solid var(--gray-200); border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.13);
+  z-index: 1000; overflow: hidden;
+}
+.candSearch {
+  display: flex; align-items: center; gap: 7px;
+  padding: 8px 10px; border-bottom: 1px solid var(--gray-100);
+  color: var(--gray-400);
+}
+.candInput {
+  flex: 1; border: none; outline: none;
+  font-family: var(--font); font-size: 12px; color: var(--gray-800);
+  background: transparent;
+}
+.candClear {
+  background: none; border: none; cursor: pointer;
+  color: var(--gray-400); padding: 0; display: flex; align-items: center;
+}
+.candClear:hover { color: var(--gray-700); }
+.candList {
+  max-height: 220px; overflow-y: auto;
+}
+.candItem {
+  width: 100%; background: none; border: none; cursor: pointer;
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 12px; text-align: left; font-family: var(--font);
+  transition: background 100ms;
+}
+.candItem:hover  { background: var(--gray-50); }
+.candItemAtivo   { background: var(--brand-50) !important; }
+.candNr   { font-size: 11px; font-weight: 700; color: var(--brand-600); flex-shrink: 0; min-width: 32px; }
+.candNome { font-size: 12px; color: var(--gray-800); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.candVazio { padding: 12px; text-align: center; font-size: 12px; color: var(--gray-400); }
+
 /* ── Zoom ── */
 .mapZoom {
   position: absolute; bottom: 40px; right: 12px;
@@ -282,6 +377,77 @@
 }
 .histTbl td { padding: 6px; border-bottom: 1px solid var(--gray-50); }
 .histTbl tr:last-child td { border-bottom: none; }
+
+/* ── Legenda mapa (overlay) ── */
+.mapLegenda {
+  position: absolute; bottom: 40px; left: 12px;
+  background: rgba(255,255,255,.93);
+  backdrop-filter: blur(4px);
+  border: 1px solid var(--gray-100);
+  border-radius: 8px;
+  padding: 8px 12px;
+  z-index: 800;
+  box-shadow: 0 2px 8px rgba(0,0,0,.08);
+  font-size: 11px;
+}
+.legTitle {
+  font-size: 10px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .6px; color: var(--gray-500); margin-bottom: 6px;
+}
+.legRow { display: flex; align-items: center; gap: 6px; margin-bottom: 3px; color: var(--gray-700); }
+.legRow:last-child { margin-bottom: 0; }
+.legSwatch { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; }
+
+/* ── Box candidato selecionado ── */
+.candidatoBox {
+  background: var(--brand-50); border: 1px solid var(--brand-100);
+  border-radius: var(--r-md); padding: 10px 12px; margin-bottom: 14px;
+}
+.candidatoNome { font-size: 13px; font-weight: 700; color: var(--brand-800); margin-bottom: 3px; }
+.candidatoMeta { font-size: 11px; color: var(--brand-600); }
+
+/* ── Total de votos ── */
+.totalVotos {
+  display: flex; align-items: baseline; gap: 6px;
+  margin-bottom: 14px;
+}
+.totalNum   { font-size: 26px; font-weight: 800; color: var(--gray-900); letter-spacing: -1px; line-height: 1; }
+.totalLabel { font-size: 11px; color: var(--gray-400); }
+
+/* ── Lista de zonas ── */
+.zonaList { display: flex; flex-direction: column; gap: 10px; }
+.zonaItem { display: flex; flex-direction: column; gap: 4px; }
+.zonaTop  { display: flex; align-items: center; justify-content: space-between; }
+.zonaBadge {
+  font-size: 11px; font-weight: 700; color: var(--brand-700);
+  background: var(--brand-50); border: 1px solid var(--brand-100);
+  border-radius: 4px; padding: 1px 6px;
+}
+.zonaVotos { font-size: 12px; font-weight: 700; color: var(--gray-800); }
+
+/* ── Resumo do candidato ── */
+.resumoBox {
+  background: var(--gray-50); border: 1px solid var(--gray-100);
+  border-radius: var(--r-md); padding: 12px; margin-bottom: 14px;
+}
+.resumoTotais {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 4px;
+}
+.resumoStat {
+  display: flex; flex-direction: column; align-items: center;
+  background: #fff; border: 1px solid var(--gray-100);
+  border-radius: 8px; padding: 8px 6px; gap: 2px;
+}
+.resumoNum  { font-size: 20px; font-weight: 800; color: var(--gray-900); letter-spacing: -.5px; line-height: 1; }
+.resumoDesc { font-size: 10px; color: var(--gray-400); text-transform: uppercase; letter-spacing: .4px; }
+
+/* ── Top municípios ── */
+.topMunList { display: flex; flex-direction: column; gap: 8px; }
+.topMunItem { display: flex; flex-direction: column; gap: 3px; }
+.topMunTop  { display: flex; align-items: center; gap: 6px; }
+.topMunPos  { font-size: 10px; font-weight: 800; color: var(--brand-500); min-width: 16px; }
+.topMunNome { font-size: 11px; color: var(--gray-800); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.topMunVotos { font-size: 11px; font-weight: 700; color: var(--gray-700); flex-shrink: 0; }
 
 /* ── Responsivo ── */
 @media (max-width: 768px) {

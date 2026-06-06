@@ -49,3 +49,18 @@ body {
 a { color: inherit; text-decoration: none; }
 button { font-family: var(--font); cursor: pointer; border: none; background: none; }
 input { font-family: var(--font); }
+
+/* ── Tooltip do mapa Leaflet ── */
+.mapa-tooltip {
+  background: rgba(15,23,42,.88) !important;
+  border: none !important;
+  border-radius: 6px !important;
+  padding: 5px 10px !important;
+  font-family: var(--font) !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  color: #fff !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,.25) !important;
+  white-space: nowrap;
+}
+.mapa-tooltip::before { display: none !important; }

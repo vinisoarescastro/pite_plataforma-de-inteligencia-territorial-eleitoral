@@ -11,6 +11,7 @@ export default defineConfig({
       '/eleicoes':   { target: 'http://localhost:8000', changeOrigin: true },
       '/candidatos': { target: 'http://localhost:8000', changeOrigin: true },
       '/resultados': { target: 'http://localhost:8000', changeOrigin: true },
+      '/secoes':     { target: 'http://localhost:8000', changeOrigin: true },
     },
   },
 })

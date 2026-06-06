@@ -14,7 +14,7 @@ Todas as análises são de natureza **territorial, estatística e agregada** —
 
 ## Status do Projeto
 
-> **Fase 0 — Fundação** — Documentação estratégica e técnica concluída. Estrutura de pastas definida. Início do desenvolvimento.
+> **Fase 1 — Em desenvolvimento** — Backend FastAPI com autenticação JWT, modelos eleitorais e importação TSE. Frontend com mapa territorial interativo (Leaflet), filtros eleitorais em cascata e visualização de votos por município e zona.
 
 ---
 
@@ -22,9 +22,9 @@ Todas as análises são de natureza **territorial, estatística e agregada** —
 
 | Camada | Tecnologia | Versão |
 |---|---|---|
-| Front-end | React + Vite | 18 / Latest |
-| Mapas | Leaflet + React-Leaflet | Latest |
-| Estilização | Tailwind CSS | 3+ |
+| Front-end | React + Vite + TypeScript | 19 / Latest |
+| Mapas | Leaflet (vanilla, sem react-leaflet) | 1.9+ |
+| Estilização | CSS Modules | — |
 | Back-end | Python + FastAPI | 3.12 / Latest |
 | Validação | Pydantic | 2.0+ |
 | ORM | SQLAlchemy + GeoAlchemy2 | 2.0+ |

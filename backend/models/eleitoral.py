@@ -1,6 +1,6 @@
 import uuid
 import enum
-from sqlalchemy import Column, String, SmallInteger, Integer, ForeignKey, UniqueConstraint
+from sqlalchemy import Column, String, SmallInteger, Integer, BigInteger, ForeignKey, UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func
 from sqlalchemy import DateTime
@@ -79,4 +79,34 @@ class ResultadoEleitoral(Base):
     __table_args__ = (
         UniqueConstraint("eleicao_id", "candidato_id", "cd_municipio_ibge",
                          name="uq_resultado_por_municipio"),
+    )
+
+
+class VotacaoSecao(Base):
+    """Votos por seção eleitoral — granularidade máxima do TSE."""
+    __tablename__ = "votacao_secao"
+
+    id               = Column(BigInteger, primary_key=True, autoincrement=True)
+    eleicao_id       = Column(UUID(as_uuid=True), ForeignKey("eleicoes.id", ondelete="CASCADE"), nullable=False)
+    cd_municipio_tse = Column(String(10),    nullable=False, index=True)
+    nr_turno         = Column(SmallInteger,  nullable=False, default=1)
+    nr_zona          = Column(SmallInteger,  nullable=False)
+    nr_secao         = Column(SmallInteger,  nullable=False)
+    nr_local_votacao = Column(Integer,       nullable=True)
+    nm_local_votacao = Column(String(200),   nullable=True)
+    ds_endereco      = Column(String(300),   nullable=True)
+    nr_votavel       = Column(String(10),    nullable=False)
+    nm_votavel       = Column(String(160),   nullable=False)
+    cd_cargo         = Column(SmallInteger,  nullable=True)
+    ds_cargo         = Column(String(60),    nullable=True)
+    sq_candidato     = Column(String(20),    nullable=True)
+    qt_votos         = Column(Integer,       nullable=False, default=0)
+
+    eleicao = relationship("Eleicao")
+
+    __table_args__ = (
+        UniqueConstraint(
+            "eleicao_id", "cd_municipio_tse", "nr_zona", "nr_secao", "nr_votavel", "cd_cargo", "nr_turno",
+            name="uq_votacao_secao"
+        ),
     )

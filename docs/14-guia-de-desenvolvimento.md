@@ -1,7 +1,7 @@
 # 14 — Guia de Desenvolvimento
 
 > Documentação técnica de como configurar, rodar e evoluir o projeto localmente.  
-> Atualizado em: 2026-06-05 (v5)
+> Atualizado em: 2026-06-05 (v6)
 
 ---
 
@@ -511,6 +511,7 @@ npm install leaflet @types/leaflet
 /eleicoes    → http://localhost:8000
 /candidatos  → http://localhost:8000
 /resultados  → http://localhost:8000
+/secoes      → http://localhost:8000
 ```
 
 **Subir o frontend:**
@@ -527,41 +528,52 @@ npm run dev   # http://localhost:5173
 **Arquivo de dados:** `frontend/public/geo/municipios_br.json`
 - Fonte: IBGE Malhas Municipais 2022
 - Formato: GeoJSON (`FeatureCollection`)
-- Propriedades utilizadas por feature: `NM_MUN`, `SIGLA_UF`, `CD_MUN`
+- Propriedades utilizadas por feature: `NM_MUN`, `SIGLA_UF`, `CD_MUN`, `CD_MUN_TSE`
 
-**Comportamento implementado:**
-
-| Interação | Comportamento |
-|---|---|
-| Hover | Borda azul + fill destacado; removido ao sair |
-| Clique simples | Município fica com destaque persistente (azul escuro); painel lateral abre com nome, UF e código |
-| Segundo clique no mesmo | Deseleciona; painel volta para legenda |
-| Clique em outro | Deseleciona o anterior, seleciona o novo |
-
-**Classificações territoriais (sem dados eleitorais por enquanto):**
-
-| Classificação | Cor |
-|---|---|
-| Zona de Força | `#1a7a4a` |
-| Consolidado | `#0d5c37` |
-| Expansão | `#5aab61` |
-| Zona de Disputa | `#f5a623` |
-| Adversário | `#c0392b` |
-| Neutro | `#bdc3c7` |
-| Volátil | `#9b59b6` |
-
-**Navegação hierárquica implementada:**
+**Navegação hierárquica:**
 
 | Nível | Comportamento |
 |---|---|
-| Brasil | Mapa colorido por região; painel com totais nacionais e cards de região |
-| Região | Região destacada; demais em cinza; painel com lista de estados clicáveis |
-| Estado | Estado destacado; painel com lista de municípios e stats |
-| Município | Município selecionado; painel com dados eleitorais da API |
+| Brasil | Mapa colorido por região; painel com totais nacionais |
+| Região | Região destacada; demais em cinza |
+| Estado | Estado destacado com lista de municípios |
+| Município | Município selecionado; painel com votos por zona |
 
-**Contornos dissolvidos:** ao navegar por nível, um contorno sem bordas internas é carregado do GeoJSON pré-computado (ver seção 8). A camada é `interactive: false` para não interferir nos cliques dos municípios.
+**Interação com o mapa:**
 
-**Padrão `navRef`:** o estado de navegação (`NavState`) é espelhado em um `ref` (`navRef`) para que os handlers do Leaflet (que fecham sobre o `ref`) leiam sempre o valor atual sem staleness.
+| Interação | Comportamento |
+|---|---|
+| Hover | Tooltip com nome e UF; borda destacada |
+| Clique em município | Destaque persistente via `setStyle` direto no `L.Path`; painel abre com dados por zona |
+| Candidato selecionado | Municípios coloridos de branco (0 votos) a cor da região (100% relativo ao maior município); ranking top 5 no painel |
+
+**Filtros na barra lateral direita (cascata):**
+1. **Eleição** — lista eleições disponíveis (agrupadas por `ano|tipo`, expandidas por turno)
+2. **Turno** — habilitado após selecionar eleição
+3. **Cargo** — habilitado após selecionar turno; busca via `/secoes/cargos`
+4. **Candidato** — combobox com busca por palavras (normaliza acentos, ordena por relevância); busca via `/secoes/votaveis`
+
+**Unicidade de candidatos:** `nr_votavel` NÃO é único globalmente para VEREADOR (o mesmo número é reutilizado por candidatos diferentes em municípios diferentes). A API filtra sempre por `nr_votavel` + `nm_votavel` em conjunto.
+
+**Destaque de município selecionado (`selectedMunPath`):**
+- Ao clicar, o `L.Path` do polígono recebe diretamente `{ color: cor_região, weight: 4, opacity: 1 }` via `path.setStyle()`
+- Não usa camada `outlineLayer` separada para municípios (evitava timing issues que causavam retângulo)
+- Ao mudar de nível ou selecionar outro município, o estilo anterior é restaurado via `path.setStyle(estiloComVotos(feature))`
+
+**Correção de race condition nos contornos dissolvidos:**
+- Os arquivos `brasil_outline.json`, `regioes_outline.json`, `estados_outline.json` são carregados assincronamente
+- `atualizarContorno()` verifica `navRef.current.nivel === navState.nivel` antes de desenhar; se divergirem (chamada com navState obsoleto), aborta sem desenhar
+- Isso impede que o contorno do Brasil apareça sobre o mapa após navegar para nível município
+
+**Contornos dissolvidos (`outlineLayer`):** usado apenas para Brasil, Região e Estado. Para Município, o destaque é aplicado diretamente no path (ver acima).
+
+**Padrão `navRef`:** o estado de navegação (`NavState`) é espelhado em `navRef` para que handlers do Leaflet leiam sempre o valor atual sem staleness.
+
+**Tooltip customizado:** `.mapa-tooltip` em `frontend/src/index.css` (override global do Leaflet):
+```css
+.mapa-tooltip { background: rgba(15,23,42,.88); border: none; ... }
+.mapa-tooltip::before { display: none; }  /* remove seta */
+```
 
 **Camadas previstas (toolbar):** Municípios · Zonas eleitorais · Bairros · Locais de votação
 > Apenas Municípios está funcional. As demais dependem de dados a serem importados.
@@ -585,7 +597,7 @@ Resultado: ~3 MB — carregamento em ~1–2s.
 
 ### 7.7 `resultados` — API de Resultados Eleitorais
 
-**Endpoints:**
+**Endpoints de candidatos e resultados agregados:**
 
 | Método | Endpoint | Autenticação | Descrição |
 |---|---|---|---|
@@ -596,16 +608,78 @@ Resultado: ~3 MB — carregamento em ~1–2s.
 | `GET` | `/resultados/mapa` | Bearer token | Todos os municípios com votos (para colorir o mapa) |
 | `GET` | `/resultados/resumo/uf` | Bearer token | Totais agrupados por UF |
 
+**Endpoints de seções eleitorais (`/secoes`):**
+
+| Método | Endpoint | Parâmetros obrigatórios | Descrição |
+|---|---|---|---|
+| `GET` | `/secoes/cargos` | `eleicao_id`, `nr_turno?` | Lista cargos distintos de uma eleição |
+| `GET` | `/secoes/votaveis` | `eleicao_id`, `nr_turno?`, `ds_cargo?` | Lista candidatos distintos (exclui branco/nulo) |
+| `GET` | `/secoes/mapa/uf/{sg_uf}` | `eleicao_id`, `nr_votavel?`, `nm_votavel?`, `nr_turno?` | Total de votos por município de uma UF; retorna `cd_municipio_ibge` via join `MunicipioTSE` |
+| `GET` | `/secoes/municipio/{cd_tse}/por-zona` | `eleicao_id`, `nr_votavel?`, `nr_turno?` | Votos agregados por zona eleitoral |
+| `GET` | `/secoes/municipio/{cd_tse}` | `eleicao_id`, `nr_votavel?`, `cd_cargo?` | Votos por seção individual |
+
+> **Importante:** Para VEREADOR, `nr_votavel` não é único por eleição — o mesmo número é reutilizado em municípios diferentes. Sempre filtre por `nr_votavel` **e** `nm_votavel` em conjunto para garantir unicidade.
+
 **Serviço frontend (`frontend/src/services/eleitoral.ts`):**
 - `listarEleicoes()` — lista eleições
 - `listarCandidatos()` — lista candidatos
 - `buscarResultadoMunicipio(cdIbge, eleicaoId, candidatoId)` — resultado do município
 - `buscarHistoricoMunicipio(cdIbge, candidatoId)` — histórico de eleições
 - `buscarResultadosMapa(eleicaoId, candidatoId)` — dados para coloração do mapa
+- `buscarVotacaoMapaUF(sgUf, eleicaoId, { nr_votavel, nm_votavel, nr_turno })` — total por município para o mapa
+- `buscarVotacaoPorZona(cdMunicipioTse, eleicaoId, { nr_votavel, nr_turno })` — votos por zona
+- `listarVotaveis(eleicaoId, { nr_turno, ds_cargo })` — lista candidatos/votáveis
+- `listarCargos(eleicaoId, nr_turno?)` — lista cargos disponíveis
 
-### 7.8 Migration `c3d4e5f6a7b8`
+O serviço trata status 401 redirecionando para `/login` e limpando o token do `localStorage`.
 
-Cria as 4 tabelas eleitorais: `municipio_tse_ibge`, `eleicoes`, `candidatos`, `resultados_eleitorais`.
+### 7.8 Modelos Eleitorais — `VotacaoSecao` e `MunicipioTSE`
+
+**Tabela `votacao_secao`** — dados brutos importados do TSE (arquivo de votação por seção):
+
+| Coluna | Tipo | Descrição |
+|---|---|---|
+| `id` | UUID | PK |
+| `eleicao_id` | UUID FK | Referência à eleição |
+| `cd_municipio_tse` | String | Código TSE do município |
+| `nr_zona` | Integer | Número da zona eleitoral |
+| `nr_secao` | Integer | Número da seção |
+| `nr_turno` | Integer | 1 ou 2 |
+| `nr_votavel` | String | Número do candidato/partido |
+| `nm_votavel` | String | Nome do candidato/partido |
+| `ds_cargo` | String | Descrição do cargo |
+| `cd_cargo` | Integer | Código do cargo |
+| `sg_partido` | String | Sigla do partido |
+| `qt_votos` | Integer | Quantidade de votos |
+
+**Tabela `municipio_tse_ibge`** — mapeamento entre código TSE e código IBGE:
+
+| Coluna | Tipo | Descrição |
+|---|---|---|
+| `id` | Integer PK | |
+| `cd_tse` | String | Código TSE do município |
+| `cd_ibge` | Integer | Código IBGE de 7 dígitos |
+| `nm_municipio` | String | Nome do município |
+| `sg_uf` | String | Sigla do estado |
+
+**Migrations:**
+```bash
+cd backend
+alembic upgrade head
+# Aplica:
+# d1e2f3a4b5c6_add_votacao_secao.py      → cria tabela votacao_secao
+# e2f3a4b5c6d7_add_nr_turno_to_votacao_secao.py → adiciona coluna nr_turno
+```
+
+### 7.9 `eleicoes` — Eleições por Turno
+
+Cada turno de uma eleição é armazenado como um registro **separado** na tabela `eleicoes`, com UUID próprio. Isso significa que uma eleição municipal 2024 tem dois registros: turno 1 e turno 2.
+
+No frontend, as eleições são agrupadas por `ano|tipo` para exibição e expandidas por turno na seleção dos filtros. O `eleicao_id` enviado à API sempre corresponde ao UUID do turno específico.
+
+### 7.10 Migration `c3d4e5f6a7b8`
+
+Cria as 4 tabelas eleitorais base: `municipio_tse_ibge`, `eleicoes`, `candidatos`, `resultados_eleitorais`.
 
 ```bash
 cd backend
@@ -636,7 +710,32 @@ python scripts/gerar_contornos.py
 
 > Executar apenas uma vez. Não é necessário repetir salvo que `municipios_br.json` seja substituído.
 
-### 8.2 `importar_municipios_tse.py` — Mapeamento TSE→IBGE
+### 8.2 `importar_votacao_secao.py` — Votação por Seção (TSE)
+
+Importa o arquivo de votação por seção eleitoral do TSE para a tabela `votacao_secao`.
+
+**Formato do arquivo:** CSV do TSE, separador `;`, encoding `latin1`.  
+Arquivo típico: `votacao_secao_XXXX_GO.csv` (disponível no portal do TSE).
+
+**Uso:**
+```bash
+cd backend
+.venv\Scripts\python.exe ..\scripts\importar_votacao_secao.py \
+  --arquivo "caminho\para\votacao_secao_2024_GO.csv" \
+  --ano 2024 \
+  --turno 1 \
+  --tipo municipal
+```
+
+**Parâmetros:**
+- `--arquivo` — caminho do CSV do TSE
+- `--ano` — ano da eleição (ex: 2024)
+- `--turno` — 1 ou 2
+- `--tipo` — `municipal`, `federal` ou `estadual`
+
+> **Atenção:** Executar separadamente para cada turno. O script cria a `Eleicao` automaticamente se não existir, ou reutiliza a existente para o mesmo `(ano, turno, tipo)`.
+
+### 8.3 `importar_municipios_tse.py` — Mapeamento TSE→IBGE
 
 Popula a tabela `municipio_tse_ibge` a partir do CSV `municipio_tse_ibge.csv` na raiz do repositório.
 
@@ -650,7 +749,7 @@ cd backend
 
 > Executar apenas uma vez. A tabela já está populada no banco de produção.
 
-### 8.3 `importar_resultados_tse.py` — Resultados Eleitorais
+### 8.4 `importar_resultados_tse.py` — Resultados Eleitorais
 
 Importa um CSV de resultados do TSE (votação por candidato e município).
 
@@ -767,15 +866,48 @@ print(json.loads(urllib.request.urlopen(req).read()))
 - `MapaPage.module.css → .page`: `flex: 1; min-height: 0` (não usar `calc(100vh - N)`)
 - `MapaPage.module.css → .layout`: `overflow: hidden`
 
+### Filtros do mapa desabilitados (Cargo/Candidato nunca habilitam)
+
+**Causa:** As eleições são armazenadas por turno com UUIDs separados. Ao trocar de turno, o `eleicaoId` não era atualizado, fazendo os endpoints de cargos e votáveis retornarem lista vazia.  
+**Solução:** Separar o estado em dois: `eleicaoBase` (string `"ano|tipo"` para exibição) e `eleicaoId` (UUID do turno selecionado, atualizado quando turno muda).
+
+### Candidato selecionado errado no mapa (VEREADOR)
+
+**Causa:** `nr_votavel` não é único por eleição para VEREADOR — o mesmo número é reutilizado em municípios diferentes. Selecionar pelo número causava correspondência cruzada.  
+**Solução:** Filtrar sempre por `nr_votavel` **e** `nm_votavel` em conjunto, tanto no frontend quanto no backend (`/secoes/mapa/uf/{uf}` aceita `nm_votavel` como parâmetro adicional).
+
+### Contorno do município aparece como retângulo
+
+**Causa:** Race condition assíncrona — os arquivos GeoJSON de contorno (`brasil_outline.json` etc.) terminam de carregar após a navegação para o nível município, re-desenhando o contorno do Brasil sobre o mapa.  
+**Solução:**
+1. `atualizarContorno()` verifica `navRef.current.nivel !== navState.nivel` antes de desenhar; se divergirem, aborta.
+2. O destaque de município usa `selectedMunPath` (estilo direto no `L.Path`) em vez de camada separada — elimina dependência de timing.
+
+### Sessão expira rapidamente (redirecionamento para login)
+
+**Causa:** Valor padrão `JWT_EXPIRATION_MINUTES=15` expira durante o trabalho.  
+**Solução:** Ajustar no `.env`:
+```ini
+JWT_EXPIRATION_MINUTES=480
+```
+
+### Rota `/secoes` retorna 404 no frontend
+
+**Causa:** O proxy do Vite não incluía `/secoes`.  
+**Solução:** Adicionar em `frontend/vite.config.ts`:
+```typescript
+'/secoes': { target: 'http://localhost:8000', changeOrigin: true },
+```
+
 ---
 
 ## 11. Próximos Passos
 
 | Ordem | Módulo | Descrição |
 |---|---|---|
-| 1 | Importar CSV do TSE | Usar `scripts/importar_resultados_tse.py` com CSV real para ver dados no mapa |
-| 2 | Coloração do mapa por votos | Usar `buscarResultadosMapa()` para colorir municípios por % de votos do candidato |
-| 3 | GeoJSON simplificado | Reduzir `municipios_br.json` de 59 MB para ~3 MB via mapshaper |
+| 1 | Importar mais estados | Rodar `importar_votacao_secao.py` para outros estados além de GO |
+| 2 | GeoJSON simplificado | Reduzir `municipios_br.json` de 59 MB para ~3 MB via mapshaper |
+| 3 | Mapa de zonas | Exibir dados por zona intra-municipal quando usuário drill-down para nível zona |
 | 4 | CRUD de candidatos | Tela frontend de candidatos (backend já tem `/candidatos`) |
 | 5 | `territories` | Classificação territorial e índice de força |
 | 6 | Dashboard real | Substituir dados mock do Painel por dados reais da API |
