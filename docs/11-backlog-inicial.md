@@ -32,8 +32,11 @@
 | T14 | ✅ Importar candidaturas, partidos e cargos históricos | MVP | — |
 | T15 | Importar locais de votação | MVP | HU-CC06 |
 | T16 | ✅ Importar dados geográficos (GeoJSON/Shapefile — IBGE) para Leaflet | MVP | — |
-| T17 | Implementar rastreabilidade via `importacao_dados` | MVP | HU-A05 |
-| T18 | Tela de gerenciamento e histórico de importações | Importante | HU-A05 |
+| T17 | ✅ Rastreabilidade de importações via `importacao_log` — tabela com status, arquivo, tipo, duração, registros inseridos e mensagem de erro; endpoint `GET /importar/historico` | MVP | HU-A05 |
+| T18 | ✅ Tela de histórico de importações — painel colapsável na página de Importação com badges de sucesso/erro e tabela das últimas 100 importações | Importante | HU-A05 |
+| T18a | ✅ Refatorar importação de seções para PostgreSQL COPY via `psycopg2.copy_expert` com conexão dedicada fora do pool SQLAlchemy (evita problema de temp table desaparecendo entre commits) | MVP | — |
+| T18b | ✅ Adicionar coluna `sg_uf` em `votacao_secao` (migration `j7e8f9a0b1c2`) + índices `(eleicao_id, cd_cargo)` e `(eleicao_id, sg_uf)` para eliminar JOIN com `municipio_tse_ibge` | MVP | — |
+| T18c | ✅ Criar tabela `eleicao_resumo_cache` (migration `k8f9a0b1c2d3`) com KPIs pré-computados por eleição; atualizada automaticamente ao final de cada importação de seções | MVP | — |
 
 ---
 
@@ -41,12 +44,12 @@
 
 | ID | Tarefa | Prioridade | HU Relacionada |
 |---|---|---|---|
-| T19 | CRUD de candidatos (com histórico) | MVP | HU-C01, HU-CE05 |
+| T19 | ✅ CRUD de candidatos — backend (`GET`, `POST`, `PUT /candidatos/{id}`, `DELETE /candidatos/{id}`) e frontend (página Candidatos com grid de cards, avatar colorido por iniciais, badge de partido e UF) | MVP | HU-C01, HU-CE05 |
 | T20 | Cadastro de pré-candidatos (sem histórico) | MVP | HU-P01, HU-PP04 |
-| T21 | Associação candidato ↔ partido ↔ cargo ↔ eleição | MVP | HU-P01, HU-PP02 |
+| T21 | ✅ Vinculação candidato ↔ eleição via `candidatura` — fluxo ModalCandidatura em 3 passos (eleição → busca TSE → situação), com preenchimento automático de `nr_votavel`, `nm_votavel` e `ds_cargo` | MVP | HU-P01, HU-PP02 |
 | T22 | Tela de detalhe do candidato com histórico eleitoral | MVP | HU-C01, HU-C04 |
 | T23 | Conversão de pré-candidato para candidato | Importante | HU-P05 |
-| T24 | Busca e filtro de candidatos | MVP | — |
+| T24 | ✅ Busca e filtro de candidatos — barra com texto livre + dropdowns UF/partido/cargo | MVP | — |
 
 ---
 
@@ -67,16 +70,17 @@
 
 | ID | Tarefa | Prioridade | HU Relacionada |
 |---|---|---|---|
-| T31 | ✅ Implementar mapa interativo com Leaflet (Vanilla, sem React-Leaflet) + navegação hierárquica Brasil → Região → Estado → Município | MVP | HU-C01, HU-CC01 |
-| T32 | ✅ Camada de municípios com dados eleitorais — colorização por degradê proporcional ao % de votos do candidato selecionado | MVP | HU-C01 |
+| T31 | ✅ Implementar mapa interativo com Leaflet (Vanilla, sem React-Leaflet) + navegação hierárquica Brasil → Região → Estado → Município; clicar em município selecionado desseleciona e retorna ao nível de estado | MVP | HU-C01, HU-CC01 |
+| T31a | ✅ Corrigir colorização dinâmica do mapa: `UF_COM_DADOS` e UF de busca de votos eram hardcoded como `'GO'`; agora derivados do estado selecionado no mapa e dos dados carregados em runtime | MVP | — |
+| T32 | ✅ Camada de municípios com dados eleitorais — colorização por degradê multi-cor (amarelo → laranja → vermelho escuro) proporcional ao % de votos; legenda horizontal no canto inferior esquerdo | MVP | HU-C01 |
 | T33 | Camada de zonas eleitorais | MVP | HU-CC01, HU-CC02 |
 | T34 | Camada de seções eleitorais | MVP | HU-CC02 |
 | T35 | Camada de bairros | Importante | HU-CC02 |
 | T36 | Camada de locais de votação (marcadores) | Importante | HU-CC06 |
 | T37 | Classificação automática de territórios | MVP | HU-CC01, HU-PP01 |
 | T38 | Camadas de classificação territorial (cores temáticas) | MVP | HU-CC01 |
-| T39 | ✅ Painel lateral de detalhes ao clicar no município — votos por zona (com candidato) ou ranking por cargo (sem candidato) | MVP | HU-CC01 |
-| T40 | ✅ Filtros do mapa por eleição, turno, cargo e candidato — exibidos como card colapsável sobreposto ao mapa | MVP | HU-CC01 |
+| T39 | ✅ Painel lateral de detalhes ao clicar no município — votos por zona (com candidato) ou ranking por cargo (sem candidato); corrigida duplicação de zonas causada por `GROUP BY` incluindo `nm_votavel`/`ds_cargo` (resolvido com `func.max()`) | MVP | HU-CC01 |
+| T40 | ✅ Filtros do mapa por eleição, turno, cargo e candidato — card colapsável (260px, canto superior esquerdo) com numeração de passos 1→2→3→4; estado colapsado exibe badge de filtros ativos + nome do candidato; combobox de candidato com botão ✕ inline e contagem; botão "Limpar filtros" destrutivo (vermelho) quando cargo ou candidato selecionado | MVP | HU-CC01 |
 | T41 | Calcular e exibir `indice_forca` por território | MVP | HU-A02 |
 | T42 | Mapa comparativo entre dois candidatos | Futuro | HU-CE01 |
 
@@ -124,7 +128,7 @@
 
 | Prioridade | Total de Tarefas |
 |---|---|
-| MVP | 38 |
+| MVP | 41 |
 | Importante | 15 |
 | Futuro | 6 |
-| **Total** | **59** |
+| **Total** | **62** |

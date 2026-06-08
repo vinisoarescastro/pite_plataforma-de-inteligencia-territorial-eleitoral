@@ -1,0 +1,199 @@
+.page {
+  padding: 28px 32px;
+  animation: pgIn .2s cubic-bezier(.4,0,.2,1) both;
+  display: flex; flex-direction: column; gap: 20px;
+}
+@keyframes pgIn { from { opacity: 0 } to { opacity: 1 } }
+
+.ph      { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.phTitle { font-size: 22px; font-weight: 800; color: var(--gray-900); letter-spacing: -.3px; }
+.phSub   { font-size: 13px; color: var(--gray-400); margin-top: 3px; }
+
+/* ── Lista de eleições ── */
+.lista { display: flex; flex-direction: column; gap: 12px; }
+
+.card {
+  background: #fff;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+}
+
+.cardHeader {
+  width: 100%; display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 20px; background: none; border: none; cursor: pointer;
+  font-family: var(--font); gap: 12px;
+  transition: background 150ms; user-select: none;
+}
+.cardHeader:hover { background: var(--gray-50); }
+
+.cardLeft  { display: flex; align-items: center; gap: 10px; }
+.cardRight { display: flex; align-items: center; gap: 14px; color: var(--gray-400); font-size: 13px; }
+
+.badge {
+  font-size: 11px; font-weight: 700; padding: 3px 8px;
+  border-radius: 20px; letter-spacing: .3px; text-transform: uppercase;
+}
+.cardAno { font-size: 18px; font-weight: 800; color: var(--gray-900); }
+
+.t2Tag {
+  font-size: 11px; font-weight: 600; color: #92400e;
+  background: #fef3c7; border-radius: 20px; padding: 2px 8px;
+}
+
+.cardMeta { display: flex; align-items: center; gap: 5px; font-size: 13px; font-weight: 600; color: var(--gray-500); }
+.cardMeta i { color: var(--brand-500); }
+
+.chevronUp { transform: rotate(180deg); }
+
+/* ── Card body ── */
+.cardBody {
+  border-top: 1px solid var(--gray-100);
+  display: flex; flex-direction: column; gap: 0;
+}
+
+/* ── Turno ── */
+.turno {
+  padding: 18px 20px;
+  display: flex; flex-direction: column; gap: 14px;
+}
+.turno + .turno { border-top: 1px dashed var(--gray-100); }
+
+.turnoLabel {
+  font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px;
+  display: flex; align-items: center; gap: 6px;
+}
+
+.semDados { font-size: 13px; color: var(--gray-400); display: flex; align-items: center; gap: 8px; }
+
+.detalheLoading {
+  font-size: 13px; color: var(--gray-400);
+  display: flex; align-items: center; gap: 8px; padding: 4px 0;
+}
+.detalheErro {
+  font-size: 13px; color: #dc2626;
+  display: flex; align-items: center; gap: 8px; padding: 4px 0;
+}
+.detalheRetry {
+  background: none; border: none; cursor: pointer; font-family: var(--font);
+  font-size: 13px; font-weight: 600; color: var(--brand-500); padding: 0;
+  text-decoration: underline;
+}
+.detalheRetry:hover { color: var(--brand-800); }
+
+/* ── KPIs ── */
+.kpis { display: flex; gap: 20px; flex-wrap: wrap; }
+
+.kpi {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--gray-50); border: 1px solid var(--gray-100);
+  border-radius: var(--r-md); padding: 10px 14px; min-width: 130px;
+}
+.kpi i { font-size: 16px; color: var(--brand-500); }
+.kpiValor { font-size: 17px; font-weight: 800; color: var(--gray-900); line-height: 1; }
+.kpiLabel { font-size: 11px; color: var(--gray-400); margin-top: 2px; }
+
+/* ── Estados ── */
+.estadosWrap { display: flex; flex-direction: column; gap: 8px; }
+
+.estadosToggle {
+  background: none; border: none; cursor: pointer; font-family: var(--font);
+  font-size: 12px; font-weight: 600; color: var(--brand-500);
+  display: inline-flex; align-items: center; gap: 5px; padding: 0;
+  transition: color 150ms;
+}
+.estadosToggle:hover { color: var(--brand-800); }
+.estadosToggle i { transition: transform 200ms; }
+
+/* ── Tabela ── */
+.tabela {
+  width: 100%; border-collapse: collapse; font-size: 13px;
+  border: 1px solid var(--gray-100); border-radius: var(--r-md); overflow: hidden;
+}
+.tabela th {
+  background: var(--gray-50); text-align: left; padding: 8px 14px;
+  font-size: 11px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .4px; color: var(--gray-500);
+  border-bottom: 1px solid var(--gray-100);
+}
+.tabela td {
+  padding: 8px 14px; color: var(--gray-700);
+  border-bottom: 1px solid var(--gray-50);
+}
+.tabela tr:last-child td { border-bottom: none; }
+.tabela tbody tr:hover td { background: var(--gray-50); }
+
+.ufBadge {
+  display: inline-block; background: var(--gray-100);
+  border-radius: 4px; padding: 1px 6px;
+  font-size: 12px; font-weight: 700; color: var(--gray-700);
+}
+
+/* ── Ações do turno ── */
+.turnoActions {
+  display: flex; justify-content: flex-end;
+}
+.btnExcluir {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: none; border: 1px solid #fecaca; border-radius: var(--r-md);
+  color: #dc2626; font-size: 12px; font-weight: 600; font-family: var(--font);
+  padding: 0 12px; height: 30px; cursor: pointer;
+  transition: all 150ms;
+}
+.btnExcluir:hover:not(:disabled) { background: #fef2f2; border-color: #dc2626; }
+.btnExcluir:disabled { opacity: .5; cursor: not-allowed; }
+
+/* ── Candidatos ── */
+.candidatosWrap { display: flex; flex-direction: column; gap: 8px; }
+.candidatosFiltro {
+  width: 100%; padding: 7px 12px; font-size: 13px; font-family: var(--font);
+  border: 1px solid var(--gray-200); border-radius: var(--r-md);
+  outline: none; background: #fff;
+}
+.candidatosFiltro:focus { border-color: var(--brand-400); }
+.aviso200 { font-size: 11px; color: var(--gray-400); text-align: center; padding: 4px; }
+
+/* ── UFs faltantes ── */
+.ufsFaltantes {
+  display: flex; flex-wrap: wrap; gap: 6px; padding: 4px 0;
+}
+.ufFaltante {
+  display: inline-block;
+  background: #fef3c7; border: 1px solid #fcd34d;
+  color: #92400e; border-radius: 4px;
+  padding: 2px 7px; font-size: 12px; font-weight: 700;
+}
+
+/* ── Barra de carregamento ── */
+.loadWrap {
+  background: #fff; border: 1px solid var(--gray-200);
+  border-radius: var(--r-lg); padding: 24px 24px 20px;
+  display: flex; flex-direction: column; gap: 10px;
+}
+.loadTop {
+  display: flex; justify-content: space-between; align-items: center;
+}
+.loadLabel {
+  font-size: 13px; font-weight: 600; color: var(--gray-600);
+  display: flex; align-items: center; gap: 8px;
+}
+.loadLabel i { color: var(--brand-500); }
+.loadPct { font-size: 13px; font-weight: 700; color: var(--brand-500); }
+.loadBarTrack {
+  height: 6px; background: var(--gray-100); border-radius: 99px; overflow: hidden;
+}
+.loadBar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--brand-500), var(--brand-800));
+  border-radius: 99px;
+  transition: width 0.3s ease-out;
+}
+.loadSub { font-size: 11px; color: var(--gray-400); }
+
+/* ── Estados vazios / erro ── */
+.vazio, .erroMsg {
+  text-align: center; padding: 60px 20px;
+  font-size: 15px; color: var(--gray-400);
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+}
+.erroMsg { color: #dc2626; }

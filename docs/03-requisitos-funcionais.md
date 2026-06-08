@@ -14,11 +14,13 @@
 | RF-C04 | O sistema deve associar candidato a partido, cargo pretendido e espectro político | MVP | HU-P01 |
 | RF-C05 | O sistema deve converter automaticamente pré-candidato em candidato após registro de candidatura | Importante | HU-P05 |
 | RF-C06 | O sistema deve permitir associar candidatos de referência a um pré-candidato | MVP | HU-P01 |
-| RF-C07 | O sistema deve permitir buscar e filtrar candidatos por nome, partido, cargo e município | MVP | — |
+| RF-C07 | ✅ O sistema deve permitir buscar e filtrar candidatos por nome, partido, cargo e UF | MVP | — |
 | RF-C08 | O sistema deve armazenar CPF apenas como hash SHA-256 irreversível | MVP | — |
-| RF-C09 | O sistema deve permitir criar candidatura vinculando o candidato à eleição informando o `SQ_CANDIDATO` do TSE | MVP | — |
-| RF-C10 | O sistema deve exibir, na tela de criação de candidatura, os campos `SQ_CANDIDATO`, `NR_VOTAVEL` e nome de urna exato do TSE | MVP | — |
+| RF-C09 | ✅ O sistema deve permitir criar candidatura vinculando o candidato à eleição informando o `SQ_CANDIDATO` do TSE | MVP | — |
+| RF-C10 | ✅ O sistema deve exibir, na tela de criação de candidatura, os campos `SQ_CANDIDATO`, `NR_VOTAVEL` e nome de urna exato do TSE — preenchidos automaticamente a partir dos dados de `VotacaoSecao` | MVP | — |
 | RF-C11 | O sistema deve validar que o `SQ_CANDIDATO` informado não está já vinculado a outro candidato na mesma eleição | MVP | — |
+| RF-C12 | ✅ O sistema deve exibir a tela de Candidatos com grid de cards responsivo, filtros por texto/UF/partido/cargo e seção expandível de eleições vinculadas | MVP | — |
+| RF-C13 | ✅ O sistema deve permitir ao administrador criar, editar, excluir candidatos e vincular candidaturas diretamente na tela de Candidatos | MVP | — |
 
 ---
 
@@ -34,6 +36,8 @@
 | RF-E06 | O sistema deve permitir comparar candidato com a média do partido por território | Importante | HU-CC04 |
 | RF-E07 | Uma eleição deve cobrir múltiplos cargos — o cargo específico fica na candidatura, não na eleição | MVP | — |
 | RF-E08 | O sistema deve extrair e exibir todos os cargos distintos presentes em uma importação do TSE | MVP | — |
+| RF-E09 | ✅ A página de Eleições deve carregar instantaneamente via KPIs pré-computados (`eleicao_resumo_cache`) e carregar os detalhes de cada eleição (por estado, candidatos) somente ao expandir o card — lazy loading | MVP | — |
+| RF-E10 | ✅ O total de votos exibido deve considerar apenas o cargo principal (`MIN(cd_cargo)`) da eleição, evitando inflação causada pela multiplicidade de cargos por seção | MVP | — |
 
 ---
 
@@ -49,9 +53,10 @@
 | RF-T06 | O sistema deve exibir os componentes do índice de força de forma transparente | MVP | HU-A02 |
 | RF-T07 | O sistema deve permitir classificação manual de território com justificativa registrada | Importante | HU-CE03 |
 | RF-T08 | O sistema deve exibir locais de votação como marcadores (pins) no mapa com a quantidade de votos por seção | MVP | HU-CC06 |
-| RF-T09 | O sistema deve exibir os filtros (eleição, turno, cargo, candidato) diretamente sobre o mapa como card colapsável — ao selecionar um candidato, o mapa coloriza os municípios em degradê proporcional ao percentual de votos obtidos | MVP | HU-CC01 |
-| RF-T10 | O sistema deve suportar navegação hierárquica por nível territorial: Brasil → Região → Estado → Município — com zoom automático ao selecionar cada nível; clicar em município já selecionado desseleciona e retorna ao nível de estado | MVP | HU-CC02 |
-| RF-T15 | O sistema deve colorizar os municípios no mapa com gradiente contínuo de cor (branco → azul claro → azul escuro) proporcional ao percentual de votos do candidato selecionado em relação ao total de votos válidos do município | MVP | HU-C01 |
+| RF-T09 | ✅ O sistema deve exibir os filtros (eleição, turno, cargo, candidato) diretamente sobre o mapa como card colapsável (260px, canto superior esquerdo) com numeração de passos (1→2→3→4); estado colapsado exibe badge com contagem de filtros ativos e nome do candidato | MVP | HU-CC01 |
+| RF-T10 | ✅ O sistema deve suportar navegação hierárquica por nível territorial: Brasil → Região → Estado → Município — com zoom automático ao selecionar cada nível; clicar em município já selecionado desseleciona e retorna ao nível de estado | MVP | HU-CC02 |
+| RF-T15 | ✅ O sistema deve exibir legenda horizontal no canto inferior esquerdo do mapa (80px acima da base) com gradiente multi-cor (amarelo → laranja → vermelho escuro) representando o percentual de votos do candidato selecionado | MVP | HU-C01 |
+| RF-T16 | ✅ O mapa deve colorir estados no nível Brasil apenas quando há dados eleitorais efetivamente carregados — estados sem dados devem aparecer em cinza neutro; a indicação de "UF com dados" é derivada dinamicamente dos dados carregados, nunca hardcoded | MVP | — |
 | RF-T11 | O sistema deve geocodificar automaticamente o endereço dos locais de votação (via Nominatim/OpenStreetMap) para obter lat/lng | MVP | — |
 | RF-T12 | O sistema deve vincular automaticamente cada local de votação ao bairro correspondente via consulta espacial PostGIS | Importante | — |
 | RF-T13 | O sistema deve exibir análise de votos agregados por bairro, incluindo mapa colorido por desempenho | Importante | HU-CC02 |
@@ -79,8 +84,8 @@
 |---|---|---|---|
 | RF-I01 | O sistema deve importar dados do TSE a partir de arquivos CSV (`votacao_secao_AAAA_UF.csv`) | MVP | HU-PQ01 |
 | RF-I02 | O sistema deve validar integridade dos arquivos importados via hash SHA-256 | MVP | — |
-| RF-I03 | O sistema deve registrar cada importação com status, responsável e data | MVP | HU-A05 |
-| RF-I04 | O sistema deve exibir histórico de importações com detalhes de erros por linha | Importante | HU-A05 |
+| RF-I03 | ✅ O sistema deve registrar cada importação com status, tipo, arquivo, linhas processadas, registros inseridos, duração e mensagem de erro na tabela `importacao_log` | MVP | HU-A05 |
+| RF-I04 | ✅ O sistema deve exibir painel de histórico de importações na tela de Importação, com status visual (verde/vermelho), badges de contagem de sucessos e erros, e tabela colapsável com as últimas 100 importações | Importante | HU-A05 |
 | RF-I05 | O sistema deve nunca sobrescrever dados importados — apenas adicionar ou marcar como substituído | MVP | — |
 | RF-I06 | O sistema deve extrair e armazenar o campo `SQ_CANDIDATO` de cada linha do CSV do TSE | MVP | — |
 | RF-I07 | O sistema deve criar automaticamente os registros de `municipio`, `zona_eleitoral`, `secao_eleitoral` e `local_votacao` a partir dos dados do CSV, caso ainda não existam | MVP | — |
@@ -88,6 +93,9 @@
 | RF-I09 | O sistema deve importar polígonos de bairros a partir de GeoJSON da prefeitura ou IBGE | Importante | — |
 | RF-I10 | O sistema deve importar polígonos de zonas eleitorais a partir do shapefile do TSE | Importante | — |
 | RF-I11 | O sistema deve executar geocodificação em lote dos locais de votação pendentes via Nominatim | MVP | — |
+| RF-I12 | ✅ O sistema deve usar PostgreSQL COPY (via `psycopg2.copy_expert`) para inserção em massa de dados de seções — substituindo INSERT linha a linha para melhor performance | MVP | — |
+| RF-I13 | ✅ O sistema deve transmitir o progresso da importação em tempo real via SSE (Server-Sent Events) | MVP | — |
+| RF-I14 | ✅ O sistema deve atualizar automaticamente o cache de resumo (`eleicao_resumo_cache`) ao concluir cada importação de seções | MVP | — |
 
 ---
 
@@ -134,8 +142,8 @@
 | RF-U15 | Somente o `administrador` pode criar, editar, desativar e reativar usuários | MVP | HU-ADM01 |
 | RF-U16 | Somente o `administrador` pode importar dados do TSE e gerenciar eleições e candidaturas | MVP | — |
 | RF-U17 | Toda exportação deve ser registrada em log com usuário, data, escopo e formato | MVP | — |
-| RF-U18 | O formulário de criação de usuário deve exigir: nome, e-mail, senha temporária, perfil e candidato vinculado (obrigatório para perfis não-admin) | MVP | HU-ADM01 |
-| RF-U19 | O formulário de edição de usuário deve permitir alterar: nome, e-mail, perfil, candidato vinculado, permissões individuais e status ativo/inativo | MVP | HU-ADM01 |
+| RF-U18 | ✅ O formulário de criação de usuário deve exigir: nome, e-mail, senha temporária, perfil e candidato vinculado (obrigatório para perfis não-admin) — candidato selecionado via dropdown que carrega dados reais de `GET /candidatos`, exibindo "NOME · PARTIDO · UF" | MVP | HU-ADM01 |
+| RF-U19 | ✅ O formulário de edição de usuário deve permitir alterar: nome, e-mail, perfil, candidato vinculado (dropdown com candidatos reais), permissões individuais e status ativo/inativo | MVP | HU-ADM01 |
 | RF-U20 | O administrador deve poder configurar as permissões padrão de cada perfil (`gestor`, `analista`, `assessor`) em um painel dedicado na tela de Usuários, com efeito imediato sobre novos usuários criados | MVP | HU-ADM02 |
 | RF-U21 | Permissões individuais de um usuário específico sobrepõem as permissões padrão do perfil — essa sobreposição deve ser visualmente indicada na tela de edição | Importante | HU-ADM02 |
 

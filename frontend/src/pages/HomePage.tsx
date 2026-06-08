@@ -9,6 +9,8 @@ import WelcomePage from './WelcomePage'
 import MapaPage from './MapaPage'
 import CandidatosPage from './CandidatosPage'
 import PartidosPage from './PartidosPage'
+import ImportacaoPage from './ImportacaoPage'
+import EleioesPage from './EleioesPage'
 
 export type PageId =
   | 'painel' | 'mapa' | 'candidatos' | 'partidos' | 'pesquisas'
@@ -121,7 +123,9 @@ export default function HomePage() {
             {activePage === 'mapa' && <MapaPage />}
             {activePage === 'candidatos' && <CandidatosPage isAdmin={profile === 'administrador'} />}
             {activePage === 'partidos' && <PartidosPage isAdmin={profile === 'administrador'} />}
-            {activePage !== 'painel' && activePage !== 'usuarios' && activePage !== 'mapa' && activePage !== 'candidatos' && activePage !== 'partidos' && (
+            {activePage === 'importacao' && <ImportacaoPage onNavigate={handleNavigate} />}
+            {activePage === 'eleicoes'   && <EleioesPage />}
+            {activePage !== 'painel' && activePage !== 'usuarios' && activePage !== 'mapa' && activePage !== 'candidatos' && activePage !== 'partidos' && activePage !== 'importacao' && activePage !== 'eleicoes' && (
               <div className={styles.emptyPage}>
                 <i className="fa-solid fa-hammer" />
                 <h2>{PAGE_NAMES[activePage]}</h2>

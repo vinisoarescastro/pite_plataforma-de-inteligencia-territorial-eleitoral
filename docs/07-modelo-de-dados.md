@@ -40,18 +40,38 @@ Criada pela migration `c3d4e5f6a7b8`. Gerenciada por `backend/models/eleitoral.p
 Constraint única: `(ano, turno, tipo)`.
 
 ### `candidatos`
-Criada pela migration `c3d4e5f6a7b8`. Gerenciada por `backend/models/eleitoral.py`.
+Criada pela migration `c3d4e5f6a7b8`. Gerenciada por `backend/models/eleitoral.py`.  
+Endpoints admin: `GET /candidatos`, `POST /candidatos`, `PUT /candidatos/{id}`, `DELETE /candidatos/{id}`.
 
 | Campo | Tipo | Descrição |
 |---|---|---|
 | `id` | UUID (PK) | Identificador único |
-| `nr_candidato` | String | Número nas urnas (`NR_CANDIDATO`) |
+| `nr_candidato` | String (**nullable**) | Número nas urnas — opcional, pois o número muda por eleição/partido e é armazenado em `candidatura.nr_votavel` |
 | `nm_candidato` | String | Nome do candidato (`NM_CANDIDATO`) |
 | `nm_partido` | String | Nome do partido |
 | `sg_partido` | String | Sigla do partido |
 | `sg_uf` | String(2) | UF do candidato |
-| `cargo` | String | Cargo disputado (`DS_CARGO`) |
+| `cargo` | String | Cargo principal (`DS_CARGO`) |
 | `created_at` | DateTime | Data de criação |
+
+### `candidaturas`
+Criada junto ao modelo de dados. Gerenciada por `backend/models/eleitoral.py`.  
+Endpoints: `GET /candidatos/{id}/candidaturas`, `POST /candidaturas`, `PUT /candidaturas/{id}`, `DELETE /candidaturas/{id}`.  
+Endpoint auxiliar: `GET /candidaturas/buscar-votavel?eleicao_id=&sq_candidato_tse=|nome=` (busca em `VotacaoSecao` para pré-preencher campos ao vincular).
+
+| Campo | Tipo | Descrição |
+|---|---|---|
+| `id` | UUID (PK) | Identificador único |
+| `candidato_id` | UUID (FK → candidatos) | Candidato cadastrado na plataforma |
+| `eleicao_id` | UUID (FK → eleicoes) | Eleição à qual pertence |
+| `sq_candidato_tse` | String | `SQ_CANDIDATO` do CSV do TSE — chave de ligação com `VotacaoSecao` |
+| `nr_votavel` | String | `NR_VOTAVEL` do CSV do TSE — número do candidato nas urnas nesta eleição |
+| `nm_votavel` | String | `NM_VOTAVEL` — nome exato como aparece nas urnas |
+| `ds_cargo` | String | `DS_CARGO` — cargo disputado nesta eleição |
+| `situacao` | String | `deferida`, `indeferida`, `cassada`, `eleito`, `nao_eleito`, `segundo_turno` |
+| `created_at` | DateTime | Data de criação |
+
+Constraint única: `(candidato_id, eleicao_id)`.
 
 ### `resultados_eleitorais`
 Criada pela migration `c3d4e5f6a7b8`. Gerenciada por `backend/models/eleitoral.py`.
@@ -69,6 +89,65 @@ Criada pela migration `c3d4e5f6a7b8`. Gerenciada por `backend/models/eleitoral.p
 | `created_at` | DateTime | Data de criação |
 
 Constraint única: `(eleicao_id, candidato_id, cd_municipio_ibge)`.
+
+### `votacao_secao`
+Criada pela migration `c3d4e5f6a7b8`. Coluna `sg_uf` adicionada pela migration `j7e8f9a0b1c2`. Índices adicionais: `ix_vs_eleicao_cargo (eleicao_id, cd_cargo)` e `ix_vs_eleicao_sg_uf (eleicao_id, sg_uf)`.
+
+Granularidade máxima dos dados do TSE — uma linha por candidato/votável por seção eleitoral por cargo.
+
+| Campo | Tipo | Descrição |
+|---|---|---|
+| `id` | BigInteger (PK) | Identificador sequencial |
+| `eleicao_id` | UUID (FK → eleicoes) | Eleição de referência |
+| `cd_municipio_tse` | String(10) | Código do município no TSE (`CD_MUNICIPIO`) |
+| `sg_uf` | String(2) | Sigla da UF — preenchida na importação via `SG_UF` do CSV do TSE; elimina JOIN com `municipio_tse_ibge` nas queries |
+| `nr_turno` | SmallInteger | Turno (`NR_TURNO`) |
+| `nr_zona` | SmallInteger | Número da zona eleitoral (`NR_ZONA`) |
+| `nr_secao` | SmallInteger | Número da seção (`NR_SECAO`) |
+| `nr_local_votacao` | Integer | Número do local de votação (`NR_LOCAL_VOTACAO`) |
+| `nm_local_votacao` | String | Nome do local de votação (`NM_LOCAL_VOTACAO`) |
+| `ds_endereco` | String | Endereço do local (`DS_LOCAL_VOTACAO_ENDERECO`) |
+| `nr_votavel` | String(10) | Número do candidato/partido nas urnas (`NR_VOTAVEL`) |
+| `nm_votavel` | String(160) | Nome nas urnas (`NM_VOTAVEL`) |
+| `cd_cargo` | SmallInteger | Código do cargo (`CD_CARGO`) — usado para filtrar cargo principal (MIN) |
+| `ds_cargo` | String(60) | Descrição do cargo (`DS_CARGO`) |
+| `sq_candidato` | String(20) | Sequencial do candidato no TSE (`SQ_CANDIDATO`) |
+| `qt_votos` | Integer | Quantidade de votos nesta seção (`QT_VOTOS`) |
+
+Constraint única: `(eleicao_id, cd_municipio_tse, nr_zona, nr_secao, nr_votavel, cd_cargo, nr_turno)`.
+
+> **Nota sobre contagem de votos:** A tabela armazena uma linha por candidato por seção por cargo. Para obter o total de votos de uma eleição sem inflação, filtre pelo `MIN(cd_cargo)` da eleição (cargo principal). Somar todas as linhas sem esse filtro resulta em múltiplo do total real (uma vez por cargo).
+
+### `importacao_log`
+Criada pela migration `i6d7e8f9a0b1`. Registra histórico de todas as importações realizadas.
+
+| Campo | Tipo | Descrição |
+|---|---|---|
+| `id` | UUID (PK) | Identificador único |
+| `arquivo` | String(260) | Nome do arquivo importado |
+| `tipo` | String(20) | `secoes`, `resultados` ou `municipios` |
+| `eleicao_id` | UUID (nullable) | Eleição relacionada (quando aplicável) |
+| `status` | String(10) | `sucesso` ou `erro` |
+| `mensagem` | Text | Detalhes do resultado ou erro |
+| `inseridos` | Integer | Registros inseridos com sucesso |
+| `processadas` | Integer | Linhas processadas do arquivo |
+| `duracao_s` | Float | Duração em segundos |
+| `criado_em` | DateTime | Data/hora da importação |
+
+Índice: `ix_importacao_log_criado_em`.
+
+### `eleicao_resumo_cache`
+Criada pela migration `k8f9a0b1c2d3`. Cache pré-computado de KPIs por eleição — atualizado automaticamente ao final de cada importação de seções.
+
+| Campo | Tipo | Descrição |
+|---|---|---|
+| `eleicao_id` | UUID (PK, FK → eleicoes) | Eleição de referência |
+| `municipios` | Integer | Quantidade de municípios com votos |
+| `estados` | Integer | Quantidade de UFs com votos |
+| `votos_total` | BigInteger | Total de votos do cargo principal (`MIN(cd_cargo)`) |
+| `atualizado_em` | DateTime | Data/hora do último recálculo |
+
+> **Objetivo:** Eliminar full scan de `votacao_secao` na listagem de eleições. O endpoint `GET /eleicoes/resumo` lê desta tabela (O(n_eleições)) em vez de agregar milhões de linhas a cada requisição.
 
 > **Observação:** Este modelo é simplificado para o MVP. O modelo completo planejado (com `zona_eleitoral`, `secao_eleitoral`, `local_votacao` etc.) está descrito nas seções abaixo.
 
@@ -346,26 +425,33 @@ WHERE ST_Within(
 
 ## 11. `candidatura`
 
-**Objetivo:** Une candidato, eleição e cargo — representa a participação em um cargo específico de uma eleição. O campo `sq_candidato_tse` é a chave que liga o candidato cadastrado na plataforma aos dados brutos importados do TSE.
+> **Status: implementado.** Tabela `candidaturas` ativa no banco. Ver também seção [Tabelas Implementadas](#tabelas-implementadas-mvp--estado-atual) acima.
+
+**Objetivo:** Une candidato e eleição — representa a participação em uma eleição específica. O campo `sq_candidato_tse` é a chave que liga o candidato cadastrado na plataforma aos dados brutos importados do TSE (`VotacaoSecao`).
 
 | Campo | Tipo | Descrição |
 |---|---|---|
-| `candidatura_id` | UUID (PK) | Identificador único |
-| `candidato_id` | UUID (FK → candidato) | Candidato cadastrado na plataforma |
-| `eleicao_id` | UUID (FK → eleicao) | Eleição à qual pertence |
-| `cargo_id` | UUID (FK → cargo) | Cargo específico disputado nesta eleição |
-| `partido_id` | UUID (FK → partido) | Partido na época da eleição |
-| `municipio_id` | UUID (FK → municipio) | Município base (cargos municipais) |
-| `sigla_uf` | CHAR(2) | Estado (cargos estaduais/federais) |
-| `sq_candidato_tse` | BIGINT | **`SQ_CANDIDATO` do CSV do TSE** — chave de ligação com `resultado_eleitoral`. Informado manualmente ao criar a candidatura. |
-| `nr_votavel` | INTEGER | `NR_VOTAVEL` do CSV do TSE — número do candidato nas urnas |
-| `nm_votavel_tse` | VARCHAR | `NM_VOTAVEL` do CSV do TSE — nome exato como aparece nas urnas |
-| `sg_partido_tse` | CHAR(12) | Sigla do partido no TSE na época (pode diferir do partido atual) |
-| `situacao_candidatura` | ENUM | `deferida`, `indeferida`, `cassada`, `eleito`, `nao_eleito` |
-| `criado_em` | TIMESTAMP | Data de criação |
+| `id` | UUID (PK) | Identificador único |
+| `candidato_id` | UUID (FK → candidatos) | Candidato cadastrado na plataforma |
+| `eleicao_id` | UUID (FK → eleicoes) | Eleição à qual pertence |
+| `sq_candidato_tse` | String | **`SQ_CANDIDATO` do CSV do TSE** — chave de ligação com `VotacaoSecao`. Informado no fluxo de vinculação. |
+| `nr_votavel` | String | `NR_VOTAVEL` do CSV do TSE — número do candidato nas urnas nesta eleição |
+| `nm_votavel` | String | `NM_VOTAVEL` — nome exato como aparece nas urnas |
+| `ds_cargo` | String | `DS_CARGO` — cargo disputado nesta eleição |
+| `situacao` | String | `deferida`, `indeferida`, `cassada`, `eleito`, `nao_eleito`, `segundo_turno` |
+| `created_at` | TIMESTAMP | Data de criação |
 
-**Índices:** `candidato_id`, `eleicao_id`, `sq_candidato_tse`, `partido_id`, `cargo_id`.  
-**Observações:** O `sq_candidato_tse` é copiado do CSV do TSE e informado pelo usuário ao criar a candidatura. A partir desse vínculo, todos os resultados importados com aquele `SQ_CANDIDATO` são automaticamente associados ao candidato cadastrado. Um mesmo candidato pode ter múltiplas candidaturas (uma por eleição × cargo). Pré-candidatos não possuem `sq_candidato_tse` — o campo fica nulo até a primeira candidatura real.
+**Constraint única:** `(candidato_id, eleicao_id)`.  
+**Índices:** `candidato_id`, `eleicao_id`, `sq_candidato_tse`.  
+**Endpoints:** `GET /candidatos/{id}/candidaturas`, `POST /candidaturas`, `PUT /candidaturas/{id}`, `DELETE /candidaturas/{id}`.  
+**Endpoint auxiliar:** `GET /candidaturas/buscar-votavel?eleicao_id=&sq_candidato_tse=|nome=` — busca em `VotacaoSecao` e pré-preenche `nr_votavel`, `nm_votavel` e `ds_cargo` ao informar `sq_candidato_tse`.
+
+**Fluxo de vinculação (ModalCandidatura — 3 passos):**  
+1. Selecionar eleição  
+2. Buscar candidato nos dados do TSE por nome ou `SQ_CANDIDATO` — campos `nr_votavel`, `nm_votavel` e `ds_cargo` são preenchidos automaticamente  
+3. Definir `situacao` (opcional)
+
+**Observações:** O número de urna (`nr_votavel`) muda a cada eleição e por partido, por isso é armazenado aqui e não em `candidatos.nr_candidato`. Um mesmo candidato pode ter múltiplas candidaturas (uma por eleição). Pré-candidatos não possuem `sq_candidato_tse` — o campo fica nulo até a primeira vinculação real.
 
 ---
 
@@ -527,7 +613,8 @@ GROUP BY b.nome ORDER BY total_votos DESC
 | `email` | VARCHAR(255) | E-mail único (index) |
 | `password_hash` | VARCHAR(255) | Hash bcrypt da senha — nunca texto puro |
 | `profile` | ENUM | `administrador`, `gestor`, `analista`, `assessor` |
-| `candidate_name` | VARCHAR(255) | Nome do candidato vinculado — nulo para administrador |
+| `candidate_name` | VARCHAR(255) | Nome do candidato vinculado — mantido por compatibilidade legada; nulo para administrador |
+| `candidato_id` | UUID (FK → candidatos, nullable) | FK para o candidato vinculado — substitui `candidate_name` como referência estrutural; SET NULL ao excluir candidato |
 | `can_export` | BOOLEAN | Permite exportar dados (padrão: `true`) |
 | `can_compare` | BOOLEAN | Permite comparar candidatos (padrão: `false`) |
 | `is_active` | BOOLEAN | Conta ativa ou inativa (padrão: `true`) |
@@ -563,7 +650,7 @@ def pode_ver_comparacao(usuario):
     return usuario.perfil_acesso in ('administrador', 'analista')
 ```
 
-**Observações:** Senha nunca em texto puro (bcrypt). O campo `candidato_id` é nulo para administrador e obrigatório para os demais perfis — o sistema deve validar isso na criação do usuário.
+**Observações:** Senha nunca em texto puro (bcrypt). O campo `candidato_id` é nulo para administrador e obrigatório para os demais perfis — o sistema deve validar isso na criação do usuário. A resposta da API inclui objeto `candidato` aninhado com `id`, `nm_candidato`, `sg_partido`, `cargo` e `sg_uf`. Os formulários de criação e edição de usuário aceitam `candidato_id` e carregam a lista de candidatos em tempo real via `GET /candidatos`.
 
 ---
 

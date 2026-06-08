@@ -59,9 +59,65 @@ export interface ResultadoMapa {
   pct_votos: number | null
 }
 
+export interface CandidatoResumo {
+  id: string
+  nm_candidato: string
+  nr_candidato: string | null
+  sg_partido: string | null
+  sg_uf: string | null
+  cargo: string | null
+  total_votos: number
+  tem_candidatura: boolean
+}
+
+/** Dados de um turno sem detalhes — carregado na abertura da página */
+export interface TurnoResumo {
+  eleicao_id: string
+  turno: number
+  descricao: string | null
+  municipios: number
+  estados: number
+  votos_total: number
+  total_candidatos: number
+  total_candidaturas: number
+}
+
+/** Eleições agrupadas por (ano, tipo) — resumo rápido */
+export interface EleicaoResumo {
+  ano: number
+  tipo: string
+  turnos: TurnoResumo[]
+}
+
+/** Detalhes carregados sob demanda ao expandir um card */
+export interface DetalheEleicao {
+  eleicao_id: string
+  por_estado: { sg_uf: string; municipios: number; votos: number }[]
+  candidatos: CandidatoResumo[]
+}
+
 // ── API ────────────────────────────────────────────────────────
 export const listarEleicoes = () =>
   get<Eleicao[]>('/eleicoes')
+
+/** Resumo rápido de todas as eleições (sem candidatos/por_estado) */
+export const listarResumoEleicoes = () =>
+  get<EleicaoResumo[]>('/eleicoes/resumo')
+
+/** Detalhes de uma eleição específica (por_estado + candidatos) — carregado sob demanda */
+export const buscarDetalheEleicao = (eleicaoId: string) =>
+  get<DetalheEleicao>(`/eleicoes/${eleicaoId}/detalhes`)
+
+export async function excluirEleicao(eleicaoId: string): Promise<void> {
+  const res = await fetch(`${(import.meta.env.VITE_API_URL ?? 'http://localhost:8000')}/eleicoes/${eleicaoId}`, {
+    method: 'DELETE',
+    headers: authHeaders() as Record<string, string>,
+  })
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}))
+    throw new Error(body.detail ?? `Erro ${res.status}`)
+  }
+}
 
 export const listarCandidatos = () =>
   get<Candidato[]>('/candidatos')

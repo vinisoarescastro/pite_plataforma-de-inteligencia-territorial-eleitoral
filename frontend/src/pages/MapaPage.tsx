@@ -27,7 +27,8 @@ const UF_NOMES: Record<string, string> = {
   SE:'Sergipe', TO:'Tocantins',
 }
 
-const UF_COM_DADOS = new Set(['GO'])
+// Populado dinamicamente ao carregar dados eleitorais do mapa
+const UF_COM_DADOS_INICIAL = new Set<string>()
 
 type Nivel = 'brasil' | 'regiao' | 'estado' | 'municipio'
 
@@ -68,9 +69,9 @@ function corPorPct(pct: number): string {
     : lerpColor(COR_MID, COR_MAX, (t - 0.5) * 2)
 }
 
-function estiloBase(uf: string, nav: NavState): L.PathOptions {
+function estiloBase(uf: string, nav: NavState, ufsComDados: Set<string>): L.PathOptions {
   const regiaoUf = REGIOES.find(r => r.ufs.includes(uf))
-  const temDados = UF_COM_DADOS.has(uf)
+  const temDados = ufsComDados.has(uf)
 
   switch (nav.nivel) {
     case 'brasil':
@@ -133,6 +134,8 @@ export default function MapaPage() {
   const [dadosMapa, setDadosMapa]       = useState<VotacaoMunicipio[]>([])
   const [ranking, setRanking]           = useState<RankingPorCargo[]>([])
   const [loadingRanking, setLoadingRanking] = useState(false)
+  const [ufsComDados, setUfsComDados]   = useState<Set<string>>(UF_COM_DADOS_INICIAL)
+  const ufsComDadosRef                  = useRef<Set<string>>(UF_COM_DADOS_INICIAL)
 
   function setNav(next: NavState) {
     navRef.current = next
@@ -203,16 +206,17 @@ export default function MapaPage() {
   }, [eleicaoId, turno, cargo])
 
   const recolorirMapa = useCallback(async () => {
-    if (!eleicaoId || !nrVotavel || !nomeVotavelSel) {
+    const ufAtual = navRef.current.estado
+    if (!eleicaoId || !nrVotavel || !nomeVotavelSel || !ufAtual) {
       votacaoMap.current.clear()
       setTemDadosMapa(false)
       setDadosMapa([])
-      geojsonLayer.current?.setStyle(f => estiloBase((f as GeoJSON.Feature)?.properties?.SIGLA_UF ?? '', navRef.current))
+      geojsonLayer.current?.setStyle(f => estiloBase((f as GeoJSON.Feature)?.properties?.SIGLA_UF ?? '', navRef.current, ufsComDadosRef.current))
       return
     }
     try {
       const dados: VotacaoMunicipio[] = await buscarVotacaoMapaUF(
-        'GO', eleicaoId, { nr_votavel: nrVotavel, nm_votavel: nomeVotavelSel, nr_turno: turno ?? undefined }
+        ufAtual, eleicaoId, { nr_votavel: nrVotavel, nm_votavel: nomeVotavelSel, nr_turno: turno ?? undefined }
       )
       const ordenados = [...dados].sort((a, b) => b.total_votos - a.total_votos)
       setDadosMapa(ordenados)
@@ -222,6 +226,12 @@ export default function MapaPage() {
           votacaoMap.current.set(String(parseInt(d.cd_municipio_ibge, 10)), d.pct_votos ?? 0)
         }
       })
+      // Marca essa UF como tendo dados no indicador do mapa-brasil
+      if (dados.length > 0) {
+        const novas = new Set(ufsComDadosRef.current).add(ufAtual)
+        ufsComDadosRef.current = novas
+        setUfsComDados(novas)
+      }
       setTemDadosMapa(votacaoMap.current.size > 0)
       geojsonLayer.current?.setStyle(f => estiloComVotos(f as GeoJSON.Feature))
       if (selectedMunPath.current) {
@@ -239,8 +249,8 @@ export default function MapaPage() {
   function estiloComVotos(feature: GeoJSON.Feature | undefined): L.PathOptions {
     const uf   = feature?.properties?.SIGLA_UF ?? ''
     const ibge = feature?.properties?.CD_MUN ?? ''
-    const base = estiloBase(uf, navRef.current)
-    if (votacaoMap.current.size > 0 && uf === 'GO') {
+    const base = estiloBase(uf, navRef.current, ufsComDadosRef.current)
+    if (votacaoMap.current.size > 0 && uf === navRef.current.estado) {
       const key = String(parseInt(String(ibge), 10))
       const pct = votacaoMap.current.get(key)
       if (pct != null) return { ...base, fillColor: corPorPct(pct), fillOpacity: 0.8 }
@@ -327,7 +337,7 @@ export default function MapaPage() {
     if (votacaoMap.current.size > 0) {
       geojsonLayer.current?.setStyle(f => estiloComVotos(f as GeoJSON.Feature))
     } else {
-      geojsonLayer.current?.setStyle(f => estiloBase((f as GeoJSON.Feature)?.properties?.SIGLA_UF ?? '', nav))
+      geojsonLayer.current?.setStyle(f => estiloBase((f as GeoJSON.Feature)?.properties?.SIGLA_UF ?? '', nav, ufsComDadosRef.current))
     }
     atualizarContorno(nav)
     if (nav.nivel === 'municipio' && selectedMunPath.current) {
@@ -361,7 +371,7 @@ export default function MapaPage() {
       })
 
       const layer = L.geoJSON(data, {
-        style: (f) => estiloBase((f as GeoJSON.Feature)?.properties?.SIGLA_UF ?? '', navRef.current),
+        style: (f) => estiloBase((f as GeoJSON.Feature)?.properties?.SIGLA_UF ?? '', navRef.current, ufsComDadosRef.current),
         onEachFeature: (feature, layer) => {
           const p      = feature.properties ?? {}
           const nome   = p.NM_MUN    ?? 'Município'

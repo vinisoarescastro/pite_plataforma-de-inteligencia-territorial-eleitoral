@@ -1,6 +1,6 @@
 import uuid
 import enum
-from sqlalchemy import Column, String, SmallInteger, Integer, BigInteger, ForeignKey, UniqueConstraint
+from sqlalchemy import Column, String, SmallInteger, Integer, BigInteger, Float, ForeignKey, UniqueConstraint, Text, Index
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func
 from sqlalchemy import DateTime
@@ -123,12 +123,39 @@ class ResultadoEleitoral(Base):
     )
 
 
+class EleicaoResumoCache(Base):
+    """Resumo pré-computado por eleição — atualizado ao final de cada importação."""
+    __tablename__ = "eleicao_resumo_cache"
+
+    eleicao_id   = Column(UUID(as_uuid=True), primary_key=True)
+    municipios   = Column(Integer,    nullable=False, default=0)
+    estados      = Column(Integer,    nullable=False, default=0)
+    votos_total  = Column(BigInteger, nullable=False, default=0)
+    atualizado_em = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class ImportacaoLog(Base):
+    """Histórico de importações realizadas."""
+    __tablename__ = "importacao_log"
+
+    id          = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    arquivo     = Column(String(260), nullable=True)
+    tipo        = Column(String(20),  nullable=False)  # 'secoes' | 'resultados' | 'municipios'
+    eleicao_id  = Column(UUID(as_uuid=True), nullable=True)
+    status      = Column(String(10),  nullable=False)  # 'sucesso' | 'erro'
+    mensagem    = Column(Text,        nullable=True)
+    inseridos   = Column(Integer,     nullable=True)
+    processadas = Column(Integer,     nullable=True)
+    duracao_s   = Column(Float,       nullable=True)
+    criado_em   = Column(DateTime(timezone=True), server_default=func.now())
+
+
 class VotacaoSecao(Base):
     """Votos por seção eleitoral — granularidade máxima do TSE."""
     __tablename__ = "votacao_secao"
 
     id               = Column(BigInteger, primary_key=True, autoincrement=True)
-    eleicao_id       = Column(UUID(as_uuid=True), ForeignKey("eleicoes.id", ondelete="CASCADE"), nullable=False)
+    eleicao_id       = Column(UUID(as_uuid=True), ForeignKey("eleicoes.id", ondelete="CASCADE"), nullable=False, index=True)
     cd_municipio_tse = Column(String(10),    nullable=False, index=True)
     nr_turno         = Column(SmallInteger,  nullable=False, default=1)
     nr_zona          = Column(SmallInteger,  nullable=False)

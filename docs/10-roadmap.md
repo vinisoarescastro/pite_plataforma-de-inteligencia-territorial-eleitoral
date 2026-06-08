@@ -44,9 +44,16 @@
 - [x] Configurar projeto React + Vite + Leaflet.
 - [x] Implementar autenticação JWT (python-jose) e controle de acesso RBAC (single-tenant).
 - [x] Importar dados do TSE para as eleições selecionadas (Python + Pandas) — scripts prontos; mapeamento TSE→IBGE importado (5.571 municípios).
-- [ ] Implementar módulo de candidatos e pré-candidatos (CRUD frontend).
+- [x] Implementar módulo de candidatos — página Candidatos com grid de cards, filtros, seção de eleições vinculadas, CRUD admin e fluxo de vinculação de candidatura (ModalCandidatura).
 - [ ] Implementar visualização de histórico eleitoral com filtros.
-- [x] Implementar mapa interativo com Leaflet — navegação hierárquica Brasil→Região→Estado→Município, contornos dissolvidos, painel lateral com dados eleitorais.
+- [x] Implementar mapa interativo com Leaflet — navegação hierárquica Brasil→Região→Estado→Município, contornos dissolvidos, painel lateral com dados eleitorais, filtros colapsáveis com numeração de passos e legenda horizontal com gradiente multi-cor.
+- [x] Refatorar importação de seções TSE com PostgreSQL COPY (psycopg2) + SSE + conexão dedicada fora do pool SQLAlchemy.
+- [x] Implementar histórico de importações (`importacao_log`) com painel colapsável na tela de Importação.
+- [x] Implementar página de Eleições com lazy loading — KPIs carregados via cache pré-computado (`eleicao_resumo_cache`); detalhes carregados por demanda ao expandir card.
+- [x] Corrigir contagem de votos (filtro por cargo principal `MIN(cd_cargo)` por eleição).
+- [x] Adicionar coluna `sg_uf` em `votacao_secao` para eliminar JOIN com `municipio_tse_ibge` nas queries de resumo e detalhe.
+- [x] Corrigir mapa territorial: remover hardcode `'GO'` em `UF_COM_DADOS` e `buscarVotacaoMapaUF`; colorização de estados e busca de votos agora dinâmicas por UF selecionada.
+- [x] Aplicar migration `k8f9a0b1c2d3` — tabela `eleicao_resumo_cache` criada; endpoint `GET /eleicoes/resumo` funcional.
 - [ ] Implementar painel analítico principal com indicadores.
 - [ ] Implementar exportação de dados em CSV.
 - [ ] Testes com usuários representativos dos perfis definidos.
