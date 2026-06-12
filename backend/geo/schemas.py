@@ -16,6 +16,7 @@ class BairroOut(BaseModel):
     cd_municipio_ibge: str | None
     nm_municipio: str | None
     total_locais: int = 0
+    tem_geom: bool = False
 
     class Config:
         from_attributes = True

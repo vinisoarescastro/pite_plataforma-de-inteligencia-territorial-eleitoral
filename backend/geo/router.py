@@ -1,5 +1,7 @@
+import json
 import uuid
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from sqlalchemy import text, func
 from database import get_db
@@ -33,7 +35,67 @@ def listar_municipios(
     return [MunicipioOut(cd_tse=r.cd_tse, cd_ibge=r.cd_ibge, nm_municipio=r.nm_municipio) for r in rows]
 
 
-# ── Bairros ────────────────────────────────────────────────────────────────────
+# ── GeoJSON de bairros (DEVE vir antes de /bairros/{id}) ──────────────────────
+
+@router.get("/bairros/geojson")
+def bairros_geojson(
+    sg_uf: str,
+    cd_municipio_ibge: str | None = None,
+    db: Session = Depends(get_db),
+    _=Depends(get_current_user),
+):
+    sql = """
+        SELECT
+            id::text,
+            nm_bairro,
+            cd_municipio_ibge,
+            nm_municipio,
+            ST_AsGeoJSON(geom)::json AS geometry
+        FROM bairro
+        WHERE sg_uf = :uf
+          AND geom IS NOT NULL
+    """
+    params: dict = {"uf": sg_uf}
+    if cd_municipio_ibge:
+        sql += " AND cd_municipio_ibge = :cd"
+        params["cd"] = cd_municipio_ibge
+
+    rows = db.execute(text(sql), params).fetchall()
+    features = [
+        {
+            "type": "Feature",
+            "geometry": row.geometry,
+            "properties": {
+                "id": row.id,
+                "nm_bairro": row.nm_bairro,
+                "cd_municipio_ibge": row.cd_municipio_ibge,
+                "nm_municipio": row.nm_municipio,
+            },
+        }
+        for row in rows
+    ]
+    return JSONResponse({"type": "FeatureCollection", "features": features})
+
+
+# ── CRUD de bairros ────────────────────────────────────────────────────────────
+
+def _contar_locais(db: Session, bairro_ids: list[uuid.UUID]) -> dict[uuid.UUID, int]:
+    if not bairro_ids:
+        return {}
+    rows = db.execute(
+        text("SELECT bairro_id, COUNT(*) AS c FROM bairro_local_votacao WHERE bairro_id = ANY(:ids) GROUP BY bairro_id"),
+        {"ids": bairro_ids},
+    ).fetchall()
+    return {r.bairro_id: r.c for r in rows}
+
+
+def _tem_geom(db: Session, bairro_id: uuid.UUID) -> bool:
+    row = db.execute(
+        text("SELECT geom IS NOT NULL AS has_geom FROM bairro WHERE id = :id"),
+        {"id": str(bairro_id)},
+    ).fetchone()
+    return bool(row and row.has_geom)
+
 
 @router.get("/bairros", response_model=list[BairroOut])
 def listar_bairros(
@@ -47,23 +109,22 @@ def listar_bairros(
         q = q.filter(Bairro.cd_municipio_ibge == cd_municipio_ibge)
     bairros = q.order_by(Bairro.nm_bairro).all()
 
-    contagens: dict[uuid.UUID, int] = {}
+    contagens = _contar_locais(db, [b.id for b in bairros])
+
+    geom_ids: set[str] = set()
     if bairros:
-        ids = [b.id for b in bairros]
         rows = db.execute(
-            text("SELECT bairro_id, COUNT(*) AS c FROM bairro_local_votacao WHERE bairro_id = ANY(:ids) GROUP BY bairro_id"),
-            {"ids": ids},
+            text("SELECT id::text FROM bairro WHERE id = ANY(:ids) AND geom IS NOT NULL"),
+            {"ids": [b.id for b in bairros]},
         ).fetchall()
-        contagens = {r.bairro_id: r.c for r in rows}
+        geom_ids = {r.id for r in rows}
 
     return [
         BairroOut(
-            id=b.id,
-            nm_bairro=b.nm_bairro,
-            sg_uf=b.sg_uf,
-            cd_municipio_ibge=b.cd_municipio_ibge,
-            nm_municipio=b.nm_municipio,
+            id=b.id, nm_bairro=b.nm_bairro, sg_uf=b.sg_uf,
+            cd_municipio_ibge=b.cd_municipio_ibge, nm_municipio=b.nm_municipio,
             total_locais=contagens.get(b.id, 0),
+            tem_geom=str(b.id) in geom_ids,
         )
         for b in bairros
     ]
@@ -87,7 +148,7 @@ def criar_bairro(
     return BairroOut(
         id=bairro.id, nm_bairro=bairro.nm_bairro, sg_uf=bairro.sg_uf,
         cd_municipio_ibge=bairro.cd_municipio_ibge, nm_municipio=bairro.nm_municipio,
-        total_locais=0,
+        total_locais=0, tem_geom=False,
     )
 
 
@@ -110,7 +171,7 @@ def atualizar_bairro(
     return BairroOut(
         id=bairro.id, nm_bairro=bairro.nm_bairro, sg_uf=bairro.sg_uf,
         cd_municipio_ibge=bairro.cd_municipio_ibge, nm_municipio=bairro.nm_municipio,
-        total_locais=total,
+        total_locais=total, tem_geom=_tem_geom(db, bairro_id),
     )
 
 
@@ -124,6 +185,37 @@ def excluir_bairro(
     if not bairro:
         raise HTTPException(404, "Bairro não encontrado.")
     db.delete(bairro)
+    db.commit()
+
+
+# ── Geometria do bairro ────────────────────────────────────────────────────────
+
+@router.patch("/bairros/{bairro_id}/geom", status_code=200)
+def salvar_geom(
+    bairro_id: uuid.UUID,
+    payload: dict,
+    db: Session = Depends(get_db),
+    _=Depends(require_admin),
+):
+    if not db.query(Bairro).filter(Bairro.id == bairro_id).first():
+        raise HTTPException(404, "Bairro não encontrado.")
+    db.execute(
+        text("UPDATE bairro SET geom = ST_SetSRID(ST_GeomFromGeoJSON(:geom), 4326) WHERE id = :id"),
+        {"geom": json.dumps(payload), "id": str(bairro_id)},
+    )
+    db.commit()
+    return {"ok": True}
+
+
+@router.delete("/bairros/{bairro_id}/geom", status_code=204)
+def remover_geom(
+    bairro_id: uuid.UUID,
+    db: Session = Depends(get_db),
+    _=Depends(require_admin),
+):
+    if not db.query(Bairro).filter(Bairro.id == bairro_id).first():
+        raise HTTPException(404, "Bairro não encontrado.")
+    db.execute(text("UPDATE bairro SET geom = NULL WHERE id = :id"), {"id": str(bairro_id)})
     db.commit()
 
 
@@ -142,20 +234,13 @@ def listar_locais_bairro(
     result = []
     for lnk in links:
         count = db.execute(
-            text("""
-                SELECT COUNT(DISTINCT nr_secao)
-                FROM votacao_secao
-                WHERE sg_uf = :uf AND cd_municipio_tse = :cd AND nr_local_votacao = :nr
-            """),
+            text("SELECT COUNT(DISTINCT nr_secao) FROM votacao_secao WHERE sg_uf=:uf AND cd_municipio_tse=:cd AND nr_local_votacao=:nr"),
             {"uf": lnk.sg_uf, "cd": lnk.cd_municipio_tse, "nr": lnk.nr_local_votacao},
         ).scalar() or 0
         result.append(LocalVotacaoOut(
-            sg_uf=lnk.sg_uf,
-            cd_municipio_tse=lnk.cd_municipio_tse,
-            nr_local_votacao=lnk.nr_local_votacao,
-            nm_local_votacao=lnk.nm_local_votacao,
-            ds_endereco=lnk.ds_endereco,
-            total_secoes=count,
+            sg_uf=lnk.sg_uf, cd_municipio_tse=lnk.cd_municipio_tse,
+            nr_local_votacao=lnk.nr_local_votacao, nm_local_votacao=lnk.nm_local_votacao,
+            ds_endereco=lnk.ds_endereco, total_secoes=count,
         ))
     return result
 
@@ -169,20 +254,16 @@ def vincular_local(
 ):
     if not db.query(Bairro).filter(Bairro.id == bairro_id).first():
         raise HTTPException(404, "Bairro não encontrado.")
-    existe = db.query(BairroLocalVotacao).filter(
+    if db.query(BairroLocalVotacao).filter(
         BairroLocalVotacao.bairro_id == bairro_id,
         BairroLocalVotacao.sg_uf == data.sg_uf,
         BairroLocalVotacao.cd_municipio_tse == data.cd_municipio_tse,
         BairroLocalVotacao.nr_local_votacao == data.nr_local_votacao,
-    ).first()
-    if existe:
+    ).first():
         raise HTTPException(409, "Local já vinculado a este bairro.")
     db.add(BairroLocalVotacao(
-        bairro_id=bairro_id,
-        sg_uf=data.sg_uf,
-        cd_municipio_tse=data.cd_municipio_tse,
-        nr_local_votacao=data.nr_local_votacao,
-        nm_local_votacao=data.nm_local_votacao,
+        bairro_id=bairro_id, sg_uf=data.sg_uf, cd_municipio_tse=data.cd_municipio_tse,
+        nr_local_votacao=data.nr_local_votacao, nm_local_votacao=data.nm_local_votacao,
         ds_endereco=data.ds_endereco,
     ))
     db.commit()
@@ -223,26 +304,22 @@ def buscar_locais_votacao(
 ):
     rows = db.execute(
         text("""
-            SELECT
-                sg_uf,
-                cd_municipio_tse,
-                nr_local_votacao,
-                MAX(nm_local_votacao) AS nm_local_votacao,
-                MAX(ds_endereco)      AS ds_endereco,
-                COUNT(DISTINCT nr_secao) AS total_secoes
+            SELECT sg_uf, cd_municipio_tse, nr_local_votacao,
+                   MAX(nm_local_votacao) AS nm_local_votacao,
+                   MAX(ds_endereco)      AS ds_endereco,
+                   COUNT(DISTINCT nr_secao) AS total_secoes
             FROM votacao_secao
             WHERE sg_uf = :uf
               AND cd_municipio_tse = :cd
               AND nr_local_votacao IS NOT NULL
-              AND (:busca = '' OR UPPER(nm_local_votacao) LIKE UPPER(:busca_like))
+              AND (:busca = '' OR UPPER(nm_local_votacao) LIKE UPPER(:like))
             GROUP BY sg_uf, cd_municipio_tse, nr_local_votacao
             ORDER BY MAX(nm_local_votacao)
             LIMIT 60
         """),
-        {"uf": sg_uf, "cd": cd_municipio_tse, "busca": busca, "busca_like": f"%{busca}%"},
+        {"uf": sg_uf, "cd": cd_municipio_tse, "busca": busca, "like": f"%{busca}%"},
     ).fetchall()
 
-    # Locais já vinculados ao bairro selecionado (para ocultar da lista)
     linked: set[int] = set()
     if bairro_id:
         try:
@@ -259,12 +336,9 @@ def buscar_locais_votacao(
 
     return [
         LocalVotacaoOut(
-            sg_uf=r.sg_uf,
-            cd_municipio_tse=r.cd_municipio_tse,
-            nr_local_votacao=r.nr_local_votacao,
-            nm_local_votacao=r.nm_local_votacao,
-            ds_endereco=r.ds_endereco,
-            total_secoes=r.total_secoes,
+            sg_uf=r.sg_uf, cd_municipio_tse=r.cd_municipio_tse,
+            nr_local_votacao=r.nr_local_votacao, nm_local_votacao=r.nm_local_votacao,
+            ds_endereco=r.ds_endereco, total_secoes=r.total_secoes,
         )
         for r in rows
         if r.nr_local_votacao not in linked

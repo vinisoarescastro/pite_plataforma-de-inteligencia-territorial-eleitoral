@@ -34,6 +34,7 @@ export interface BairroOut {
   cd_municipio_ibge: string | null
   nm_municipio: string | null
   total_locais: number
+  tem_geom: boolean
 }
 
 export interface LocalVotacaoOut {
@@ -86,6 +87,31 @@ export async function vincularLocal(bairroId: string, local: Omit<LocalVotacaoOu
 export async function desvincularLocal(bairroId: string, sg_uf: string, cd_municipio_tse: string, nr_local_votacao: number): Promise<void> {
   const p = new URLSearchParams({ sg_uf, cd_municipio_tse, nr_local_votacao: String(nr_local_votacao) })
   const res = await req('DELETE', `/geo/bairros/${bairroId}/locais?${p}`)
+  if (!res.ok) { const b = await res.json().catch(() => ({})); throw new Error(b.detail ?? `Erro ${res.status}`) }
+}
+
+// ── Geometria ──────────────────────────────────────────────────
+export interface BairroFeature {
+  type: 'Feature'
+  geometry: object
+  properties: { id: string; nm_bairro: string; cd_municipio_ibge: string | null; nm_municipio: string | null }
+}
+
+export interface BairrosGeoJSON {
+  type: 'FeatureCollection'
+  features: BairroFeature[]
+}
+
+export const buscarBairrosGeoJSON = (sg_uf: string, cd_municipio_ibge: string) =>
+  get<BairrosGeoJSON>(`/geo/bairros/geojson?sg_uf=${sg_uf}&cd_municipio_ibge=${cd_municipio_ibge}`)
+
+export async function salvarGeomBairro(id: string, geom: object): Promise<void> {
+  const res = await req('PATCH', `/geo/bairros/${id}/geom`, geom)
+  if (!res.ok) { const b = await res.json().catch(() => ({})); throw new Error(b.detail ?? `Erro ${res.status}`) }
+}
+
+export async function removerGeomBairro(id: string): Promise<void> {
+  const res = await req('DELETE', `/geo/bairros/${id}/geom`)
   if (!res.ok) { const b = await res.json().catch(() => ({})); throw new Error(b.detail ?? `Erro ${res.status}`) }
 }
 
