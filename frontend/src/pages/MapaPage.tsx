@@ -3,9 +3,10 @@ import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import styles from './MapaPage.module.css'
 import {
-  listarEleicoes, listarCargos, listarVotaveis,
-  buscarVotacaoMapaUF, buscarZonasPorIbge, buscarRankingMunicipio,
+  listarEleicoes, listarCargos, listarVotaveis, buscarUfsComDados,
+  buscarVotacaoMapaUF, buscarZonasPorIbge, buscarRankingMunicipio, buscarVotacaoMapaBrasil,
   type Eleicao, type Votavel, type VotacaoMunicipio, type VotacaoZona, type RankingPorCargo,
+  type RankingCandidatoItem, type VotacaoUF,
 } from '../services/eleitoral'
 
 // ── Regiões ────────────────────────────────────────────────────────
@@ -29,6 +30,20 @@ const UF_NOMES: Record<string, string> = {
 
 // Populado dinamicamente ao carregar dados eleitorais do mapa
 const UF_COM_DADOS_INICIAL = new Set<string>()
+
+const CARGOS_NACIONAIS = ['PRESIDENTE', 'VICE-PRESIDENTE']
+const CARGOS_ESTADUAIS = [
+  'GOVERNADOR', 'VICE-GOVERNADOR', 'SENADOR',
+  'DEPUTADO FEDERAL', 'DEPUTADO ESTADUAL', 'DEPUTADO DISTRITAL',
+  '1º SUPLENTE', '2º SUPLENTE',
+]
+function cargoScope(ds_cargo: string | null): 'municipal' | 'estadual' | 'nacional' {
+  if (!ds_cargo) return 'municipal'
+  const c = ds_cargo.toUpperCase()
+  if (CARGOS_NACIONAIS.some(x => c.includes(x))) return 'nacional'
+  if (CARGOS_ESTADUAIS.some(x => c.includes(x))) return 'estadual'
+  return 'municipal'
+}
 
 type Nivel = 'brasil' | 'regiao' | 'estado' | 'municipio'
 
@@ -137,6 +152,14 @@ export default function MapaPage() {
   const [, setUfsComDados]              = useState<Set<string>>(UF_COM_DADOS_INICIAL)
   const ufsComDadosRef                  = useRef<Set<string>>(UF_COM_DADOS_INICIAL)
 
+  // ── Ver todos / perfil do candidato ─────────────────────────
+  const [verTodosAberto, setVerTodosAberto]         = useState<Record<string, boolean>>({})
+  const [rankingCompleto, setRankingCompleto]       = useState<Record<string, RankingCandidatoItem[]>>({})
+  const [carregandoCompleto, setCarregandoCompleto] = useState<Record<string, boolean>>({})
+  const [perfilAba, setPerfilAba]                   = useState<'municipio' | 'estado' | 'brasil'>('municipio')
+  const [dadosBrasil, setDadosBrasil]               = useState<VotacaoUF[]>([])
+  const [loadingBrasil, setLoadingBrasil]           = useState(false)
+
   function setNav(next: NavState) {
     navRef.current = next
     setNavState(next)
@@ -182,6 +205,20 @@ export default function MapaPage() {
       .then(data => { setCargos(data); setCargo(''); setNrVotavel('') })
       .catch(() => { setCargos([]) })
       .finally(() => setLoadingFiltros(false))
+  }, [eleicaoId])
+
+  useEffect(() => {
+    if (!eleicaoId) return
+    buscarUfsComDados(eleicaoId)
+      .then(ufs => {
+        const novas = new Set(ufs)
+        ufsComDadosRef.current = novas
+        setUfsComDados(novas)
+        geojsonLayer.current?.setStyle(f =>
+          estiloBase((f as GeoJSON.Feature)?.properties?.SIGLA_UF ?? '', navRef.current, novas)
+        )
+      })
+      .catch(() => {})
   }, [eleicaoId])
 
   useEffect(() => {
@@ -460,13 +497,65 @@ export default function MapaPage() {
     if (layers.length > 0) mapInst.current?.fitBounds(L.featureGroup(layers as L.Layer[]).getBounds(), { padding: [30, 30] })
   }
 
-  const eleicaoAtual = eleicoes.find(e => e.id === eleicaoId) ?? null
-
   const votaveisUnicos = useMemo(() =>
     votaveis.filter((v, i, arr) =>
       arr.findIndex(x => x.nr_votavel === v.nr_votavel && x.nm_votavel === v.nm_votavel) === i
     )
   , [votaveis])
+
+  const votavelAtual = votaveisUnicos.find(v => v.nr_votavel === nrVotavel && v.nm_votavel === nomeVotavelSel)
+    ?? votaveisUnicos.find(v => v.nr_votavel === nrVotavel)
+
+  // Reseta "ver todos" ao trocar de município
+  useEffect(() => {
+    setVerTodosAberto({})
+    setRankingCompleto({})
+  }, [nav.municipio?.codigo])
+
+  // Aba padrão: escopo mais amplo do cargo
+  useEffect(() => {
+    if (!nrVotavel || !votavelAtual) return
+    const scope = cargoScope(votavelAtual.ds_cargo)
+    setPerfilAba(scope === 'nacional' ? 'brasil' : scope === 'estadual' ? 'estado' : 'municipio')
+  }, [nrVotavel, votavelAtual?.ds_cargo])
+
+  // Dados nacionais (só para cargos de escopo nacional)
+  useEffect(() => {
+    if (!nrVotavel || !nomeVotavelSel || !eleicaoId || !votavelAtual) { setDadosBrasil([]); return }
+    if (cargoScope(votavelAtual.ds_cargo) !== 'nacional') { setDadosBrasil([]); return }
+    setLoadingBrasil(true)
+    buscarVotacaoMapaBrasil(eleicaoId, { nr_votavel: nrVotavel, nm_votavel: nomeVotavelSel, nr_turno: turno ?? undefined })
+      .then(d => setDadosBrasil(d)).catch(() => setDadosBrasil([]))
+      .finally(() => setLoadingBrasil(false))
+  }, [nrVotavel, nomeVotavelSel, eleicaoId, turno, votavelAtual?.ds_cargo])
+
+  function handleSelecionarCandidato(cand: { nr_votavel: string; nm_votavel: string }) {
+    setNrVotavel(cand.nr_votavel)
+    setNomeVotavelSel(cand.nm_votavel)
+    setCandAberto(false)
+  }
+
+  async function handleVerTodos(ds_cargo: string) {
+    if (verTodosAberto[ds_cargo]) {
+      setVerTodosAberto(prev => ({ ...prev, [ds_cargo]: false })); return
+    }
+    if (rankingCompleto[ds_cargo]) {
+      setVerTodosAberto(prev => ({ ...prev, [ds_cargo]: true })); return
+    }
+    if (!nav.municipio) return
+    setCarregandoCompleto(prev => ({ ...prev, [ds_cargo]: true }))
+    try {
+      const data = await buscarRankingMunicipio(nav.municipio.codigo, eleicaoId, {
+        nr_turno: turno ?? undefined, ds_cargo, limit: 999,
+      })
+      const grupo = data.find(g => g.ds_cargo === ds_cargo)
+      setRankingCompleto(prev => ({ ...prev, [ds_cargo]: grupo?.candidatos ?? [] }))
+      setVerTodosAberto(prev => ({ ...prev, [ds_cargo]: true }))
+    } catch {}
+    finally { setCarregandoCompleto(prev => ({ ...prev, [ds_cargo]: false })) }
+  }
+
+  const eleicaoAtual = eleicoes.find(e => e.id === eleicaoId) ?? null
 
   const votaveisFiltrados = useMemo(() => {
     const norm = (s: string) =>
@@ -488,9 +577,6 @@ export default function MapaPage() {
     })
     return filtrados
   }, [votaveisUnicos, buscaCand])
-
-  const votavelAtual = votaveisUnicos.find(v => v.nr_votavel === nrVotavel && v.nm_votavel === nomeVotavelSel)
-    ?? votaveisUnicos.find(v => v.nr_votavel === nrVotavel)
 
   // título do painel
   const panelTitle =
@@ -835,122 +921,220 @@ export default function MapaPage() {
             {/* ══ NÍVEL: MUNICÍPIO ══ */}
             {nav.nivel === 'municipio' && nav.municipio && (
               <>
-                {/* Cabeçalho do município */}
                 <div className={styles.munHeader}>
                   <div className={styles.munNome}>{nav.municipio.nome}</div>
                   <div className={styles.munMeta}>
-                    <span
-                      className={styles.munBadgeUf}
-                      style={{ background: (nav.regiao?.cor ?? '#3b82f6') + '22', color: nav.regiao?.cor ?? '#3b82f6' }}
-                    >
+                    <span className={styles.munBadgeUf} style={{ background: (nav.regiao?.cor ?? '#3b82f6') + '22', color: nav.regiao?.cor ?? '#3b82f6' }}>
                       {nav.municipio.uf}
                     </span>
                     <span className={styles.munCod}>Cód. IBGE {nav.municipio.codigo || '—'}</span>
                   </div>
                 </div>
 
-                {/* COM candidato → votos totais + zonas */}
-                {nrVotavel && votavelAtual && (
-                  <>
-                    <div className={styles.candidatoBox}>
-                      <div className={styles.candidatoNome}>{votavelAtual.nm_votavel}</div>
-                      <div className={styles.candidatoMeta}>
-                        Nº {votavelAtual.nr_votavel}
-                        {votavelAtual.ds_cargo && <> · {votavelAtual.ds_cargo}</>}
-                        {eleicaoAtual && <> · {eleicaoAtual.ano}{turnos.length > 1 ? ` T${turno}` : ''}</>}
-                      </div>
-                    </div>
-
-                    {loadingZonas ? (
-                      <div className={styles.resLoading}>
-                        <i className="fa-solid fa-spinner fa-spin" /> Carregando votos…
-                      </div>
-                    ) : zonas.length > 0 ? (
-                      <>
-                        <div className={styles.totalVotos}>
-                          <span className={styles.totalNum}>{totalVotos?.toLocaleString('pt-BR')}</span>
-                          <span className={styles.totalLabel}>votos neste município</span>
+                {/* COM candidato → perfil com abas de escopo territorial */}
+                {nrVotavel && votavelAtual && (() => {
+                  const scope = cargoScope(votavelAtual.ds_cargo)
+                  const abas: Array<'municipio' | 'estado' | 'brasil'> =
+                    scope === 'nacional' ? ['municipio', 'estado', 'brasil'] :
+                    scope === 'estadual' ? ['municipio', 'estado'] : ['municipio']
+                  return (
+                    <>
+                      <div className={styles.candidatoBox}>
+                        <button className={styles.btnVoltarRanking} onClick={() => { setNrVotavel(''); setNomeVotavelSel('') }}>
+                          <i className="fa-solid fa-arrow-left fa-xs" /> Voltar ao ranking
+                        </button>
+                        <div className={styles.candidatoNome} style={{ marginTop: 6 }}>{votavelAtual.nm_votavel}</div>
+                        <div className={styles.candidatoMeta}>
+                          Nº {votavelAtual.nr_votavel}
+                          {votavelAtual.ds_cargo && <> · {votavelAtual.ds_cargo}</>}
+                          {eleicaoAtual && <> · {eleicaoAtual.ano}{turnos.length > 1 ? ` T${turno}` : ''}</>}
                         </div>
-                        <div className={styles.secLabel}>Por zona eleitoral</div>
-                        <div className={styles.zonaList}>
-                          {zonas.map(z => {
-                            const maxZona = Math.max(...zonas.map(z => z.total_votos))
-                            const pct = maxZona > 0 ? z.total_votos / maxZona * 100 : 0
-                            return (
-                              <div key={z.nr_zona} className={styles.zonaItem}>
-                                <div className={styles.zonaTop}>
-                                  <span className={styles.zonaBadge}>Zona {z.nr_zona}</span>
-                                  <span className={styles.zonaVotos}>{z.total_votos.toLocaleString('pt-BR')} votos</span>
-                                </div>
-                                <div className={styles.barTrack}>
-                                  <div className={styles.barFill} style={{ width: `${pct}%`, background: '#2563eb' }} />
-                                </div>
-                              </div>
-                            )
-                          })}
-                        </div>
-                      </>
-                    ) : (
-                      <div className={styles.infoBox}>
-                        <i className="fa-solid fa-circle-xmark" />
-                        <span>Sem dados para este município com os filtros selecionados.</span>
                       </div>
-                    )}
-                  </>
-                )}
 
-                {/* SEM candidato → ranking por cargo */}
+                      {abas.length > 1 && (
+                        <div className={styles.scopeTabs}>
+                          {abas.map(aba => (
+                            <button key={aba} className={`${styles.scopeTab} ${perfilAba === aba ? styles.scopeTabAtivo : ''}`} onClick={() => setPerfilAba(aba)}>
+                              {aba === 'municipio' && <><i className="fa-solid fa-location-dot fa-xs" /> Município</>}
+                              {aba === 'estado'    && <><i className="fa-solid fa-map fa-xs" /> Estado</>}
+                              {aba === 'brasil'    && <><i className="fa-solid fa-globe-americas fa-xs" /> Brasil</>}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Aba: Município */}
+                      {perfilAba === 'municipio' && (
+                        loadingZonas ? (
+                          <div className={styles.resLoading}><i className="fa-solid fa-spinner fa-spin" /> Carregando votos…</div>
+                        ) : zonas.length > 0 ? (
+                          <>
+                            <div className={styles.totalVotos}>
+                              <span className={styles.totalNum}>{totalVotos?.toLocaleString('pt-BR')}</span>
+                              <span className={styles.totalLabel}>votos neste município</span>
+                            </div>
+                            <div className={styles.secLabel}>Por zona eleitoral</div>
+                            <div className={styles.zonaList}>
+                              {zonas.map(z => {
+                                const maxZona = Math.max(...zonas.map(z => z.total_votos))
+                                const pct = maxZona > 0 ? z.total_votos / maxZona * 100 : 0
+                                return (
+                                  <div key={z.nr_zona} className={styles.zonaItem}>
+                                    <div className={styles.zonaTop}>
+                                      <span className={styles.zonaBadge}>Zona {z.nr_zona}</span>
+                                      <span className={styles.zonaVotos}>{z.total_votos.toLocaleString('pt-BR')} votos</span>
+                                    </div>
+                                    <div className={styles.barTrack}>
+                                      <div className={styles.barFill} style={{ width: `${pct}%`, background: '#2563eb' }} />
+                                    </div>
+                                  </div>
+                                )
+                              })}
+                            </div>
+                          </>
+                        ) : (
+                          <div className={styles.infoBox}><i className="fa-solid fa-circle-xmark" /><span>Sem dados para este município com os filtros selecionados.</span></div>
+                        )
+                      )}
+
+                      {/* Aba: Estado */}
+                      {perfilAba === 'estado' && (
+                        dadosMapa.length === 0 ? (
+                          <div className={styles.resLoading}><i className="fa-solid fa-spinner fa-spin" /> Carregando dados estaduais…</div>
+                        ) : (
+                          <>
+                            <div className={styles.totalVotos}>
+                              <span className={styles.totalNum}>{dadosMapa.reduce((s, d) => s + d.total_votos, 0).toLocaleString('pt-BR')}</span>
+                              <span className={styles.totalLabel}>votos no estado de {nav.estado}</span>
+                            </div>
+                            <div className={styles.secLabel}>Municípios com mais votos</div>
+                            <div className={styles.topMunList}>
+                              {dadosMapa.slice(0, 12).map((d, i) => {
+                                const ibge = d.cd_municipio_ibge ? String(parseInt(d.cd_municipio_ibge, 10)) : ''
+                                const nm   = ibgeNomeMap.current.get(ibge) ?? d.cd_municipio_tse
+                                const bar  = (dadosMapa[0]?.total_votos ?? 1) > 0 ? d.total_votos / dadosMapa[0].total_votos * 100 : 0
+                                return (
+                                  <div key={d.cd_municipio_tse} className={styles.topMunItem}>
+                                    <div className={styles.topMunTop}>
+                                      <span className={styles.topMunPos}>{i + 1}º</span>
+                                      <span className={styles.topMunNome}>{nm}</span>
+                                      <span className={styles.topMunVotos}>{d.total_votos.toLocaleString('pt-BR')}</span>
+                                    </div>
+                                    <div className={styles.barTrack}>
+                                      <div className={styles.barFill} style={{ width: `${bar}%`, background: corPorPct(d.pct_votos ?? 0) }} />
+                                    </div>
+                                  </div>
+                                )
+                              })}
+                            </div>
+                          </>
+                        )
+                      )}
+
+                      {/* Aba: Brasil */}
+                      {perfilAba === 'brasil' && (
+                        loadingBrasil ? (
+                          <div className={styles.resLoading}><i className="fa-solid fa-spinner fa-spin" /> Carregando dados nacionais…</div>
+                        ) : dadosBrasil.length === 0 ? (
+                          <div className={styles.infoBox}><i className="fa-solid fa-circle-xmark" /><span>Sem dados nacionais para este candidato.</span></div>
+                        ) : (
+                          <>
+                            <div className={styles.totalVotos}>
+                              <span className={styles.totalNum}>{dadosBrasil.reduce((s, d) => s + d.total_votos, 0).toLocaleString('pt-BR')}</span>
+                              <span className={styles.totalLabel}>votos no Brasil</span>
+                            </div>
+                            <div className={styles.secLabel}>Por estado</div>
+                            <div className={styles.zonaList}>
+                              {dadosBrasil.map((d, i) => (
+                                <div key={d.sg_uf} className={styles.zonaItem}>
+                                  <div className={styles.zonaTop}>
+                                    <span className={styles.zonaBadge}>{d.sg_uf}</span>
+                                    <span className={styles.zonaVotos}>{d.total_votos.toLocaleString('pt-BR')} votos</span>
+                                  </div>
+                                  <div className={styles.barTrack}>
+                                    <div className={styles.barFill} style={{ width: `${d.pct_relativo ?? 0}%`, background: i === 0 ? '#1d4ed8' : '#60a5fa' }} />
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </>
+                        )
+                      )}
+                    </>
+                  )
+                })()}
+
+                {/* SEM candidato → ranking por cargo (clicável) */}
                 {!nrVotavel && (
                   loadingRanking ? (
-                    <div className={styles.resLoading}>
-                      <i className="fa-solid fa-spinner fa-spin" /> Carregando ranking…
-                    </div>
+                    <div className={styles.resLoading}><i className="fa-solid fa-spinner fa-spin" /> Carregando ranking…</div>
                   ) : ranking.length > 0 ? (
                     <>
-                      <div className={styles.secLabel}>Candidatos mais votados</div>
+                      <div className={styles.secLabel}>Candidatos mais votados — clique para ver detalhes</div>
                       <div className={styles.rankingWrap}>
-                        {ranking.map(grupo => (
-                          <div key={grupo.ds_cargo} className={styles.rankingCargo}>
-                            <div className={styles.rankingCargoHd}>
-                              <span className={styles.rankingCargoNome}>{grupo.ds_cargo}</span>
-                              <span className={styles.rankingCargoTotal}>{grupo.total_votos_cargo.toLocaleString('pt-BR')} votos</span>
-                            </div>
-                            <div className={styles.rankingList}>
-                              {grupo.candidatos.map((c, i) => {
-                                const bar = grupo.candidatos[0].total_votos > 0
-                                  ? c.total_votos / grupo.candidatos[0].total_votos * 100
-                                  : 0
-                                return (
-                                  <div key={c.nr_votavel} className={styles.rankingItem}>
+                        {ranking.map(grupo => {
+                          const aberto   = verTodosAberto[grupo.ds_cargo]
+                          const completo = rankingCompleto[grupo.ds_cargo] ?? []
+                          const carregando = carregandoCompleto[grupo.ds_cargo]
+                          return (
+                            <div key={grupo.ds_cargo} className={styles.rankingCargo}>
+                              <div className={styles.rankingCargoHd}>
+                                <span className={styles.rankingCargoNome}>{grupo.ds_cargo}</span>
+                                <span className={styles.rankingCargoTotal}>{grupo.total_votos_cargo.toLocaleString('pt-BR')} votos</span>
+                              </div>
+                              <div className={styles.rankingList}>
+                                {grupo.candidatos.map((c, i) => (
+                                  <div key={c.nr_votavel} className={`${styles.rankingItem} ${styles.rankingItemBtn}`} onClick={() => handleSelecionarCandidato(c)}>
                                     <div className={styles.rankingItemTop}>
                                       <span className={styles.rankingPos}>{i + 1}º</span>
                                       <span className={styles.rankingNome}>{c.nm_votavel}</span>
                                       <span className={styles.rankingVotos}>{c.total_votos.toLocaleString('pt-BR')}</span>
                                     </div>
                                     <div className={styles.barTrack}>
-                                      <div
-                                        className={styles.barFill}
-                                        style={{ width: `${bar}%`, background: i === 0 ? '#1d4ed8' : '#60a5fa' }}
-                                      />
+                                      <div className={styles.barFill} style={{ width: `${c.pct_votos ?? 0}%`, background: i === 0 ? '#1d4ed8' : '#60a5fa' }} />
                                     </div>
                                   </div>
-                                )
-                              })}
+                                ))}
+                              </div>
+
+                              {/* Expandido: posições 11+ */}
+                              {aberto && completo.length > grupo.candidatos.length && (
+                                <div className={styles.rankingList} style={{ borderTop: '1px dashed var(--gray-100)' }}>
+                                  {completo.slice(grupo.candidatos.length).map((c, i) => (
+                                    <div key={c.nr_votavel} className={`${styles.rankingItem} ${styles.rankingItemBtn}`} onClick={() => handleSelecionarCandidato(c)}>
+                                      <div className={styles.rankingItemTop}>
+                                        <span className={styles.rankingPos}>{grupo.candidatos.length + i + 1}º</span>
+                                        <span className={styles.rankingNome}>{c.nm_votavel}</span>
+                                        <span className={styles.rankingVotos}>{c.total_votos.toLocaleString('pt-BR')}</span>
+                                      </div>
+                                      <div className={styles.barTrack}>
+                                        <div className={styles.barFill} style={{ width: `${c.pct_votos ?? 0}%`, background: '#93c5fd' }} />
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+
+                              {/* Botão Ver todos */}
+                              {grupo.candidatos.length >= 10 && (
+                                <button className={styles.btnVerTodos} onClick={() => handleVerTodos(grupo.ds_cargo)}>
+                                  {carregando
+                                    ? <><i className="fa-solid fa-spinner fa-spin fa-xs" /> Carregando…</>
+                                    : aberto
+                                    ? <><i className="fa-solid fa-chevron-up fa-xs" /> Recolher lista</>
+                                    : <><i className="fa-solid fa-list fa-xs" /> Ver todos os candidatos</>
+                                  }
+                                </button>
+                              )}
                             </div>
-                          </div>
-                        ))}
+                          )
+                        })}
                       </div>
                     </>
                   ) : !eleicaoId ? (
-                    <div className={styles.infoBox}>
-                      <i className="fa-solid fa-circle-info" />
-                      <span>Selecione uma eleição nos filtros para ver os dados deste município.</span>
-                    </div>
+                    <div className={styles.infoBox}><i className="fa-solid fa-circle-info" /><span>Selecione uma eleição nos filtros para ver os dados deste município.</span></div>
                   ) : (
-                    <div className={styles.infoBox}>
-                      <i className="fa-solid fa-circle-xmark" />
-                      <span>Sem dados eleitorais para este município na eleição selecionada.</span>
-                    </div>
+                    <div className={styles.infoBox}><i className="fa-solid fa-circle-xmark" /><span>Sem dados eleitorais para este município na eleição selecionada.</span></div>
                   )
                 )}
               </>

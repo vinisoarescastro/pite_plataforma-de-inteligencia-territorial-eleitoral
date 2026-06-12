@@ -553,6 +553,55 @@
 .rankingNome  { font-size: 11px; color: var(--gray-800); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .rankingVotos { font-size: 11px; font-weight: 700; color: var(--gray-700); flex-shrink: 0; }
 
+/* ── Abas de escopo territorial ── */
+.scopeTabs {
+  display: flex; gap: 4px; margin-bottom: 2px;
+  background: var(--gray-100); border-radius: var(--r-md);
+  padding: 3px;
+}
+.scopeTab {
+  flex: 1; padding: 5px 8px;
+  border: none; background: none; cursor: pointer;
+  font-size: 11px; font-weight: 600; color: var(--gray-500);
+  font-family: var(--font); border-radius: 6px;
+  display: flex; align-items: center; justify-content: center; gap: 4px;
+  transition: background 120ms, color 120ms;
+}
+.scopeTab:hover { color: var(--gray-800); }
+.scopeTabAtivo {
+  background: #fff; color: var(--brand-600);
+  box-shadow: 0 1px 4px rgba(0,0,0,.1);
+}
+
+/* ── Botão voltar ao ranking ── */
+.btnVoltarRanking {
+  background: none; border: none; cursor: pointer;
+  font-size: 11px; color: var(--gray-400); font-family: var(--font);
+  display: flex; align-items: center; gap: 4px;
+  padding: 0; transition: color 120ms;
+}
+.btnVoltarRanking:hover { color: var(--brand-600); }
+
+/* ── Ranking items clicáveis ── */
+.rankingItemBtn {
+  cursor: pointer; border-radius: 6px;
+  transition: background 120ms;
+}
+.rankingItemBtn:hover { background: var(--brand-50); }
+.rankingItemBtn:hover .rankingNome { color: var(--brand-700); }
+
+/* ── Botão Ver todos ── */
+.btnVerTodos {
+  width: 100%; padding: 7px 10px;
+  border: none; border-top: 1px solid var(--gray-100);
+  background: none; cursor: pointer;
+  font-size: 11px; font-weight: 600; color: var(--brand-600);
+  font-family: var(--font);
+  display: flex; align-items: center; justify-content: center; gap: 5px;
+  transition: background 120ms, color 120ms;
+}
+.btnVerTodos:hover { background: var(--brand-50); color: var(--brand-800); }
+
 /* ── Responsivo ── */
 @media (max-width: 768px) {
   .layout {
