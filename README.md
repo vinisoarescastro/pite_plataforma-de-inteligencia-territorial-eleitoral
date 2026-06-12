@@ -1,4 +1,4 @@
-# PITE — Plataforma de Inteligência Territorial Eleitoral
+# PITE: Plataforma de Inteligência Territorial Eleitoral
 
 > Plataforma web de inteligência territorial eleitoral para análise estratégica de dados do TSE, pesquisas eleitorais e classificação territorial.
 
