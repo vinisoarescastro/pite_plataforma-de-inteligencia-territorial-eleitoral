@@ -150,6 +150,34 @@ class ImportacaoLog(Base):
     criado_em   = Column(DateTime(timezone=True), server_default=func.now())
 
 
+class Bairro(Base):
+    """Bairro definido manualmente pelo usuário, vinculado a locais de votação."""
+    __tablename__ = "bairro"
+
+    id                = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    nm_bairro         = Column(String(100), nullable=False)
+    sg_uf             = Column(String(2),   nullable=False)
+    cd_municipio_ibge = Column(String(7),   nullable=True)
+    nm_municipio      = Column(String(100), nullable=True)
+    criado_em         = Column(DateTime(timezone=True), server_default=func.now())
+
+    locais = relationship("BairroLocalVotacao", back_populates="bairro", cascade="all, delete-orphan")
+
+
+class BairroLocalVotacao(Base):
+    """Vínculo N:N entre bairro e local de votação (nr_local_votacao)."""
+    __tablename__ = "bairro_local_votacao"
+
+    bairro_id        = Column(UUID(as_uuid=True), ForeignKey("bairro.id", ondelete="CASCADE"), primary_key=True)
+    sg_uf            = Column(String(2),   primary_key=True)
+    cd_municipio_tse = Column(String(10),  primary_key=True)
+    nr_local_votacao = Column(Integer,     primary_key=True)
+    nm_local_votacao = Column(String(200), nullable=True)
+    ds_endereco      = Column(String(300), nullable=True)
+
+    bairro = relationship("Bairro", back_populates="locais")
+
+
 class VotacaoSecao(Base):
     """Votos por seção eleitoral — granularidade máxima do TSE."""
     __tablename__ = "votacao_secao"

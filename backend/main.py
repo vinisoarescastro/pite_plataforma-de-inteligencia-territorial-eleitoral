@@ -6,6 +6,7 @@ from users.router import router as users_router
 from eleicoes.router import router as eleicoes_router
 from resultados.router import router as resultados_router
 from importacao.router import router as importacao_router
+from geo.router import router as geo_router
 
 app = FastAPI(title="PITE API", version="0.1.0")
 
@@ -22,6 +23,7 @@ app.include_router(users_router)
 app.include_router(eleicoes_router)
 app.include_router(resultados_router)
 app.include_router(importacao_router)
+app.include_router(geo_router)
 
 
 @app.get("/health")
