@@ -414,6 +414,180 @@
   background: var(--gray-100);
 }
 
+/* ── Barra de geocodificação ──────────────────────────────────────── */
+.geoBar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  background: var(--gray-50);
+  border-bottom: 1px solid var(--gray-200);
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.geoBarText {
+  flex: 1;
+  color: var(--gray-600);
+}
+
+.geoBarErros {
+  font-size: 11px;
+  color: #dc2626;
+  font-weight: 600;
+}
+
+.btnGeoCodificar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border: 1px solid var(--brand-300);
+  border-radius: var(--r-sm);
+  background: var(--brand-50);
+  color: var(--brand-700);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.12s;
+}
+.btnGeoCodificar:hover:not(:disabled) { background: var(--brand-100); }
+.btnGeoCodificar:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* ── Painel de sugestões automáticas ─────────────────────────────── */
+.sugestaoPanel {
+  border-bottom: 1px solid var(--brand-200);
+  background: var(--brand-50);
+  flex-shrink: 0;
+  max-height: 260px;
+  display: flex;
+  flex-direction: column;
+}
+
+.sugestaoLoading,
+.sugestaoVazio {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 14px;
+  font-size: 12px;
+  color: var(--gray-500);
+  font-style: italic;
+}
+
+.sugestaoHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px 4px;
+  border-bottom: 1px solid var(--brand-100);
+  flex-shrink: 0;
+}
+
+.sugestaoTitulo {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--brand-700);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.sugestaoToggleAll {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--gray-500);
+  cursor: pointer;
+  user-select: none;
+}
+
+.sugestaoList {
+  overflow-y: auto;
+  flex: 1;
+  padding: 2px 6px;
+}
+
+.sugestaoItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 6px;
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  transition: background 0.1s;
+}
+.sugestaoItem:hover { background: var(--brand-100); }
+
+.sugestaoInfo {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.sugestaoNome {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--gray-700);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sugestaoEnd {
+  font-size: 10px;
+  color: var(--gray-400);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sugestaoSecoes {
+  font-size: 10px;
+  color: var(--gray-400);
+  white-space: nowrap;
+}
+
+.sugestaoFooter {
+  display: flex;
+  gap: 6px;
+  padding: 6px 12px 8px;
+  border-top: 1px solid var(--brand-100);
+  flex-shrink: 0;
+}
+
+.btnVincularSugestoes {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 12px;
+  border: none;
+  border-radius: var(--r-sm);
+  background: var(--brand-600);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.btnVincularSugestoes:hover:not(:disabled) { background: var(--brand-700); }
+.btnVincularSugestoes:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.btnIgnorarSugestoes {
+  padding: 5px 10px;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--r-sm);
+  background: #fff;
+  color: var(--gray-500);
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+.btnIgnorarSugestoes:hover { background: var(--gray-100); }
+
 .mapToolbar {
   display: flex;
   align-items: flex-start;

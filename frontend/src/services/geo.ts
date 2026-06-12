@@ -120,3 +120,24 @@ export const buscarLocaisVotacao = (sg_uf: string, cd_municipio_tse: string, bus
   if (bairroId) p.set('bairro_id', bairroId)
   return get<LocalVotacaoOut[]>(`/geo/locais-votacao?${p}`)
 }
+
+// ── Geocodificação ─────────────────────────────────────────────────────────────
+
+export interface GeocodingStatus {
+  total: number
+  geocodificados: number
+  com_erro: number
+  pendentes: number
+  em_andamento: boolean
+}
+
+export const buscarStatusGeocodificacao = (sg_uf: string, cd_municipio_tse: string) =>
+  get<GeocodingStatus>(`/geo/geocoding/status?sg_uf=${sg_uf}&cd_municipio_tse=${cd_municipio_tse}`)
+
+export async function iniciarGeocodificacao(sg_uf: string, cd_municipio_tse: string, nm_municipio: string): Promise<void> {
+  const res = await req('POST', '/geo/geocoding/municipio', { sg_uf, cd_municipio_tse, nm_municipio })
+  if (!res.ok) { const b = await res.json().catch(() => ({})); throw new Error(b.detail ?? `Erro ${res.status}`) }
+}
+
+export const sugerirLocais = (bairroId: string, geom: object) =>
+  req('POST', `/geo/bairros/${bairroId}/sugerir-locais`, geom).then(r => r.json() as Promise<LocalVotacaoOut[]>)

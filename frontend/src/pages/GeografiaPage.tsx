@@ -9,7 +9,8 @@ import {
   renomearBairro, excluirBairro, listarLocaisBairro, vincularLocal,
   desvincularLocal, buscarLocaisVotacao,
   buscarBairrosGeoJSON, salvarGeomBairro, removerGeomBairro,
-  type MunicipioGeo, type BairroOut, type LocalVotacaoOut,
+  buscarStatusGeocodificacao, iniciarGeocodificacao, sugerirLocais,
+  type MunicipioGeo, type BairroOut, type LocalVotacaoOut, type GeocodingStatus,
 } from '../services/geo'
 
 // Cache do GeoJSON de municípios (5 MB, carregado uma única vez)
@@ -68,6 +69,17 @@ export default function GeografiaPage() {
   const [geomPendente, setGeomPendente] = useState<object | null>(null)
   const [salvandoGeom, setSalvandoGeom] = useState(false)
 
+  // ── Geocodificação ─────────────────────────────────────────
+  const [geocodingStatus, setGeocodingStatus] = useState<GeocodingStatus | null>(null)
+  const [iniciandoGeo, setIniciandoGeo]       = useState(false)
+  const geocodingPollRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  // ── Sugestões automáticas ──────────────────────────────────
+  const [sugestoes, setSugestoes]       = useState<LocalVotacaoOut[]>([])
+  const [sugestoesSel, setSugestoesSel] = useState<Set<number>>(new Set())
+  const [loadingSugestoes, setLoadingSugestoes] = useState(false)
+  const [vincuLando, setVinculando]     = useState(false)
+
   // Ref para não precisar de deps no handler do pm:create
   const selectedBairroRef = useRef<BairroOut | null>(null)
   useEffect(() => { selectedBairroRef.current = selectedBairro }, [selectedBairro])
@@ -103,13 +115,16 @@ export default function GeografiaPage() {
   // ── Ao trocar UF ──────────────────────────────────────────
   useEffect(() => {
     setMunicipios([]); setSelectedMun(null); setBairros([]); setSelectedBairro(null)
+    setGeocodingStatus(null)
+    if (geocodingPollRef.current) { clearInterval(geocodingPollRef.current); geocodingPollRef.current = null }
     if (!selectedUf) return
     listarMunicipiosGeo(selectedUf).then(setMunicipios).catch(() => {})
   }, [selectedUf])
 
-  // ── Ao trocar município: carrega bairros + zoom no mapa ───
+  // ── Ao trocar município: carrega bairros, geocoding status e zoom ──
   useEffect(() => {
-    setBairros([]); setSelectedBairro(null)
+    setBairros([]); setSelectedBairro(null); setGeocodingStatus(null)
+    if (geocodingPollRef.current) { clearInterval(geocodingPollRef.current); geocodingPollRef.current = null }
     if (!selectedMun) {
       munGrpRef.current?.clearLayers()
       bairrosGrpRef.current?.clearLayers()
@@ -121,6 +136,10 @@ export default function GeografiaPage() {
       .then(setBairros)
       .catch(() => toast('Erro ao carregar bairros.', false))
       .finally(() => setLoadingBairros(false))
+
+    // Carrega status de geocodificação
+    buscarStatusGeocodificacao(selectedUf, selectedMun.cd_tse)
+      .then(setGeocodingStatus).catch(() => {})
 
     // Carrega contorno do município no mapa
     munGrpRef.current?.clearLayers()
@@ -138,6 +157,18 @@ export default function GeografiaPage() {
     }).catch(() => {})
   }, [selectedMun?.cd_ibge])
 
+  // ── Polling de geocodificação enquanto em_andamento ────────
+  useEffect(() => {
+    if (!geocodingStatus?.em_andamento || !selectedMun) return
+    geocodingPollRef.current = setInterval(() => {
+      buscarStatusGeocodificacao(selectedUf, selectedMun.cd_tse)
+        .then(setGeocodingStatus).catch(() => {})
+    }, 3000)
+    return () => {
+      if (geocodingPollRef.current) { clearInterval(geocodingPollRef.current); geocodingPollRef.current = null }
+    }
+  }, [geocodingStatus?.em_andamento, selectedMun?.cd_tse, selectedUf])
+
   // ── Ao trocar bairro selecionado ──────────────────────────
   useEffect(() => {
     // Limpa camada pendente
@@ -147,6 +178,7 @@ export default function GeografiaPage() {
     }
     setGeomPendente(null)
     setDesenhando(false)
+    setSugestoes([]); setSugestoesSel(new Set())
     if (mapRef.current) (mapRef.current as any).pm.disableDraw()
 
     setLocaisVinc([]); setLocaisDisp([]); setBusca('')
@@ -158,6 +190,20 @@ export default function GeografiaPage() {
       .catch(() => toast('Erro ao carregar locais.', false))
       .finally(() => setLoadingLocais(false))
   }, [selectedBairro?.id])
+
+  // ── Ao receber polígono pendente: busca sugestões automáticas ──
+  useEffect(() => {
+    setSugestoes([]); setSugestoesSel(new Set())
+    if (!geomPendente || !selectedBairro || !geocodingStatus || geocodingStatus.geocodificados === 0) return
+    setLoadingSugestoes(true)
+    sugerirLocais(selectedBairro.id, geomPendente)
+      .then(data => {
+        setSugestoes(data)
+        setSugestoesSel(new Set(data.map(l => l.nr_local_votacao)))
+      })
+      .catch(() => {})
+      .finally(() => setLoadingSugestoes(false))
+  }, [geomPendente, selectedBairro?.id])
 
   // ── Redesenha polígonos dos bairros no mapa ───────────────
   const redesenharBairros = useCallback(async () => {
@@ -293,6 +339,7 @@ export default function GeografiaPage() {
   function descartarGeom() {
     if (pendingRef.current && mapRef.current) { mapRef.current.removeLayer(pendingRef.current); pendingRef.current = null }
     setGeomPendente(null)
+    setSugestoes([]); setSugestoesSel(new Set())
   }
 
   async function handleSalvarGeom() {
@@ -319,6 +366,44 @@ export default function GeografiaPage() {
       setSelectedBairro(prev => prev ? { ...prev, tem_geom: false } : prev)
       toast('Polígono removido.')
     } catch (e: unknown) { toast(e instanceof Error ? e.message : 'Erro.', false) }
+  }
+
+  // ── Handlers: geocodificação ──────────────────────────────
+  async function handleIniciarGeocodificacao() {
+    if (!selectedMun || !selectedUf || iniciandoGeo) return
+    setIniciandoGeo(true)
+    try {
+      await iniciarGeocodificacao(selectedUf, selectedMun.cd_tse, selectedMun.nm_municipio)
+      const status = await buscarStatusGeocodificacao(selectedUf, selectedMun.cd_tse)
+      setGeocodingStatus(status)
+      toast('Geocodificação iniciada em background.')
+    } catch (e: unknown) { toast(e instanceof Error ? e.message : 'Erro ao iniciar.', false) }
+    finally { setIniciandoGeo(false) }
+  }
+
+  // ── Handlers: vincular sugestões em lote ─────────────────
+  async function handleVincularSugestoes() {
+    if (!selectedBairro || sugestoesSel.size === 0) return
+    const lote = sugestoes.filter(l => sugestoesSel.has(l.nr_local_votacao))
+    setVinculando(true)
+    let ok = 0, erros = 0
+    for (const local of lote) {
+      try {
+        await vincularLocal(selectedBairro.id, {
+          sg_uf: local.sg_uf, cd_municipio_tse: local.cd_municipio_tse,
+          nr_local_votacao: local.nr_local_votacao, nm_local_votacao: local.nm_local_votacao,
+          ds_endereco: local.ds_endereco,
+        })
+        setLocaisVinc(prev => [...prev, local].sort((a, b) => (a.nm_local_votacao ?? '').localeCompare(b.nm_local_votacao ?? '')))
+        setBairros(prev => prev.map(b => b.id === selectedBairro.id ? { ...b, total_locais: b.total_locais + 1 } : b))
+        setSelectedBairro(prev => prev ? { ...prev, total_locais: prev.total_locais + 1 } : prev)
+        ok++
+      } catch { erros++ }
+    }
+    setSugestoes([]); setSugestoesSel(new Set())
+    setVinculando(false)
+    if (erros === 0) toast(`${ok} local(is) vinculado(s) automaticamente.`)
+    else toast(`${ok} vinculado(s), ${erros} erro(s).`, erros > 0 && ok === 0)
   }
 
   // ── Render ─────────────────────────────────────────────────
@@ -511,6 +596,44 @@ export default function GeografiaPage() {
 
         {/* ════ PAINEL MAPA ════ */}
         <div className={styles.mapPanel}>
+
+          {/* ── Barra de geocodificação ── */}
+          {selectedMun && geocodingStatus && (
+            <div className={styles.geoBar}>
+              {geocodingStatus.em_andamento ? (
+                <>
+                  <i className="fa-solid fa-spinner fa-spin fa-xs" style={{ color: 'var(--brand-500)' }} />
+                  <span className={styles.geoBarText}>
+                    Geocodificando… <strong>{geocodingStatus.geocodificados}</strong>/{geocodingStatus.total} locais
+                  </span>
+                </>
+              ) : geocodingStatus.geocodificados === geocodingStatus.total && geocodingStatus.total > 0 ? (
+                <>
+                  <i className="fa-solid fa-circle-check fa-xs" style={{ color: '#16a34a' }} />
+                  <span className={styles.geoBarText}>
+                    <strong>{geocodingStatus.geocodificados}</strong> locais geocodificados
+                  </span>
+                </>
+              ) : (
+                <>
+                  <i className="fa-solid fa-location-dot fa-xs" style={{ color: 'var(--gray-400)' }} />
+                  <span className={styles.geoBarText}>
+                    {geocodingStatus.geocodificados > 0
+                      ? <><strong>{geocodingStatus.geocodificados}</strong>/{geocodingStatus.total} geocodificados</>
+                      : <>{geocodingStatus.total} locais sem geocodificação</>}
+                  </span>
+                  <button className={styles.btnGeoCodificar} onClick={handleIniciarGeocodificacao} disabled={iniciandoGeo}>
+                    {iniciandoGeo ? <i className="fa-solid fa-spinner fa-spin fa-xs" /> : <i className="fa-solid fa-wand-magic-sparkles fa-xs" />}
+                    {' '}{geocodingStatus.geocodificados > 0 ? 'Continuar' : 'Geocodificar'}
+                  </button>
+                </>
+              )}
+              {geocodingStatus.com_erro > 0 && !geocodingStatus.em_andamento && (
+                <span className={styles.geoBarErros}>{geocodingStatus.com_erro} erros</span>
+              )}
+            </div>
+          )}
+
           {/* Toolbar do mapa */}
           <div className={styles.mapToolbar}>
             {!selectedMun ? (
@@ -564,6 +687,76 @@ export default function GeografiaPage() {
               </div>
             )}
           </div>
+
+          {/* ── Painel de sugestões automáticas ── */}
+          {geomPendente && selectedBairro && (
+            <div className={styles.sugestaoPanel}>
+              {loadingSugestoes ? (
+                <div className={styles.sugestaoLoading}>
+                  <i className="fa-solid fa-spinner fa-spin fa-xs" /> Buscando locais no polígono…
+                </div>
+              ) : sugestoes.length === 0 && (geocodingStatus?.geocodificados ?? 0) > 0 ? (
+                <div className={styles.sugestaoVazio}>
+                  <i className="fa-solid fa-magnifying-glass fa-xs" /> Nenhum local geocodificado encontrado dentro do polígono.
+                </div>
+              ) : sugestoes.length === 0 && (geocodingStatus?.geocodificados ?? 0) === 0 ? (
+                <div className={styles.sugestaoVazio}>
+                  <i className="fa-solid fa-location-dot fa-xs" /> Geocodifique os locais para obter sugestões automáticas.
+                </div>
+              ) : (
+                <>
+                  <div className={styles.sugestaoHeader}>
+                    <span className={styles.sugestaoTitulo}>
+                      <i className="fa-solid fa-wand-magic-sparkles fa-xs" />
+                      {' '}{sugestoes.length} local(is) encontrado(s) no polígono
+                    </span>
+                    <label className={styles.sugestaoToggleAll}>
+                      <input
+                        type="checkbox"
+                        checked={sugestoesSel.size === sugestoes.length}
+                        onChange={e => setSugestoesSel(e.target.checked ? new Set(sugestoes.map(l => l.nr_local_votacao)) : new Set())}
+                      />
+                      Todos
+                    </label>
+                  </div>
+                  <div className={styles.sugestaoList}>
+                    {sugestoes.map(l => (
+                      <label key={l.nr_local_votacao} className={styles.sugestaoItem}>
+                        <input
+                          type="checkbox"
+                          checked={sugestoesSel.has(l.nr_local_votacao)}
+                          onChange={e => setSugestoesSel(prev => {
+                            const n = new Set(prev)
+                            e.target.checked ? n.add(l.nr_local_votacao) : n.delete(l.nr_local_votacao)
+                            return n
+                          })}
+                        />
+                        <div className={styles.sugestaoInfo}>
+                          <span className={styles.sugestaoNome}>{l.nm_local_votacao ?? `Local ${l.nr_local_votacao}`}</span>
+                          {l.ds_endereco && <span className={styles.sugestaoEnd}>{l.ds_endereco}</span>}
+                        </div>
+                        <span className={styles.sugestaoSecoes}>{l.total_secoes} seç.</span>
+                      </label>
+                    ))}
+                  </div>
+                  <div className={styles.sugestaoFooter}>
+                    <button
+                      className={styles.btnVincularSugestoes}
+                      onClick={handleVincularSugestoes}
+                      disabled={sugestoesSel.size === 0 || vincuLando}
+                    >
+                      {vincuLando
+                        ? <><i className="fa-solid fa-spinner fa-spin fa-xs" /> Vinculando…</>
+                        : <><i className="fa-solid fa-link fa-xs" /> Vincular {sugestoesSel.size} selecionado(s)</>}
+                    </button>
+                    <button className={styles.btnIgnorarSugestoes} onClick={() => { setSugestoes([]); setSugestoesSel(new Set()) }}>
+                      Ignorar
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
 
           {/* Container do mapa */}
           <div ref={mapDivRef} className={styles.mapContainer} />

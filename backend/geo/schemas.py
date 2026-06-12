@@ -43,3 +43,17 @@ class VincularLocalRequest(BaseModel):
     nr_local_votacao: int
     nm_local_votacao: str | None = None
     ds_endereco: str | None = None
+
+
+class GeocodingRequest(BaseModel):
+    sg_uf: str
+    cd_municipio_tse: str
+    nm_municipio: str
+
+
+class GeocodingStatus(BaseModel):
+    total: int
+    geocodificados: int
+    com_erro: int
+    pendentes: int
+    em_andamento: bool
