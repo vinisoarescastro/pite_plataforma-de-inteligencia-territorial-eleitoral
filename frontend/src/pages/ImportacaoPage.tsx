@@ -420,7 +420,14 @@ function TabelaCobertura({ onImportado }: { onImportado: () => void }) {
     </div>
   )
 
-  if (eleicoes.length === 0) return null
+  if (eleicoes.length === 0) return (
+    <div className={styles.card} style={{ padding: '16px 24px' }}>
+      <span style={{ color: 'var(--gray-400)', fontSize: 13 }}>
+        <i className="fa-solid fa-table-cells" style={{ marginRight: 8 }} />
+        Nenhuma eleição encontrada. Importe resultados eleitorais primeiro para visualizar a cobertura por estado.
+      </span>
+    </div>
+  )
 
   return (
     <div className={styles.card}>
