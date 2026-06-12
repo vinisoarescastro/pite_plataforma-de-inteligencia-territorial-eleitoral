@@ -5,12 +5,8 @@ import {
   importarMunicipios,
   importarResultados,
   importarSecoes,
-  getStatusImportacao,
-  getHistoricoImportacao,
   getSecoesEstados,
   type ImportUpdate,
-  type StatusEleicao,
-  type ImportacaoLogItem,
   type SecaoEstadoCobertura,
 } from '../services/importacao'
 import { listarEleicoes, type Eleicao } from '../services/eleitoral'
@@ -32,162 +28,44 @@ interface EstadoImport {
   erro?: string
 }
 
-export default function ImportacaoPage({ onNavigate }: { onNavigate?: (page: PageId) => void }) {
-  const [aba, setAba] = useState<Aba>('resultados')
-  const [status, setStatus] = useState<StatusEleicao[]>([])
-  const [carregandoStatus, setCarregandoStatus] = useState(true)
-  const [erroStatus, setErroStatus] = useState<string | null>(null)
-  const [historico, setHistorico] = useState<ImportacaoLogItem[]>([])
-  const [showHistorico, setShowHistorico] = useState(false)
+export default function ImportacaoPage({ onNavigate: _onNavigate }: { onNavigate?: (page: PageId) => void }) {
+  const [aba, setAba]                   = useState<Aba>('resultados')
+  const [refreshTrigger, setRefreshTrigger] = useState(0)
 
-  const recarregarStatus = useCallback(() => {
-    setCarregandoStatus(true)
-    setErroStatus(null)
-    getStatusImportacao()
-      .then(setStatus)
-      .catch(e => setErroStatus(e.message ?? 'Erro ao carregar status'))
-      .finally(() => setCarregandoStatus(false))
-    getHistoricoImportacao()
-      .then(setHistorico)
-      .catch(() => {})
-  }, [])
-
-  useEffect(() => { recarregarStatus() }, [recarregarStatus])
+  const handleImportado = useCallback(() => setRefreshTrigger(v => v + 1), [])
 
   return (
     <div className={styles.page}>
       <div className={styles.ph}>
-        <div>
-          <div className={styles.phTitle}>Importação de Dados</div>
-          <div className={styles.phSub}>Importe arquivos CSV do TSE para o banco de dados da plataforma</div>
-        </div>
+        <div className={styles.phTitle}>Cobertura de Dados</div>
       </div>
 
-      <PainelStatus status={status} carregando={carregandoStatus} erro={erroStatus} onRecarregar={recarregarStatus} onVerEleicoes={onNavigate ? () => onNavigate('eleicoes') : undefined} />
+      <TabelaCobertura onImportado={handleImportado} refreshTrigger={refreshTrigger} />
 
-      {historico.length > 0 && (
-        <PainelHistorico
-          historico={historico}
-          aberto={showHistorico}
-          onToggle={() => setShowHistorico(v => !v)}
-        />
-      )}
-
-      <div className={styles.tabs}>
-        <button className={`${styles.tab} ${aba === 'resultados' ? styles.tabActive : ''}`} onClick={() => setAba('resultados')}>
-          <i className="fa-solid fa-chart-bar" /> Resultados por município
-        </button>
-        <button className={`${styles.tab} ${aba === 'secoes' ? styles.tabActive : ''}`} onClick={() => setAba('secoes')}>
-          <i className="fa-solid fa-layer-group" /> Votação por seção
-        </button>
-        <button className={`${styles.tab} ${aba === 'municipios' ? styles.tabActive : ''}`} onClick={() => setAba('municipios')}>
-          <i className="fa-solid fa-map-location-dot" /> Municípios TSE ↔ IBGE
-        </button>
-      </div>
-
-      <div className={styles.content}>
-        {aba === 'resultados' && <AbaResultados onImportado={recarregarStatus} />}
-        {aba === 'secoes'     && <AbaSecoes     onImportado={recarregarStatus} />}
-        {aba === 'municipios' && <AbaMunicipios  onImportado={recarregarStatus} />}
-      </div>
-    </div>
-  )
-}
-
-// ── Painel de status ───────────────────────────────────────────────────────
-
-function PainelStatus({ status, carregando, erro, onRecarregar, onVerEleicoes }: {
-  status: StatusEleicao[]
-  carregando: boolean
-  erro: string | null
-  onRecarregar: () => void
-  onVerEleicoes?: () => void
-}) {
-  if (carregando) return null
-
-  if (erro) {
-    return (
-      <div className={styles.statusPanel}>
-        <i className="fa-solid fa-circle-exclamation" style={{ color: '#dc2626' }} />
-        <span style={{ color: '#dc2626' }}>{erro}</span>
-        <button className={styles.statusRefresh} onClick={onRecarregar} title="Tentar novamente">
-          <i className="fa-solid fa-rotate-right" /> Tentar novamente
-        </button>
-      </div>
-    )
-  }
-
-  if (status.length === 0) {
-    return (
-      <div className={styles.statusPanel}>
-        <i className="fa-solid fa-database" style={{ color: '#94a3b8' }} />
-        <span style={{ color: '#64748b' }}>Nenhuma eleição importada ainda.</span>
-      </div>
-    )
-  }
-
-  return (
-    <div className={styles.statusPanel}>
-      <div className={styles.statusHd}>
-        <span><i className="fa-solid fa-database" /> Dados no banco</span>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          {onVerEleicoes && (
-            <button className={`${styles.btn} ${styles.btnSecondary}`} style={{ height: 28, fontSize: 12, padding: '0 10px' }} onClick={onVerEleicoes}>
-              <i className="fa-solid fa-arrow-up-right-from-square" /> Ver eleições
-            </button>
-          )}
-          <button className={styles.statusRefresh} onClick={onRecarregar} title="Atualizar" disabled={carregando}>
-            <i className={`fa-solid fa-rotate-right ${carregando ? 'fa-spin' : ''}`} />
+      <div className={styles.importSection}>
+        <div className={styles.importSectionLabel}>Importação manual</div>
+        <div className={styles.tabs}>
+          <button className={`${styles.tab} ${aba === 'resultados' ? styles.tabActive : ''}`} onClick={() => setAba('resultados')}>
+            <i className="fa-solid fa-chart-bar" /> Resultados
+          </button>
+          <button className={`${styles.tab} ${aba === 'secoes' ? styles.tabActive : ''}`} onClick={() => setAba('secoes')}>
+            <i className="fa-solid fa-layer-group" /> Seções
+          </button>
+          <button className={`${styles.tab} ${aba === 'municipios' ? styles.tabActive : ''}`} onClick={() => setAba('municipios')}>
+            <i className="fa-solid fa-map-location-dot" /> Municípios
           </button>
         </div>
-      </div>
-      <div className={styles.statusGrid}>
-        {status.map(s => (
-          <div key={s.eleicao_id} className={styles.statusCard}>
-            <div className={styles.statusCardTitle}>{s.descricao}</div>
-            {s.registros > 0 && (
-              <div className={styles.statusCardSection}>
-                <span className={styles.statusCardLabel}>Resultados por município</span>
-                <div className={styles.statusCardStats}>
-                  <span title="Estados importados">
-                    <i className="fa-solid fa-map" /> {s.estados} <em>estados</em>
-                  </span>
-                  <span title="Municípios com dados">
-                    <i className="fa-solid fa-city" /> {s.municipios.toLocaleString('pt-BR')} <em>municípios</em>
-                  </span>
-                  <span title="Registros na tabela">
-                    <i className="fa-solid fa-table" /> {s.registros.toLocaleString('pt-BR')} <em>registros</em>
-                  </span>
-                </div>
-              </div>
-            )}
-            {s.secoes_registros > 0 && (
-              <div className={styles.statusCardSection}>
-                <span className={styles.statusCardLabel}>Votação por seção</span>
-                <div className={styles.statusCardStats}>
-                  <span title="Municípios com seções">
-                    <i className="fa-solid fa-city" /> {s.secoes_municipios.toLocaleString('pt-BR')} <em>municípios</em>
-                  </span>
-                  <span title="Total de votos">
-                    <i className="fa-solid fa-ballot-check" /> {s.secoes_votos.toLocaleString('pt-BR')} <em>votos</em>
-                  </span>
-                  <span title="Registros de seção">
-                    <i className="fa-solid fa-layer-group" /> {s.secoes_registros.toLocaleString('pt-BR')} <em>registros</em>
-                  </span>
-                </div>
-              </div>
-            )}
-            {s.registros === 0 && s.secoes_registros === 0 && (
-              <div className={styles.statusCardEmpty}>Nenhum dado importado</div>
-            )}
-          </div>
-        ))}
+        <div className={styles.content}>
+          {aba === 'resultados' && <AbaResultados onImportado={handleImportado} />}
+          {aba === 'secoes'     && <AbaSecoes     onImportado={handleImportado} />}
+          {aba === 'municipios' && <AbaMunicipios  onImportado={handleImportado} />}
+        </div>
       </div>
     </div>
   )
 }
 
-// ── Aba: Resultados por município ──────────────────────────────────────────
+// ── Abas de importação ────────────────────────────────────────────────────
 
 type ItemFila = { arquivo: File; status: 'aguardando' | 'enviando' | 'ok' | 'erro'; progresso?: Progresso; resultado?: ImportUpdate; erro?: string }
 
@@ -249,18 +127,6 @@ function AbaResultados({ onImportado }: { onImportado: () => void }) {
 
   return (
     <div className={styles.card}>
-      <div className={styles.cardHd}>
-        <div className={styles.cardIcon} style={{ background: '#eff4ff', color: '#2552e8' }}>
-          <i className="fa-solid fa-chart-bar" />
-        </div>
-        <div>
-          <div className={styles.cardTitle}>Resultados Eleitorais por Município</div>
-          <div className={styles.cardSub}>
-            Arquivo: <code>votacao_candidato_munzona_YYYY.csv</code> — encoding latin1, separador ponto-e-vírgula
-          </div>
-        </div>
-      </div>
-
       <div className={styles.form}>
         <div className={styles.row}>
           <div className={styles.field}>
@@ -334,10 +200,11 @@ function formatNum(n: number): string {
   return n.toLocaleString('pt-BR')
 }
 
-function TabelaCobertura({ onImportado }: { onImportado: () => void }) {
+function TabelaCobertura({ onImportado, refreshTrigger }: { onImportado: () => void; refreshTrigger?: number }) {
   const [eleicoes, setEleicoes]           = useState<Eleicao[]>([])
   const [cobertura, setCobertura]         = useState<SecaoEstadoCobertura[]>([])
   const [carregando, setCarregando]       = useState(true)
+  const [recarregando, setRecarregando]   = useState(false)
   const [erroCarreg, setErroCarreg]       = useState<string | null>(null)
   const [celula, setCelula]               = useState<{ sg_uf: string; eleicao_id: string; ano: number; desc: string } | null>(null)
   const [arquivo, setArquivo]             = useState<File | null>(null)
@@ -347,8 +214,9 @@ function TabelaCobertura({ onImportado }: { onImportado: () => void }) {
   const [erroImport, setErroImport]       = useState<string | null>(null)
   const miniRef = useRef<HTMLDivElement>(null)
 
-  const recarregar = useCallback(() => {
-    setCarregando(true)
+  const recarregar = useCallback((inicial = false) => {
+    if (inicial) setCarregando(true)
+    else setRecarregando(true)
     setErroCarreg(null)
     Promise.all([listarEleicoes(), getSecoesEstados()])
       .then(([e, c]) => {
@@ -356,10 +224,11 @@ function TabelaCobertura({ onImportado }: { onImportado: () => void }) {
         setCobertura(c)
       })
       .catch(e => setErroCarreg(e.message ?? 'Erro ao carregar cobertura'))
-      .finally(() => setCarregando(false))
+      .finally(() => { setCarregando(false); setRecarregando(false) })
   }, [])
 
-  useEffect(() => { recarregar() }, [recarregar])
+  useEffect(() => { recarregar(true) }, [recarregar])
+  useEffect(() => { if (refreshTrigger) recarregar(false) }, [refreshTrigger, recarregar])
 
   const lookup = useMemo(() => {
     const m = new Map<string, Map<string, number>>()
@@ -442,8 +311,8 @@ function TabelaCobertura({ onImportado }: { onImportado: () => void }) {
             Clique em <strong>+ CSV</strong> para importar dados de um estado/eleição ausente.
           </div>
         </div>
-        <button className={styles.statusRefresh} onClick={recarregar} title="Atualizar tabela">
-          <i className="fa-solid fa-rotate" />
+        <button className={styles.statusRefresh} onClick={() => recarregar(false)} title="Atualizar tabela" disabled={recarregando}>
+          <i className={`fa-solid fa-rotate ${recarregando ? 'fa-spin' : ''}`} />
         </button>
       </div>
 
@@ -595,28 +464,7 @@ function AbaSecoes({ onImportado }: { onImportado: () => void }) {
 
   return (
     <>
-      <TabelaCobertura onImportado={onImportado} />
       <div className={styles.card}>
-        <div className={styles.cardHd}>
-          <div className={styles.cardIcon} style={{ background: '#f0fdf4', color: '#1a7a4a' }}>
-            <i className="fa-solid fa-layer-group" />
-          </div>
-          <div>
-            <div className={styles.cardTitle}>Importar Votação por Seção Eleitoral</div>
-            <div className={styles.cardSub}>
-              Arquivo: <code>VOTACAO_SECAO_YYYY_UF.csv</code> — dados granulares por zona/seção/local
-            </div>
-          </div>
-        </div>
-
-        <div className={styles.aviso}>
-          <i className="fa-solid fa-triangle-exclamation" />
-          <span>
-            Arquivos de seção podem ser muito grandes (centenas de MB). Para arquivos acima de 100 MB,
-            prefira importar via terminal diretamente no servidor.
-          </span>
-        </div>
-
         <div className={styles.form}>
           <div className={styles.row}>
             <div className={styles.field}>
@@ -691,21 +539,9 @@ function AbaMunicipios({ onImportado }: { onImportado: () => void }) {
 
   return (
     <div className={styles.card}>
-      <div className={styles.cardHd}>
-        <div className={styles.cardIcon} style={{ background: '#fdf4ff', color: '#9333ea' }}>
-          <i className="fa-solid fa-map-location-dot" />
-        </div>
-        <div>
-          <div className={styles.cardTitle}>Tabela de Municípios TSE ↔ IBGE</div>
-          <div className={styles.cardSub}>
-            Arquivo: <code>municipio_tse_ibge.csv</code> — pré-requisito para as demais importações
-          </div>
-        </div>
-      </div>
-
       <div className={styles.aviso} style={{ background: '#f0fdf4', borderColor: '#bbf7d0', color: '#166534' }}>
         <i className="fa-solid fa-circle-info" />
-        <span>Esta tabela deve ser importada <strong>antes das demais</strong>. Ela vincula os códigos TSE com os códigos IBGE usados no mapa.</span>
+        <span>Deve ser importado <strong>antes dos demais</strong>. Arquivo: <code>municipio_tse_ibge.csv</code></span>
       </div>
 
       <div className={styles.form}>
@@ -989,87 +825,4 @@ function ErroCard({ erro, onReset }: { erro: string; onReset: () => void }) {
   )
 }
 
-// ── Painel de histórico ────────────────────────────────────────────────────
-
-const TIPO_ICONE: Record<string, string> = {
-  secoes:     'fa-layer-group',
-  resultados: 'fa-chart-bar',
-  municipios: 'fa-map-location-dot',
-}
-const TIPO_COR: Record<string, string> = {
-  secoes:     '#1a7a4a',
-  resultados: '#2552e8',
-  municipios: '#9333ea',
-}
-
-function PainelHistorico({ historico, aberto, onToggle }: {
-  historico: ImportacaoLogItem[]
-  aberto: boolean
-  onToggle: () => void
-}) {
-  const sucessos = historico.filter(h => h.status === 'sucesso').length
-  const erros    = historico.filter(h => h.status === 'erro').length
-
-  return (
-    <div className={styles.historicoWrap}>
-      <button className={styles.historicoToggle} onClick={onToggle}>
-        <i className={`fa-solid fa-chevron-right ${aberto ? styles.chevronDown : ''}`} />
-        <i className="fa-solid fa-clock-rotate-left" />
-        Histórico de importações
-        <span className={styles.historicoBadge}>{historico.length}</span>
-        {sucessos > 0 && <span className={styles.historicoBadgeSucesso}>{sucessos} concluído{sucessos > 1 ? 's' : ''}</span>}
-        {erros    > 0 && <span className={styles.historicoBadgeErro}>{erros} erro{erros > 1 ? 's' : ''}</span>}
-      </button>
-
-      {aberto && (
-        <div className={styles.historicoTabela}>
-          <table className={styles.htabela}>
-            <thead>
-              <tr>
-                <th>Data/hora</th>
-                <th>Tipo</th>
-                <th>Arquivo</th>
-                <th>Status</th>
-                <th>Inseridos</th>
-                <th>Linhas</th>
-                <th>Duração</th>
-                <th>Detalhes</th>
-              </tr>
-            </thead>
-            <tbody>
-              {historico.map(h => {
-                const data = h.criado_em ? new Date(h.criado_em).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }) : '—'
-                const cor  = TIPO_COR[h.tipo] ?? '#64748b'
-                const ico  = TIPO_ICONE[h.tipo] ?? 'fa-file'
-                return (
-                  <tr key={h.id} className={h.status === 'erro' ? styles.hrowErro : ''}>
-                    <td className={styles.htdData}>{data}</td>
-                    <td>
-                      <span className={styles.htipo} style={{ color: cor }}>
-                        <i className={`fa-solid ${ico}`} /> {h.tipo}
-                      </span>
-                    </td>
-                    <td className={styles.htdArquivo} title={h.arquivo ?? ''}>
-                      {h.arquivo ? h.arquivo.split(/[\\/]/).pop() : '—'}
-                    </td>
-                    <td>
-                      {h.status === 'sucesso'
-                        ? <span className={styles.hstatusOk}><i className="fa-solid fa-circle-check" /> Concluído</span>
-                        : <span className={styles.hstatusErro}><i className="fa-solid fa-circle-xmark" /> erro</span>
-                      }
-                    </td>
-                    <td className={styles.htdNum}>{h.inseridos != null ? h.inseridos.toLocaleString('pt-BR') : '—'}</td>
-                    <td className={styles.htdNum}>{h.processadas != null ? h.processadas.toLocaleString('pt-BR') : '—'}</td>
-                    <td className={styles.htdNum}>{h.duracao_s != null ? `${h.duracao_s}s` : '—'}</td>
-                    <td className={styles.htdMsg} title={h.mensagem ?? ''}>{h.mensagem ? h.mensagem.slice(0, 60) + (h.mensagem.length > 60 ? '…' : '') : '—'}</td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </div>
-  )
-}
 

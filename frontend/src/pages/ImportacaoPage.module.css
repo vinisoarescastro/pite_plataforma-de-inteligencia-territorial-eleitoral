@@ -423,6 +423,22 @@
   font-family: monospace;
 }
 
+/* ── Seção de importação manual ── */
+.importSection {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.importSectionLabel {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  color: var(--gray-400);
+  padding: 0 2px 8px;
+}
+
 /* ── Tabela de cobertura ── */
 .coberturaWrap {
   overflow-x: auto;

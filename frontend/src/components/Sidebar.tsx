@@ -21,7 +21,7 @@ const NAV: (NavItem | { section: string })[] = [
   { id: 'eleicoes',     icon: 'fa-landmark',        label: 'Eleições',     adminOnly: true },
   { id: 'candidaturas', icon: 'fa-link',            label: 'Candidaturas', adminOnly: true },
   { section: 'Dados' },
-  { id: 'importacao',   icon: 'fa-file-import',     label: 'Importação',   adminOnly: true },
+  { id: 'importacao',   icon: 'fa-table-cells',     label: 'Cobertura',    adminOnly: true },
   { id: 'geografia',    icon: 'fa-globe',           label: 'Geografia',    adminOnly: true },
   { section: 'Sistema' },
   { id: 'usuarios',     icon: 'fa-users',           label: 'Usuários',     adminOnly: true },

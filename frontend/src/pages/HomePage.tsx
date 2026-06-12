@@ -26,7 +26,7 @@ export const PAGE_NAMES: Record<PageId, string> = {
   comparacao:   'Comparação de Eleições',
   eleicoes:     'Eleições',
   candidaturas: 'Candidaturas',
-  importacao:   'Importação de Dados',
+  importacao:   'Cobertura de Dados',
   geografia:    'Geografia · Geocodificação',
   usuarios:     'Usuários',
 }
