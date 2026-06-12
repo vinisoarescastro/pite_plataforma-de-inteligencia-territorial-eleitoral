@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback, type DragEvent } from 'react'
+import { useState, useRef, useEffect, useCallback, useMemo, type DragEvent } from 'react'
 import type { PageId } from './HomePage'
 import styles from './ImportacaoPage.module.css'
 import {
@@ -7,10 +7,13 @@ import {
   importarSecoes,
   getStatusImportacao,
   getHistoricoImportacao,
+  getSecoesEstados,
   type ImportUpdate,
   type StatusEleicao,
   type ImportacaoLogItem,
+  type SecaoEstadoCobertura,
 } from '../services/importacao'
+import { listarEleicoes, type Eleicao } from '../services/eleitoral'
 
 type Aba = 'municipios' | 'resultados' | 'secoes'
 
@@ -31,7 +34,6 @@ interface EstadoImport {
 
 export default function ImportacaoPage({ onNavigate }: { onNavigate?: (page: PageId) => void }) {
   const [aba, setAba] = useState<Aba>('resultados')
-  const [modoAvancado, setModoAvancado] = useState(false)
   const [status, setStatus] = useState<StatusEleicao[]>([])
   const [carregandoStatus, setCarregandoStatus] = useState(true)
   const [erroStatus, setErroStatus] = useState<string | null>(null)
@@ -59,13 +61,6 @@ export default function ImportacaoPage({ onNavigate }: { onNavigate?: (page: Pag
           <div className={styles.phTitle}>Importação de Dados</div>
           <div className={styles.phSub}>Importe arquivos CSV do TSE para o banco de dados da plataforma</div>
         </div>
-        <button
-          className={`${styles.btn} ${modoAvancado ? styles.btnActive : styles.btnSecondary}`}
-          onClick={() => setModoAvancado(v => !v)}
-          title="Exibe os comandos CLI equivalentes"
-        >
-          <i className="fa-solid fa-terminal" /> Modo CLI
-        </button>
       </div>
 
       <PainelStatus status={status} carregando={carregandoStatus} erro={erroStatus} onRecarregar={recarregarStatus} onVerEleicoes={onNavigate ? () => onNavigate('eleicoes') : undefined} />
@@ -91,9 +86,9 @@ export default function ImportacaoPage({ onNavigate }: { onNavigate?: (page: Pag
       </div>
 
       <div className={styles.content}>
-        {aba === 'resultados' && <AbaResultados modoAvancado={modoAvancado} onImportado={recarregarStatus} />}
-        {aba === 'secoes'     && <AbaSecoes     modoAvancado={modoAvancado} onImportado={recarregarStatus} />}
-        {aba === 'municipios' && <AbaMunicipios  modoAvancado={modoAvancado} onImportado={recarregarStatus} />}
+        {aba === 'resultados' && <AbaResultados onImportado={recarregarStatus} />}
+        {aba === 'secoes'     && <AbaSecoes     onImportado={recarregarStatus} />}
+        {aba === 'municipios' && <AbaMunicipios  onImportado={recarregarStatus} />}
       </div>
     </div>
   )
@@ -196,7 +191,7 @@ function PainelStatus({ status, carregando, erro, onRecarregar, onVerEleicoes }:
 
 type ItemFila = { arquivo: File; status: 'aguardando' | 'enviando' | 'ok' | 'erro'; progresso?: Progresso; resultado?: ImportUpdate; erro?: string }
 
-function AbaResultados({ modoAvancado, onImportado }: { modoAvancado: boolean; onImportado: () => void }) {
+function AbaResultados({ onImportado }: { onImportado: () => void }) {
   const [arquivos, setArquivos]   = useState<File[]>([])
   const [ano, setAno]             = useState(new Date().getFullYear())
   const [turno, setTurno]         = useState(1)
@@ -248,10 +243,6 @@ function AbaResultados({ modoAvancado, onImportado }: { modoAvancado: boolean; o
   }
 
   function handleReset() { setArquivos([]); setFila([]) }
-
-  const cmdCli = `python scripts/importar_resultados_tse.py \\
-  --arquivo arquivo.csv \\
-  --ano ${ano} --turno ${turno} --tipo ${tipo}${candidato ? ` \\\n  --candidato "${candidato}"` : ''}`
 
   const tudo_ok   = fila.length > 0 && fila.every(it => it.status === 'ok')
   const tem_erro  = fila.some(it => it.status === 'erro')
@@ -325,16 +316,227 @@ function AbaResultados({ modoAvancado, onImportado }: { modoAvancado: boolean; o
         )}
       </div>
 
-      {modoAvancado && <BlocoCliCard cmd={cmdCli} />}
     </div>
   )
 }
 
 // ── Aba: Votação por seção ─────────────────────────────────────────────────
 
-function AbaSecoes({ modoAvancado, onImportado }: { modoAvancado: boolean; onImportado: () => void }) {
+const UFS_BRASIL = [
+  'AC','AL','AM','AP','BA','CE','DF','ES','GO',
+  'MA','MG','MS','MT','PA','PB','PE','PI','PR',
+  'RJ','RN','RO','RR','RS','SC','SE','SP','TO',
+]
+
+function formatNum(n: number): string {
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`
+  if (n >= 1_000) return `${Math.round(n / 1_000)}k`
+  return n.toLocaleString('pt-BR')
+}
+
+function TabelaCobertura({ onImportado }: { onImportado: () => void }) {
+  const [eleicoes, setEleicoes]           = useState<Eleicao[]>([])
+  const [cobertura, setCobertura]         = useState<SecaoEstadoCobertura[]>([])
+  const [carregando, setCarregando]       = useState(true)
+  const [erroCarreg, setErroCarreg]       = useState<string | null>(null)
+  const [celula, setCelula]               = useState<{ sg_uf: string; eleicao_id: string; ano: number; desc: string } | null>(null)
+  const [arquivo, setArquivo]             = useState<File | null>(null)
+  const [importando, setImportando]       = useState(false)
+  const [progImport, setProgImport]       = useState<Progresso | null>(null)
+  const [resultImport, setResultImport]   = useState<ImportUpdate | null>(null)
+  const [erroImport, setErroImport]       = useState<string | null>(null)
+  const miniRef = useRef<HTMLDivElement>(null)
+
+  const recarregar = useCallback(() => {
+    setCarregando(true)
+    setErroCarreg(null)
+    Promise.all([listarEleicoes(), getSecoesEstados()])
+      .then(([e, c]) => {
+        setEleicoes([...e].sort((a, b) => b.ano - a.ano || a.turno - b.turno))
+        setCobertura(c)
+      })
+      .catch(e => setErroCarreg(e.message ?? 'Erro ao carregar cobertura'))
+      .finally(() => setCarregando(false))
+  }, [])
+
+  useEffect(() => { recarregar() }, [recarregar])
+
+  const lookup = useMemo(() => {
+    const m = new Map<string, Map<string, number>>()
+    for (const { sg_uf, eleicao_id, total } of cobertura) {
+      if (!m.has(sg_uf)) m.set(sg_uf, new Map())
+      m.get(sg_uf)!.set(eleicao_id, total)
+    }
+    return m
+  }, [cobertura])
+
+  function handleCelulaClick(sg_uf: string, e: Eleicao) {
+    const tipo = e.tipo.charAt(0).toUpperCase() + e.tipo.slice(1)
+    setCelula({ sg_uf, eleicao_id: e.id, ano: e.ano, desc: `${sg_uf} — ${e.ano} ${tipo} T${e.turno}` })
+    setArquivo(null)
+    setImportando(false)
+    setProgImport(null)
+    setResultImport(null)
+    setErroImport(null)
+    setTimeout(() => miniRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50)
+  }
+
+  async function handleImportar() {
+    if (!arquivo || !celula) return
+    setImportando(true)
+    setProgImport({ processadas: 0, total: 0, inseridos: 0, fase: 'Iniciando…' })
+    setResultImport(null)
+    setErroImport(null)
+    try {
+      await importarSecoes(arquivo, celula.ano, undefined, undefined, undefined, u => {
+        if (u.tipo === 'inicio') {
+          setProgImport({ processadas: 0, total: u.total ?? 0, inseridos: 0, fase: 'Iniciando…' })
+        } else if (u.tipo === 'progresso') {
+          setProgImport({ processadas: u.processadas ?? 0, total: u.total ?? 0, inseridos: u.inseridos ?? 0, eta: u.eta, fase: u.fase })
+        } else if (u.tipo === 'concluido') {
+          setResultImport(u)
+          onImportado()
+          recarregar()
+        }
+      })
+    } catch (e: any) {
+      setErroImport(e.message ?? 'Erro ao importar')
+    } finally {
+      setImportando(false)
+      setProgImport(null)
+    }
+  }
+
+  if (carregando) return (
+    <div className={styles.card} style={{ flexDirection: 'row', alignItems: 'center', gap: 10, padding: '16px 24px' }}>
+      <i className="fa-solid fa-spinner fa-spin" style={{ color: 'var(--gray-400)' }} />
+      <span style={{ color: 'var(--gray-400)', fontSize: 13 }}>Carregando cobertura de dados…</span>
+    </div>
+  )
+
+  if (erroCarreg) return (
+    <div className={styles.card} style={{ padding: '16px 24px' }}>
+      <span style={{ color: '#dc2626', fontSize: 13 }}>{erroCarreg}</span>
+    </div>
+  )
+
+  if (eleicoes.length === 0) return null
+
+  return (
+    <div className={styles.card}>
+      <div className={styles.cardHd}>
+        <div className={styles.cardIcon} style={{ background: '#f0f9ff', color: '#0284c7' }}>
+          <i className="fa-solid fa-table-cells" />
+        </div>
+        <div style={{ flex: 1 }}>
+          <div className={styles.cardTitle}>Cobertura de Dados por Estado</div>
+          <div className={styles.cardSub}>
+            Quais estados e eleições já têm dados importados.
+            Clique em <strong>+ CSV</strong> para importar dados de um estado/eleição ausente.
+          </div>
+        </div>
+        <button className={styles.statusRefresh} onClick={recarregar} title="Atualizar tabela">
+          <i className="fa-solid fa-rotate" />
+        </button>
+      </div>
+
+      <div className={styles.coberturaWrap}>
+        <table className={styles.coberturaTable}>
+          <thead>
+            <tr>
+              <th className={styles.coberturaThUf}>UF</th>
+              {eleicoes.map(e => (
+                <th key={e.id} className={styles.coberturaTh}>
+                  <div>{e.ano}</div>
+                  <div className={styles.coberturaThSub}>{e.tipo[0].toUpperCase() + e.tipo.slice(1)} T{e.turno}</div>
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {UFS_BRASIL.map(uf => (
+              <tr key={uf}>
+                <td className={styles.coberturaTdUf}>{uf}</td>
+                {eleicoes.map(el => {
+                  const total = lookup.get(uf)?.get(el.id)
+                  const ativa = celula?.sg_uf === uf && celula?.eleicao_id === el.id
+                  return (
+                    <td key={el.id} className={total != null ? styles.coberturaTdCom : styles.coberturaTdSem}>
+                      {total != null ? (
+                        <span className={styles.coberturaCount}>
+                          <i className="fa-solid fa-circle-check" /> {formatNum(total)}
+                        </span>
+                      ) : (
+                        <button
+                          className={`${styles.btnEnviarCsv} ${ativa ? styles.btnEnviarCsvAtivo : ''}`}
+                          onClick={() => handleCelulaClick(uf, el)}
+                          title={`Enviar dados de ${uf} — ${el.ano}`}
+                        >
+                          <i className="fa-solid fa-plus" /> CSV
+                        </button>
+                      )}
+                    </td>
+                  )
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {celula && (
+        <div ref={miniRef} className={styles.miniUpload}>
+          <div className={styles.miniUploadHd}>
+            <i className="fa-solid fa-file-arrow-up" style={{ color: '#2552e8' }} />
+            <span>Importando: <strong>{celula.desc}</strong></span>
+            <button
+              className={styles.miniFechar}
+              onClick={() => { setCelula(null); setArquivo(null); setProgImport(null); setResultImport(null); setErroImport(null) }}
+              title="Fechar"
+            >
+              <i className="fa-solid fa-xmark" />
+            </button>
+          </div>
+
+          {!resultImport && (
+            <>
+              <DropZone arquivo={arquivo} onArquivo={f => { setArquivo(f); setErroImport(null) }} accept=".csv" disabled={importando} />
+              {importando && progImport && <BarraProgresso progresso={progImport} />}
+              {!importando && (
+                <button className={`${styles.btn} ${styles.btnPrimary}`} disabled={!arquivo} onClick={handleImportar}>
+                  <i className="fa-solid fa-file-import" /> Importar
+                </button>
+              )}
+              {erroImport && (
+                <div className={styles.miniErro}>
+                  <i className="fa-solid fa-triangle-exclamation" /> {erroImport}
+                </div>
+              )}
+            </>
+          )}
+
+          {resultImport && (
+            <div className={styles.miniSucesso}>
+              <i className="fa-solid fa-circle-check" />
+              <span>Concluído! <strong>{(resultImport.inseridos ?? 0).toLocaleString('pt-BR')}</strong> registros inseridos.</span>
+              <button
+                className={`${styles.btn} ${styles.btnSecondary}`}
+                style={{ marginLeft: 'auto', height: 28, fontSize: 12, padding: '0 10px' }}
+                onClick={() => { setCelula(null); setArquivo(null); setResultImport(null) }}
+              >
+                Fechar
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function AbaSecoes({ onImportado }: { onImportado: () => void }) {
   const [arquivos, setArquivos] = useState<File[]>([])
-  const [ano, setAno]           = useState<number | ''>(new Date().getFullYear())
+  const [ano, setAno]           = useState<number | ''>('')
   const [tipo, setTipo]         = useState('')
   const [cargo, setCargo]       = useState('')
   const [votavel, setVotavel]   = useState('')
@@ -384,88 +586,86 @@ function AbaSecoes({ modoAvancado, onImportado }: { modoAvancado: boolean; onImp
   const tudo_ok  = fila.length > 0 && fila.every(it => it.status === 'ok')
   const tem_erro = fila.some(it => it.status === 'erro')
 
-  const cmdCli = `python scripts/importar_votacao_secao.py \\
-  --arquivo VOTACAO_SECAO_YYYY_UF.csv${ano ? ` \\\n  --ano ${ano}` : ''}${tipo ? ` \\\n  --tipo ${tipo}` : ''}${cargo ? ` \\\n  --cargo "${cargo}"` : ''}${votavel ? ` \\\n  --votavel "${votavel}"` : ''}`
-
   return (
-    <div className={styles.card}>
-      <div className={styles.cardHd}>
-        <div className={styles.cardIcon} style={{ background: '#f0fdf4', color: '#1a7a4a' }}>
-          <i className="fa-solid fa-layer-group" />
-        </div>
-        <div>
-          <div className={styles.cardTitle}>Votação por Seção Eleitoral</div>
-          <div className={styles.cardSub}>
-            Arquivo: <code>VOTACAO_SECAO_YYYY_UF.csv</code> — dados granulares por zona/seção/local
+    <>
+      <TabelaCobertura onImportado={onImportado} />
+      <div className={styles.card}>
+        <div className={styles.cardHd}>
+          <div className={styles.cardIcon} style={{ background: '#f0fdf4', color: '#1a7a4a' }}>
+            <i className="fa-solid fa-layer-group" />
           </div>
+          <div>
+            <div className={styles.cardTitle}>Importar Votação por Seção Eleitoral</div>
+            <div className={styles.cardSub}>
+              Arquivo: <code>VOTACAO_SECAO_YYYY_UF.csv</code> — dados granulares por zona/seção/local
+            </div>
+          </div>
+        </div>
+
+        <div className={styles.aviso}>
+          <i className="fa-solid fa-triangle-exclamation" />
+          <span>
+            Arquivos de seção podem ser muito grandes (centenas de MB). Para arquivos acima de 100 MB,
+            prefira importar via terminal diretamente no servidor.
+          </span>
+        </div>
+
+        <div className={styles.form}>
+          <div className={styles.row}>
+            <div className={styles.field}>
+              <label>Ano <span className={styles.opcional}>(opcional — lido do arquivo)</span></label>
+              <input type="number" min={1990} max={2050} value={ano} onChange={e => setAno(e.target.value === '' ? '' : +e.target.value)} placeholder="ex: 2024" />
+            </div>
+            <div className={styles.field}>
+              <label>Tipo <span className={styles.opcional}>(opcional — lido do arquivo)</span></label>
+              <select value={tipo} onChange={e => setTipo(e.target.value)}>
+                <option value="">Detectar automaticamente</option>
+                <option value="municipal">Municipal</option>
+                <option value="federal">Federal</option>
+                <option value="estadual">Estadual</option>
+              </select>
+            </div>
+          </div>
+          <div className={styles.row}>
+            <div className={styles.field}>
+              <label>Filtrar cargo <span className={styles.opcional}>(opcional)</span></label>
+              <input type="text" placeholder="ex: Vereador, Prefeito" value={cargo} onChange={e => setCargo(e.target.value)} />
+            </div>
+            <div className={styles.field}>
+              <label>Filtrar votável <span className={styles.opcional}>(opcional)</span></label>
+              <input type="text" placeholder="Número do candidato/partido" value={votavel} onChange={e => setVotavel(e.target.value)} />
+            </div>
+          </div>
+
+          <DropZoneMulti arquivos={arquivos} onArquivos={addArquivos} onRemover={i => setArquivos(prev => prev.filter((_, j) => j !== i))} accept=".csv" disabled={rodando} />
+
+          {fila.length > 0 && <FilaProgresso fila={fila} />}
+
+          {(tudo_ok || tem_erro) ? (
+            <button className={`${styles.btn} ${styles.btnSecondary}`} onClick={handleReset}>
+              <i className="fa-solid fa-rotate-left" /> Nova importação
+            </button>
+          ) : (
+            <button
+              className={`${styles.btn} ${styles.btnPrimary}`}
+              disabled={!arquivos.length || rodando}
+              onClick={handleEnviar}
+            >
+              {rodando
+                ? <><i className="fa-solid fa-spinner fa-spin" /> Importando…</>
+                : <><i className="fa-solid fa-file-import" /> Iniciar importação {arquivos.length > 1 ? `(${arquivos.length} arquivos)` : ''}</>
+              }
+            </button>
+          )}
         </div>
       </div>
-
-      <div className={styles.aviso}>
-        <i className="fa-solid fa-triangle-exclamation" />
-        <span>
-          Arquivos de seção podem ser muito grandes (centenas de MB). Para arquivos acima de 100 MB,
-          recomenda-se usar o <strong>modo CLI</strong> diretamente no servidor.
-        </span>
-      </div>
-
-      <div className={styles.form}>
-        <div className={styles.row}>
-          <div className={styles.field}>
-            <label>Ano <span className={styles.opcional}>(opcional — lido do arquivo)</span></label>
-            <input type="number" min={1990} max={2050} value={ano} onChange={e => setAno(e.target.value === '' ? '' : +e.target.value)} placeholder="ex: 2024" />
-          </div>
-          <div className={styles.field}>
-            <label>Tipo <span className={styles.opcional}>(opcional — lido do arquivo)</span></label>
-            <select value={tipo} onChange={e => setTipo(e.target.value)}>
-              <option value="">Detectar automaticamente</option>
-              <option value="municipal">Municipal</option>
-              <option value="federal">Federal</option>
-              <option value="estadual">Estadual</option>
-            </select>
-          </div>
-        </div>
-        <div className={styles.row}>
-          <div className={styles.field}>
-            <label>Filtrar cargo <span className={styles.opcional}>(opcional)</span></label>
-            <input type="text" placeholder="ex: Vereador, Prefeito" value={cargo} onChange={e => setCargo(e.target.value)} />
-          </div>
-          <div className={styles.field}>
-            <label>Filtrar votável <span className={styles.opcional}>(opcional)</span></label>
-            <input type="text" placeholder="Número do candidato/partido" value={votavel} onChange={e => setVotavel(e.target.value)} />
-          </div>
-        </div>
-
-        <DropZoneMulti arquivos={arquivos} onArquivos={addArquivos} onRemover={i => setArquivos(prev => prev.filter((_, j) => j !== i))} accept=".csv" disabled={rodando} />
-
-        {fila.length > 0 && <FilaProgresso fila={fila} />}
-
-        {(tudo_ok || tem_erro) ? (
-          <button className={`${styles.btn} ${styles.btnSecondary}`} onClick={handleReset}>
-            <i className="fa-solid fa-rotate-left" /> Nova importação
-          </button>
-        ) : (
-          <button
-            className={`${styles.btn} ${styles.btnPrimary}`}
-            disabled={!arquivos.length || rodando}
-            onClick={handleEnviar}
-          >
-            {rodando
-              ? <><i className="fa-solid fa-spinner fa-spin" /> Importando…</>
-              : <><i className="fa-solid fa-file-import" /> Iniciar importação {arquivos.length > 1 ? `(${arquivos.length} arquivos)` : ''}</>
-            }
-          </button>
-        )}
-      </div>
-
-      {modoAvancado && <BlocoCliCard cmd={cmdCli} />}
-    </div>
+    </>
   )
 }
 
 // ── Aba: Municípios ────────────────────────────────────────────────────────
 
-function AbaMunicipios({ modoAvancado, onImportado }: { modoAvancado: boolean; onImportado: () => void }) {
+function AbaMunicipios({ onImportado }: { onImportado: () => void }) {
   const [arquivo, setArquivo] = useState<File | null>(null)
   const [forcar, setForcar]   = useState(false)
   const [estado, setEstado]   = useState<EstadoImport>({ status: 'idle' })
@@ -516,7 +716,6 @@ function AbaMunicipios({ modoAvancado, onImportado }: { modoAvancado: boolean; o
         <BotaoEnviar arquivo={arquivo} estado={estado} onEnviar={handleEnviar} onReset={() => setEstado({ status: 'idle' })} />
       </div>
 
-      {modoAvancado && <BlocoCliCard cmd="python scripts/importar_municipios_tse.py" />}
       {estado.status === 'ok'   && <ResultadoCard resultado={estado.resultado!} />}
       {estado.status === 'erro' && <ErroCard erro={estado.erro!} onReset={() => setEstado({ status: 'idle' })} />}
     </div>
@@ -811,7 +1010,7 @@ function PainelHistorico({ historico, aberto, onToggle }: {
         <i className="fa-solid fa-clock-rotate-left" />
         Histórico de importações
         <span className={styles.historicoBadge}>{historico.length}</span>
-        {sucessos > 0 && <span className={styles.historicoBadgeSucesso}>{sucessos} ok</span>}
+        {sucessos > 0 && <span className={styles.historicoBadgeSucesso}>{sucessos} concluído{sucessos > 1 ? 's' : ''}</span>}
         {erros    > 0 && <span className={styles.historicoBadgeErro}>{erros} erro{erros > 1 ? 's' : ''}</span>}
       </button>
 
@@ -848,7 +1047,7 @@ function PainelHistorico({ historico, aberto, onToggle }: {
                     </td>
                     <td>
                       {h.status === 'sucesso'
-                        ? <span className={styles.hstatusOk}><i className="fa-solid fa-circle-check" /> sucesso</span>
+                        ? <span className={styles.hstatusOk}><i className="fa-solid fa-circle-check" /> Concluído</span>
                         : <span className={styles.hstatusErro}><i className="fa-solid fa-circle-xmark" /> erro</span>
                       }
                     </td>
@@ -867,25 +1066,3 @@ function PainelHistorico({ historico, aberto, onToggle }: {
   )
 }
 
-function BlocoCliCard({ cmd }: { cmd: string }) {
-  const [copiado, setCopiado] = useState(false)
-
-  function copiar() {
-    navigator.clipboard.writeText(cmd)
-    setCopiado(true)
-    setTimeout(() => setCopiado(false), 2000)
-  }
-
-  return (
-    <div className={styles.cliCard}>
-      <div className={styles.cliHd}>
-        <i className="fa-solid fa-terminal" />
-        <span>Comando CLI equivalente</span>
-        <button className={styles.cliCopy} onClick={copiar}>
-          {copiado ? <><i className="fa-solid fa-check" /> Copiado!</> : <><i className="fa-solid fa-copy" /> Copiar</>}
-        </button>
-      </div>
-      <pre className={styles.cliPre}>{cmd}</pre>
-    </div>
-  )
-}

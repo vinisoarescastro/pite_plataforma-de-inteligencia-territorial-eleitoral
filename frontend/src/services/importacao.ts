@@ -139,6 +139,18 @@ export async function getHistoricoImportacao(): Promise<ImportacaoLogItem[]> {
   return res.json()
 }
 
+export interface SecaoEstadoCobertura {
+  sg_uf: string
+  eleicao_id: string
+  total: number
+}
+
+export async function getSecoesEstados(): Promise<SecaoEstadoCobertura[]> {
+  const res = await fetch(`${BASE}/importar/secoes/estados`, { headers: authHeaders() })
+  if (!res.ok) throw new Error(`Erro ${res.status}`)
+  return res.json()
+}
+
 export async function importarSecoes(
   arquivo: File,
   ano: number | undefined,

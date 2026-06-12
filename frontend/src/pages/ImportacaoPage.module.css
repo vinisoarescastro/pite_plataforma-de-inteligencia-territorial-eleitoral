@@ -423,6 +423,173 @@
   font-family: monospace;
 }
 
+/* ── Tabela de cobertura ── */
+.coberturaWrap {
+  overflow-x: auto;
+  border: 1px solid var(--gray-100);
+  border-radius: 8px;
+}
+
+.coberturaTable {
+  border-collapse: collapse;
+  min-width: 100%;
+  font-size: 12px;
+}
+
+.coberturaThUf,
+.coberturaTdUf {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: var(--gray-50);
+  white-space: nowrap;
+}
+
+.coberturaThUf {
+  padding: 8px 14px;
+  text-align: left;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .4px;
+  color: var(--gray-500);
+  border-bottom: 1px solid var(--gray-200);
+  border-right: 1px solid var(--gray-200);
+}
+
+.coberturaTdUf {
+  padding: 6px 14px;
+  font-weight: 700;
+  font-size: 12px;
+  color: var(--gray-700);
+  border-bottom: 1px solid var(--gray-100);
+  border-right: 1px solid var(--gray-200);
+}
+
+.coberturaTh {
+  padding: 6px 10px;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--gray-600);
+  border-bottom: 1px solid var(--gray-200);
+  border-right: 1px solid var(--gray-100);
+  white-space: nowrap;
+  min-width: 90px;
+  background: var(--gray-50);
+}
+
+.coberturaThSub {
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--gray-400);
+  margin-top: 2px;
+}
+
+.coberturaTdCom {
+  padding: 6px 10px;
+  text-align: center;
+  border-bottom: 1px solid var(--gray-100);
+  border-right: 1px solid var(--gray-100);
+  background: #f0fdf4;
+}
+
+.coberturaTdSem {
+  padding: 6px 10px;
+  text-align: center;
+  border-bottom: 1px solid var(--gray-100);
+  border-right: 1px solid var(--gray-100);
+}
+
+.coberturaTable tbody tr:last-child td { border-bottom: none; }
+
+.coberturaCount {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #15803d;
+  white-space: nowrap;
+}
+.coberturaCount i { font-size: 10px; }
+
+.btnEnviarCsv {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  height: 24px;
+  border: 1px dashed var(--gray-300);
+  border-radius: 5px;
+  background: none;
+  color: var(--gray-400);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: var(--font);
+  transition: all 150ms;
+  white-space: nowrap;
+}
+.btnEnviarCsv:hover { border-color: var(--brand-400); color: var(--brand-600); background: #eef2ff; }
+.btnEnviarCsvAtivo  { border-color: var(--brand-500); color: var(--brand-600); background: #eef2ff; border-style: solid; }
+
+/* ── Mini upload inline ── */
+.miniUpload {
+  border: 1px solid #bfdbfe;
+  border-radius: 10px;
+  background: #eff6ff;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.miniUploadHd {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--gray-700);
+}
+
+.miniFechar {
+  margin-left: auto;
+  background: none;
+  border: none;
+  color: var(--gray-400);
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: color 150ms, background 150ms;
+}
+.miniFechar:hover { color: #dc2626; background: #fee2e2; }
+
+.miniSucesso {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #15803d;
+}
+
+.miniErro {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: #fff1f2;
+  border: 1px solid #fecdd3;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #dc2626;
+}
+
 /* ── CLI card ── */
 .cliCard {
   background: #0f172a; border-radius: 10px; overflow: hidden;

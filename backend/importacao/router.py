@@ -162,6 +162,22 @@ def endpoint_resultados(
     )
 
 
+@router.get("/secoes/estados")
+def endpoint_secoes_estados(
+    db: Session = Depends(get_db),
+    _: User = Depends(require_admin),
+):
+    sql = text("""
+        SELECT sg_uf, eleicao_id::text AS eleicao_id, COUNT(*) AS total
+        FROM votacao_secao
+        WHERE sg_uf IS NOT NULL
+        GROUP BY sg_uf, eleicao_id
+        ORDER BY sg_uf, eleicao_id
+    """)
+    rows = db.execute(sql).mappings().all()
+    return [dict(r) for r in rows]
+
+
 @router.post("/secoes")
 def endpoint_secoes(
     arquivo: UploadFile = File(...),
