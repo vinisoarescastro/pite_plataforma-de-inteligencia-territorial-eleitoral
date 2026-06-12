@@ -6,6 +6,7 @@ from pathlib import Path
 
 from fastapi import APIRouter, Depends, UploadFile, File, Form, HTTPException
 from fastapi.responses import StreamingResponse
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from database import get_db
