@@ -109,7 +109,7 @@ export const buscarDetalheEleicao = (eleicaoId: string) =>
   get<DetalheEleicao>(`/eleicoes/${eleicaoId}/detalhes`)
 
 export async function excluirEleicao(eleicaoId: string): Promise<void> {
-  const res = await fetch(`${(import.meta.env.VITE_API_URL ?? 'http://localhost:8000')}/eleicoes/${eleicaoId}`, {
+  const res = await fetch(`${(import.meta.env.VITE_API_URL ?? '')}/eleicoes/${eleicaoId}`, {
     method: 'DELETE',
     headers: authHeaders() as Record<string, string>,
   })

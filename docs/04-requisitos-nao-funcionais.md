@@ -11,8 +11,8 @@
 | RNF-D01 | Tempo de resposta da API para consultas comuns | ≤ 2 segundos |
 | RNF-D02 | Tempo de atualização do mapa ao mudar filtros | ≤ 3 segundos |
 | RNF-D03 | Tempo de carregamento do painel principal | ≤ 3 segundos |
-| RNF-D04 | Tempo de importação de arquivo CSV de até 50MB | ≤ 5 minutos (assíncrono) |
-| RNF-D05 | Suporte a cache Redis para consultas frequentes | Planejado para V2 (não obrigatório no MVP) |
+| RNF-D04 | Tempo de importação de arquivo CSV de até 50MB | ≤ 5 minutos (streaming SSE com progresso em tempo real) |
+| RNF-D05 | Suporte a cache Redis para consultas frequentes | Planejado para V2 (MVP usa cache in-memory com TTL 600s) |
 | RNF-D06 | Paginação obrigatória em listagens com mais de 50 registros | Obrigatório |
 
 ---
@@ -21,17 +21,17 @@
 
 | ID | Requisito |
 |---|---|
-| RNF-S01 | HTTPS obrigatório em todos os ambientes (produção, homologação e desenvolvimento com certificado local) |
-| RNF-S02 | Senhas armazenadas com hash bcrypt (custo mínimo 12) |
+| RNF-S01 | HTTPS obrigatório em produção (Let's Encrypt via Certbot) |
+| RNF-S02 | Senhas armazenadas com hash bcrypt |
 | RNF-S03 | CPF armazenado apenas como hash SHA-256 irreversível — nunca em texto claro |
 | RNF-S04 | Proteção contra SQL Injection via uso de ORM com queries parametrizadas |
 | RNF-S05 | Proteção contra XSS com sanitização de dados de entrada |
 | RNF-S06 | Proteção contra CSRF com tokens de sessão |
 | RNF-S07 | Rate limiting nas APIs para prevenir abuso |
-| RNF-S08 | Banco de dados acessível apenas via API — nunca exposto diretamente à internet |
+| RNF-S08 | Banco de dados acessível apenas via rede interna Docker — nunca exposto diretamente à internet |
 | RNF-S09 | Logs de auditoria imutáveis para ações sensíveis |
 | RNF-S10 | Backups automáticos do banco de dados com retenção mínima de 30 dias |
-| RNF-S11 | JWT com access token de curta duração (15 min) e refresh token (7 dias) |
+| RNF-S11 | JWT com access token de duração configurável (padrão: 60 min via `JWT_EXPIRATION_MINUTES`) |
 
 ---
 
@@ -54,12 +54,12 @@
 
 | ID | Requisito |
 |---|---|
-| RNF-E01 | Arquitetura single-tenant - uma organização por instalação, sem isolamento de dados entre organizações |
-| RNF-E02 | Importações do TSE processadas de forma síncrona no MVP; assíncrona (Celery) em versões futuras |
+| RNF-E01 | Arquitetura single-tenant — uma organização por instalação, sem isolamento de dados entre organizações |
+| RNF-E02 | Importações do TSE processadas via streaming SSE (progresso em tempo real); assíncrona com Celery em versões futuras |
 | RNF-E03 | Banco de dados com suporte a índices otimizados para consultas geoespaciais (PostGIS) |
 | RNF-E04 | Disponibilidade mínima de 99% em horário comercial (MVP) |
-| RNF-E05 | Banco local (PostgreSQL instalado diretamente na máquina) em desenvolvimento; banco gerenciado em nuvem (Neon.tech) em produção |
-| RNF-E06 | Deploy sem containers — API FastAPI executada diretamente via Uvicorn; frontend React hospedado na Vercel |
+| RNF-E05 | Infraestrutura via Docker Compose: banco PostgreSQL + PostGIS em container com volume persistente |
+| RNF-E06 | Deploy em VPS via Docker Compose (nginx + FastAPI + PostgreSQL); recomendado: Hostinger KVM, Hetzner ou DigitalOcean com Ubuntu 22.04 |
 
 ---
 
@@ -79,7 +79,7 @@
 
 | ID | Requisito |
 |---|---|
-| RNF-M01 | Backend em Python 3.12 + FastAPI; frontend em React 18 + JavaScript |
+| RNF-M01 | Backend em Python 3.12 + FastAPI; frontend em React 19 + TypeScript |
 | RNF-M02 | Nomenclatura integralmente em português do Brasil (conforme guia de nomenclatura) |
 | RNF-M03 | Documentação OpenAPI (Swagger) gerada automaticamente pelo FastAPI em `/docs` |
 | RNF-M04 | Cobertura de testes unitários mínima de 60% para lógicas de negócio críticas (MVP) |

@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     jwt_secret_key: str         # Chave secreta para assinar tokens JWT (mantenha em segredo!)
     jwt_algorithm: str = "HS256"       # Algoritmo de assinatura (padrão: HS256)
     jwt_expiration_minutes: int = 15   # Tempo de validade do token em minutos
+    cors_origins: str = "http://localhost:5173"  # Origens permitidas, separadas por vírgula
 
     class Config:
         env_file = "../.env"    # Caminho relativo ao backend/ para o arquivo .env

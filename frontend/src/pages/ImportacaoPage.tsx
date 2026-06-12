@@ -1,4 +1,5 @@
-import { useState, useRef, useEffect, useCallback, type DragEvent, type ChangeEvent } from 'react'
+import { useState, useRef, useEffect, useCallback, type DragEvent } from 'react'
+import type { PageId } from './HomePage'
 import styles from './ImportacaoPage.module.css'
 import {
   importarMunicipios,
@@ -28,7 +29,7 @@ interface EstadoImport {
   erro?: string
 }
 
-export default function ImportacaoPage({ onNavigate }: { onNavigate?: (page: string) => void }) {
+export default function ImportacaoPage({ onNavigate }: { onNavigate?: (page: PageId) => void }) {
   const [aba, setAba] = useState<Aba>('resultados')
   const [modoAvancado, setModoAvancado] = useState(false)
   const [status, setStatus] = useState<StatusEleicao[]>([])

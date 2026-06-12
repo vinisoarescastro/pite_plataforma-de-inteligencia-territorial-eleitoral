@@ -134,7 +134,7 @@ export default function MapaPage() {
   const [dadosMapa, setDadosMapa]       = useState<VotacaoMunicipio[]>([])
   const [ranking, setRanking]           = useState<RankingPorCargo[]>([])
   const [loadingRanking, setLoadingRanking] = useState(false)
-  const [ufsComDados, setUfsComDados]   = useState<Set<string>>(UF_COM_DADOS_INICIAL)
+  const [, setUfsComDados]              = useState<Set<string>>(UF_COM_DADOS_INICIAL)
   const ufsComDadosRef                  = useRef<Set<string>>(UF_COM_DADOS_INICIAL)
 
   function setNav(next: NavState) {

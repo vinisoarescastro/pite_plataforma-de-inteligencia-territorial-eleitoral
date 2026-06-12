@@ -14,7 +14,7 @@ Todas as análises são de natureza **territorial, estatística e agregada** —
 
 ## Status do Projeto
 
-> **Fase 1 — Em desenvolvimento** — Backend FastAPI com autenticação JWT, modelos eleitorais e importação TSE. Frontend com mapa territorial interativo (Leaflet), filtros eleitorais em cascata e visualização de votos por município e zona.
+> **Fase 1 — Funcional** — Backend FastAPI com autenticação JWT, modelos eleitorais, importação TSE via interface web e API completa. Frontend com mapa territorial interativo (Leaflet), filtros eleitorais em cascata, visualização de votos por município/zona/seção, CRUD de candidatos, eleições, partidos e usuários. Deploy via Docker Compose.
 
 ---
 
@@ -31,23 +31,24 @@ Todas as análises são de natureza **territorial, estatística e agregada** —
 | Migrations | Alembic | Latest |
 | Banco de dados | PostgreSQL + PostGIS | 16+ |
 | Autenticação | JWT — python-jose + passlib | Latest |
-| Scripts de dados | Pandas + GeoPandas | Latest |
+| Scripts de dados | Pandas | Latest |
+| Infraestrutura | Docker + Docker Compose + nginx | Latest |
 
 ---
 
 ## Arquitetura
 
-O sistema é **single-tenant** (uma organização por instalação) e organizado em três camadas separadas:
+O sistema é **single-tenant** (uma organização por instalação) e roda via Docker Compose com três serviços:
 
 ```
-Browser (React SPA)
-      ↕ HTTP / REST / JSON
-API (Python + FastAPI)
-      ↕
-PostgreSQL + PostGIS
+Internet
+    └── frontend (nginx :80)
+            ├── /                    → arquivos estáticos React
+            └── /auth, /resultados…  → proxy → backend:8000 (FastAPI)
+                                                    └── db:5432 (PostgreSQL + PostGIS)
 ```
 
-Controle de acesso por **4 perfis RBAC**: `administrador`, `gestor`, `analista`, `assessor`.  
+Controle de acesso por **4 perfis RBAC**: `administrador`, `gestor`, `analista`, `assessor`.
 Cada perfil não-admin é vinculado a um único candidato e só acessa os dados desse candidato.
 
 ---
@@ -56,77 +57,69 @@ Cada perfil não-admin é vinculado a um único candidato e só acessa os dados 
 
 ```
 pite/
-│
-├── .env.example
+├── .env                        # Variáveis de ambiente (não versionado)
+├── .env.exemplo                # Template do .env
 ├── .gitignore
 ├── README.md
+├── docker-compose.yml          # Orquestração dos serviços
+├── municipio_tse_ibge.csv      # Mapeamento TSE→IBGE (5.571 municípios)
 │
-├── docs/                           # Documentação estratégica e técnica
+├── docs/                       # Documentação estratégica e técnica
 │
-├── backend/                        # Python 3.12 + FastAPI
-│   ├── main.py
-│   ├── settings.py
-│   ├── database.py
-│   ├── dependencies.py
+├── backend/                    # Python 3.12 + FastAPI
+│   ├── Dockerfile
+│   ├── main.py                 # Entry point — registra todos os routers
+│   ├── settings.py             # Configurações via variáveis de ambiente
+│   ├── database.py             # Conexão SQLAlchemy
+│   ├── dependencies.py         # get_current_user, require_admin
+│   ├── security.py             # JWT, bcrypt
+│   ├── create_admin.py         # Script para criar o primeiro usuário admin
 │   ├── requirements.txt
-│   ├── models/                     # SQLAlchemy ORM models
-│   ├── modules/                    # Feature modules (auth, candidates, elections...)
-│   │   └── <module>/
-│   │       ├── router.py
-│   │       ├── schemas.py
-│   │       ├── service.py
-│   │       └── repository.py
-│   ├── core/                       # Security, RBAC, exceptions, pagination
-│   ├── processing/                 # Strength index, territory classifier
-│   ├── seeds/                      # Initial data (parties, roles)
-│   ├── migrations/                 # Alembic versions
-│   └── tests/
+│   ├── alembic.ini
+│   ├── models/
+│   │   ├── user.py             # Tabela users
+│   │   └── eleitoral.py        # Eleicao, Candidato, Candidatura, Partido, etc.
+│   ├── auth/                   # POST /auth/login
+│   ├── users/                  # GET/POST/PUT/PATCH /users
+│   ├── eleicoes/               # GET/POST/DELETE /eleicoes
+│   ├── resultados/             # /candidatos, /candidaturas, /partidos, /resultados, /secoes
+│   ├── importacao/             # POST /importar/* (streaming SSE)
+│   └── migrations/             # Alembic versions
 │
-├── frontend/                       # React 18 + Vite
-│   └── src/
-│       ├── pages/                  # All application pages
-│       │   ├── auth/
-│       │   ├── dashboard/
-│       │   ├── candidates/
-│       │   ├── elections/
-│       │   ├── territories/
-│       │   ├── polls/
-│       │   ├── comparison/
-│       │   ├── import/
-│       │   ├── geography/
-│       │   └── users/
-│       ├── components/             # Shared UI (ui/, layout/, map/, charts/)
-│       ├── modules/                # Domain logic (components/ + hooks/)
-│       ├── store/                  # Global state — Context API
-│       ├── services/               # HTTP layer — API calls
-│       ├── utils/                  # Formatters, validators, constants
-│       ├── config/                 # API config, map config
-│       └── router/                 # React Router v6 + RoleGuard
-│
-├── import-scripts/                 # Standalone data import (TSE + geo)
-│   ├── tse/
-│   └── geo/
-│
-└── data/                           # Raw data — not versioned (.gitignore)
-    ├── tse/
-    └── geo/
+└── frontend/                   # React 19 + Vite + TypeScript
+    ├── Dockerfile
+    ├── nginx.conf               # Proxy nginx (dev: vite proxy; prod: este arquivo)
+    ├── package.json
+    ├── vite.config.ts           # Proxy de desenvolvimento → localhost:8000
+    ├── public/
+    │   └── geo/
+    │       ├── municipios_br.json      # GeoJSON IBGE 2022 (5.572 municípios)
+    │       ├── brasil_outline.json
+    │       ├── regioes_outline.json
+    │       └── estados_outline.json
+    └── src/
+        ├── pages/              # LoginPage, HomePage, MapaPage, CandidatosPage,
+        │                       # EleioesPage, PartidosPage, ImportacaoPage, UsuariosPage
+        ├── components/         # Sidebar, Topbar, painel/, candidatos/, usuarios/
+        └── services/           # auth.ts, eleitoral.ts, candidatos.ts, users.ts, etc.
 ```
 
 ---
 
 ## Módulos do Sistema
 
-| Módulo | Descrição |
-|---|---|
-| `auth` | Login, JWT, refresh token |
-| `candidates` | Cadastro de candidatos e pré-candidatos |
-| `elections` | Eleições e candidaturas vinculadas ao TSE |
-| `territories` | Mapa interativo, zonas, seções e classificação territorial |
-| `polls` | Cadastro, importação e cruzamento de pesquisas eleitorais |
-| `results` | Resultados eleitorais importados do TSE |
-| `import` | Importação e normalização de arquivos CSV do TSE |
-| `users` | Usuários, perfis RBAC e permissões |
-| `audit` | Log de ações sensíveis por usuário |
+| Módulo | Status | Descrição |
+|---|---|---|
+| `auth` | ✅ Implementado | Login, JWT |
+| `users` | ✅ Implementado | CRUD de usuários com RBAC |
+| `eleicoes` | ✅ Implementado | Eleições com cache in-memory |
+| `candidatos` | ✅ Implementado | Candidatos e candidaturas |
+| `partidos` | ✅ Implementado | Partidos políticos |
+| `resultados` | ✅ Implementado | Resultados eleitorais (70+ endpoints) |
+| `importacao` | ✅ Implementado | Import de CSVs do TSE via interface web (SSE) |
+| `mapa` | ✅ Implementado | Mapa territorial interativo com Leaflet |
+| `pesquisas` | 🔜 Planejado | Pesquisas eleitorais próprias |
+| `comparacao` | 🔜 Planejado | Comparação entre eleições/candidatos |
 
 ---
 
@@ -139,8 +132,6 @@ pite/
 | Coordenador de campanha | Priorizar esforços por zona, município e seção eleitoral |
 | Consultor eleitoral | Análise comparativa entre eleições, territórios e candidatos |
 | Partido político | Mapear forças, fragilidades e oportunidades territoriais |
-| Pesquisador | Cruzar dados públicos do TSE com pesquisas próprias |
-| Analista | Produzir indicadores, relatórios e painéis para suporte à decisão |
 
 ---
 
@@ -148,70 +139,62 @@ pite/
 
 ### Pré-requisitos
 
-- [PostgreSQL 16+](https://www.postgresql.org/download/) com extensão **PostGIS**
-- [Python 3.12+](https://www.python.org/)
-- [Node.js 20+](https://nodejs.org/)
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) instalado e rodando
 
-### 1. Banco de dados
-
-```sql
-CREATE DATABASE pite;
-\c pite
-CREATE EXTENSION postgis;
-```
+### 1. Configurar o ambiente
 
 ```bash
-cp .env.example .env
-# Edite .env com suas credenciais do PostgreSQL
+git clone <url-do-repositorio>
+cd pite
+cp .env.exemplo .env
 ```
 
-### 2. Backend
+Edite o `.env` com suas credenciais:
+
+```ini
+DB_PASSWORD=senha-segura-aqui
+JWT_SECRET_KEY=   # gere com: python -c "import secrets; print(secrets.token_hex(32))"
+JWT_EXPIRATION_MINUTES=60
+CORS_ORIGINS=http://localhost,http://127.0.0.1
+```
+
+### 2. Subir os containers
 
 ```bash
-cd backend
-python -m venv .venv
-
-# Windows
-.venv\Scripts\activate
-# Linux / macOS
-source .venv/bin/activate
-
-pip install -r requirements.txt
-alembic upgrade head       # Cria as tabelas
-uvicorn main:app --reload  # Inicia o servidor
+docker compose up -d --build
 ```
 
-| Endpoint | URL |
+### 3. Criar as tabelas e o primeiro admin
+
+```bash
+docker compose exec backend alembic upgrade head
+docker compose cp backend/create_admin.py backend:/app/backend/create_admin.py
+docker compose exec backend python create_admin.py
+```
+
+### 4. Acessar
+
+| URL | Descrição |
 |---|---|
-| API | http://localhost:8000 |
-| Documentação (Swagger) | http://localhost:8000/docs |
-| Documentação (Redoc) | http://localhost:8000/redoc |
+| `http://127.0.0.1:8080` | Aplicação (local Windows) |
+| `http://localhost` | Aplicação (Linux/macOS) |
+| `http://localhost:8000/docs` | Swagger — apenas sem Docker ou com port expose |
 
-### 3. Frontend
+> **Windows:** use `http://127.0.0.1:8080` — `localhost` pode não funcionar com Docker Desktop/WSL2.
 
-```bash
-cd frontend
-npm install
-npm run dev
-```
+---
 
-| Endpoint | URL |
-|---|---|
-| App | http://localhost:5173 |
+## Deploy em VPS
 
-### 4. Scripts de importação (opcional)
+Ver [14 — Guia de Desenvolvimento](docs/14-guia-de-desenvolvimento.md) — seção Deploy em VPS.
 
-```bash
-cd import-scripts
-python -m venv .venv && source .venv/bin/activate  # ou .venv\Scripts\activate no Windows
-pip install -r requirements.txt
-
-# Importar resultados TSE
-python tse/import_results.py --file ../data/tse/2024/votacao_secao_2024_GO.csv
-
-# Importar municípios (GeoJSON IBGE)
-python geo/import_municipalities.py --file ../data/geo/municipalities/municipios_go.geojson
-```
+**Resumo:**
+1. Provisionar VPS Ubuntu 22.04 (Hostinger, Hetzner, DigitalOcean)
+2. Instalar Docker: `curl -fsSL https://get.docker.com | sh`
+3. Clonar o repositório e criar o `.env` com as variáveis de produção
+4. `docker compose up -d --build`
+5. Rodar migrations e criar admin
+6. Configurar domínio + SSL com Certbot
 
 ---
 
@@ -232,7 +215,7 @@ python geo/import_municipalities.py --file ../data/geo/municipalities/municipios
 | [11 — Backlog Inicial](docs/11-backlog-inicial.md) | Épicos e tarefas por prioridade |
 | [12 — Dicionário de Dados](docs/12-dicionario-de-dados.md) | Glossário técnico |
 | [13 — Guia de Nomenclatura](docs/13-guia-de-nomenclatura.md) | Padrões de código |
-| [14 — Guia de Desenvolvimento](docs/14-guia-de-desenvolvimento.md) | Setup local, migrations, módulos implementados e troubleshooting |
+| [14 — Guia de Desenvolvimento](docs/14-guia-de-desenvolvimento.md) | Setup local, Docker, deploy em VPS, módulos e troubleshooting |
 
 ---
 
