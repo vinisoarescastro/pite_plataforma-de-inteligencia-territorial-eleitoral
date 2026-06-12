@@ -67,6 +67,10 @@ pite/
 │   ├── resultados/             # /candidatos, /candidaturas, /partidos,
 │   │                           # /resultados/*, /secoes/*
 │   ├── importacao/             # /importar/* (streaming SSE)
+│   ├── geo/                    # /geo/ufs, /geo/municipios, /geo/bairros/*,
+│   │   ├── router.py           # /geo/geocoding/*, /geo/locais-votacao
+│   │   ├── schemas.py          # Pydantic schemas do módulo geo
+│   │   └── geocoding.py        # BackgroundTask Nominatim (rate-limited 1 req/s)
 │   └── migrations/versions/
 │
 └── frontend/
@@ -243,7 +247,19 @@ alembic revision --autogenerate -m "descricao"
 > Sempre revise o arquivo gerado em `migrations/versions/` antes de aplicar.
 > Remova qualquer `op.drop_table` de tabelas do PostGIS (`spatial_ref_sys`, etc.) que apareça.
 
-### 5.3 Outros comandos
+### 5.3 Migrations existentes (cadeia atual)
+
+| ID | Descrição |
+|---|---|
+| `a1b2c3d4e5f6` | Tabelas base (eleicoes, candidatos, candidaturas, partidos, resultados, votacao_secao, etc.) |
+| `b2c3d4e5f6a7` | Índices e constraints iniciais |
+| `j7e8f9a0b1c2` | Coluna `sg_uf` em `votacao_secao`; índices por eleição+UF e eleição+cargo |
+| `k8f9a0b1c2d3` | Tabela `eleicao_resumo_cache` — KPIs pré-computados por eleição |
+| `l9a0b1c2d3e4` | Tabelas `bairro` e `bairro_local_votacao` — módulo de geografia (fase 1) |
+| `m0b1c2d3e4f5` | Coluna `geom GEOMETRY(POLYGON, 4326)` em `bairro` + índice GIST (fase 2) |
+| `n1c2d3e4f5g6` | Tabela `local_votacao_geo` — coordenadas dos locais de votação via geocodificação (fase 3) |
+
+### 5.4 Outros comandos
 
 ```bash
 alembic current          # migration atual
@@ -251,7 +267,7 @@ alembic history          # histórico
 alembic downgrade -1     # desfazer última migration
 ```
 
-### 5.4 Configuração do `migrations/env.py`
+### 5.5 Configuração do `migrations/env.py`
 
 O `env.py` filtra tabelas do PostGIS para que o Alembic não as detecte como "removidas":
 
@@ -287,6 +303,9 @@ def include_object(object, name, type_, reflected, compare_to):
 | `municipio_tse_ibge` | Mapeamento TSE ↔ IBGE (5.571 municípios) |
 | `eleicao_resumo_cache` | KPIs pré-computados por eleição |
 | `importacao_log` | Histórico de todos os imports com status e métricas |
+| `bairro` | Regiões urbanas de um município; coluna `geom GEOMETRY(POLYGON, 4326)` opcional desenhada via Leaflet-Geoman |
+| `bairro_local_votacao` | Vínculo N:N entre `bairro` e locais de votação |
+| `local_votacao_geo` | Coordenadas lat/lng dos locais de votação geocodificados via Nominatim; campo `status` (pendente/geocodificado/erro) |
 
 ### 6.2 `auth` — Autenticação JWT
 
@@ -418,6 +437,42 @@ data: {"tipo": "erro", "mensagem": "Coluna X não encontrada"}
 **Dados geográficos estáticos (`frontend/public/geo/`):**
 - `municipios_br.json` — 5.572 municípios, ~59 MB (recomendado simplificar para ~3 MB com [mapshaper.org](https://mapshaper.org) usando `simplify 5%`)
 - `brasil_outline.json`, `regioes_outline.json`, `estados_outline.json` — contornos dissolvidos
+
+### 6.8 `geo` — Módulo de Geografia
+
+Gerenciamento de bairros, polígonos e geocodificação. Todos os endpoints requerem token de usuário autenticado; operações de escrita requerem **administrador**.
+
+**UFs e municípios:**
+
+| Método | Endpoint | Descrição |
+|---|---|---|
+| `GET` | `/geo/ufs` | Lista UFs disponíveis |
+| `GET` | `/geo/municipios` | Lista municípios por UF |
+
+**Bairros:**
+
+| Método | Endpoint | Descrição |
+|---|---|---|
+| `GET` | `/geo/bairros` | Lista bairros por município (query: `sg_uf`, `cd_municipio_tse`) |
+| `POST` | `/geo/bairros` | Cria bairro |
+| `PUT` | `/geo/bairros/{id}` | Atualiza nome/cor |
+| `DELETE` | `/geo/bairros/{id}` | Remove bairro |
+| `PUT` | `/geo/bairros/{id}/geom` | Salva polígono GeoJSON desenhado via Leaflet-Geoman |
+| `DELETE` | `/geo/bairros/{id}/geom` | Remove polígono |
+| `GET` | `/geo/bairros/geojson` | GeoJSON de todos os bairros com geometria (para renderizar no mapa) |
+| `GET` | `/geo/bairros/{id}/locais` | Lista locais de votação vinculados ao bairro |
+| `POST` | `/geo/bairros/{id}/locais` | Vincula locais de votação ao bairro |
+| `DELETE` | `/geo/bairros/{id}/locais/{nr_local}` | Remove vínculo |
+| `POST` | `/geo/bairros/{id}/sugerir-locais` | Retorna locais geocodificados dentro do polígono via `ST_Within` |
+
+**Geocodificação:**
+
+| Método | Endpoint | Descrição |
+|---|---|---|
+| `GET` | `/geo/geocoding/status` | Status da geocodificação do município (total/geocodificados/pendentes/erros/em_andamento) |
+| `POST` | `/geo/geocoding/municipio` | Inicia geocodificação em background via Nominatim (retorna 202) |
+
+> **Ordem dos endpoints:** Rotas literais (`/geo/bairros/geojson`) e `/{id}/sugerir-locais` estão definidas ANTES das rotas parametrizadas `/{bairro_id}` no `router.py` para evitar conflito de matching no FastAPI.
 
 ---
 
@@ -581,6 +636,17 @@ print(urllib.parse.quote("Senha@123", safe=""))
 
 **Causa:** Race condition assíncrona nos GeoJSONs de contorno.
 **Solução:** `atualizarContorno()` verifica `navRef.current.nivel !== navState.nivel` antes de desenhar; aborta se divergirem.
+
+### Rotas `/geo/*` retornam `index.html` em vez do JSON da API
+
+**Causa:** O padrão de regex no `frontend/nginx.conf` não incluía o prefixo `geo`.
+**Solução:** Garantir que todos os prefixos de módulos backend estejam na regex:
+```nginx
+location ~ ^/(auth|users|eleicoes|candidatos|candidaturas|partidos|resultados|secoes|importar|health|geo) {
+    proxy_pass http://backend:8000;
+}
+```
+Qualquer novo módulo backend deve ser adicionado aqui para não cair no SPA fallback.
 
 ### Sessão expira rapidamente
 

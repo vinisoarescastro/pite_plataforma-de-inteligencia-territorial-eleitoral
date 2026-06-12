@@ -190,6 +190,26 @@ export const listarVotaveis = (
   return get<Votavel[]>(`/secoes/votaveis?${p}`)
 }
 
+export const buscarUfsComDados = (eleicaoId: string) =>
+  get<string[]>(`/secoes/ufs-com-dados?eleicao_id=${eleicaoId}`)
+
+export interface VotacaoUF {
+  sg_uf: string
+  total_votos: number
+  pct_relativo: number | null
+}
+
+export const buscarVotacaoMapaBrasil = (
+  eleicaoId: string,
+  params: { nr_votavel?: string; nm_votavel?: string; nr_turno?: number } = {}
+) => {
+  const p = new URLSearchParams({ eleicao_id: eleicaoId })
+  if (params.nr_votavel) p.set('nr_votavel', params.nr_votavel)
+  if (params.nm_votavel) p.set('nm_votavel', params.nm_votavel)
+  if (params.nr_turno != null) p.set('nr_turno', String(params.nr_turno))
+  return get<VotacaoUF[]>(`/secoes/mapa/brasil?${p}`)
+}
+
 export const listarCargos = (eleicaoId: string, nr_turno?: number) => {
   const p = new URLSearchParams({ eleicao_id: eleicaoId })
   if (nr_turno != null) p.set('nr_turno', String(nr_turno))

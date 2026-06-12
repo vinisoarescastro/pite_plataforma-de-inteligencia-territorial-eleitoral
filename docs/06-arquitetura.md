@@ -45,6 +45,7 @@
 | Linguagem | TypeScript |
 | Build | Vite |
 | Mapas | Leaflet (direto, sem react-leaflet — instância via `useRef`) |
+| Desenho de polígonos | Leaflet-Geoman 2.18+ (sem toolbar nativa — API programática) |
 | Roteamento | React Router DOM v7 |
 | Estado | useState / useEffect (local por página) |
 | Estilização | CSS Modules |
@@ -53,7 +54,7 @@
 
 **Em desenvolvimento:** Vite serve o app na porta 5173 e faz proxy das chamadas de API para `localhost:8000`.
 
-**Em produção:** o build (`npm run build`) gera arquivos estáticos servidos pelo nginx. O nginx também faz proxy de `/auth`, `/users`, `/eleicoes`, etc. para o container do backend.
+**Em produção:** o build (`npm run build`) gera arquivos estáticos servidos pelo nginx. O nginx também faz proxy de `/auth`, `/users`, `/eleicoes`, `/geo`, etc. para o container do backend.
 
 ---
 
@@ -81,7 +82,7 @@ backend/<modulo>/
 └── service.py   → lógica de negócio
 ```
 
-**Módulos ativos:** `auth`, `users`, `eleicoes`, `resultados` (candidatos, candidaturas, partidos, resultados, secoes), `importacao`.
+**Módulos ativos:** `auth`, `users`, `eleicoes`, `resultados` (candidatos, candidaturas, partidos, resultados, secoes), `importacao`, `geo` (bairros, geocodificação, sugestão espacial).
 
 ---
 
@@ -110,6 +111,18 @@ backend/<modulo>/
 - **psycopg2 COPY** para bulk insert em chunks de 50.000 linhas (muito mais rápido que ORM).
 - Registro em `importacao_log` para rastreabilidade completa.
 - Suporta: municípios TSE→IBGE, resultados eleitorais e votação por seção.
+
+---
+
+### 2.7 Camada de Geocodificação — Nominatim
+
+- Serviço `backend/geo/geocoding.py` chama a API pública do Nominatim (OpenStreetMap).
+- Roda como `BackgroundTask` do FastAPI em thread separada para não bloquear a API.
+- Respeita o rate limit de **1 req/s** do Nominatim (ToS).
+- Estratégia de fallback: tenta o endereço completo (`ds_endereco`) e, se não encontrado, usa só o nome do local (`nm_local_votacao`).
+- Resultados armazenados em `local_votacao_geo` com coluna `GEOMETRY(POINT, 4326)` e índice GIST.
+- O frontend faz polling a cada 3 s enquanto `em_andamento = true`.
+- Endpoint `POST /geo/bairros/{id}/sugerir-locais` usa `ST_Within` para retornar locais geocodificados dentro de um polígono desenhado pelo usuário.
 
 ---
 
@@ -144,11 +157,13 @@ services:
 O nginx no container `frontend` serve os arquivos estáticos do React e faz proxy das rotas de API:
 
 ```nginx
-location ~ ^/(auth|users|eleicoes|candidatos|resultados|secoes|importar|health) {
+location ~ ^/(auth|users|eleicoes|candidatos|candidaturas|partidos|resultados|secoes|importar|health|geo) {
     proxy_pass http://backend:8000;
     proxy_buffering off;   # necessário para SSE
 }
 ```
+
+> **Atenção:** qualquer novo módulo de backend deve ser adicionado a este padrão de regex — caso contrário o nginx serve o `index.html` (SPA fallback) em vez de encaminhar a requisição.
 
 **Atualização do código em produção:**
 ```bash
@@ -191,6 +206,10 @@ pite/
 │   ├── resultados/             # 70+ endpoints: /candidatos, /candidaturas,
 │   │                           # /partidos, /resultados/*, /secoes/*
 │   ├── importacao/             # POST /importar/* (streaming SSE)
+│   ├── geo/                    # /geo/ufs, /geo/municipios, /geo/bairros/*,
+│   │   ├── router.py           # /geo/geocoding/*, /geo/locais-votacao
+│   │   ├── schemas.py          # Pydantic schemas do módulo geo
+│   │   └── geocoding.py        # BackgroundTask Nominatim (rate-limited 1 req/s)
 │   └── migrations/versions/    # Alembic migrations versionadas
 │
 └── frontend/                   # React 19 + Vite + TypeScript
@@ -200,10 +219,12 @@ pite/
     ├── public/geo/              # GeoJSON IBGE 2022 (municipios, regioes, estados)
     └── src/
         ├── pages/               # LoginPage, HomePage, MapaPage, CandidatosPage,
-        │                        # EleioesPage, PartidosPage, ImportacaoPage, UsuariosPage
+        │                        # EleioesPage, PartidosPage, ImportacaoPage,
+        │                        # UsuariosPage, GeografiaPage
         ├── components/          # Sidebar, Topbar, painel/, candidatos/, usuarios/
         └── services/            # auth.ts, eleitoral.ts, candidatos.ts,
-                                 # candidaturas.ts, partidos.ts, users.ts, importacao.ts
+                                 # candidaturas.ts, partidos.ts, users.ts,
+                                 # importacao.ts, geo.ts
 ```
 
 ---
@@ -234,6 +255,7 @@ nginx → SPA React + Leaflet
 |---|---|
 | React 19 + TypeScript + CSS Modules | Interface interativa com mapas e dashboards; TypeScript desde o início para segurança de tipos |
 | Leaflet | Biblioteca de mapas open-source leve; suporte robusto a GeoJSON |
+| Leaflet-Geoman | Plugin de desenho vetorial sem dependência de React; API programática sem toolbar |
 | Python + FastAPI | Ecossistema superior para dados (Pandas, GeoAlchemy); Swagger automático |
 | Pydantic v2 | Validação automática com mensagens claras; incluso no FastAPI |
 | SQLAlchemy + GeoAlchemy2 | ORM maduro com suporte nativo a PostGIS |
@@ -246,6 +268,8 @@ nginx → SPA React + Leaflet
 | sg_uf desnormalizado em `votacao_secao` | Elimina JOINs frequentes com `municipio_tse_ibge` |
 | Single-tenant | Elimina toda a complexidade de isolamento de dados entre organizações |
 | Sem Redis/Celery no MVP | Filas e cache distribuído adicionam complexidade sem necessidade no início |
+| Nominatim para geocodificação | API pública gratuita (OSM); sem chave de API; rate limit 1 req/s aceitável para processamento batch em background |
+| BackgroundTasks do FastAPI para geocodificação | Simples, sem dependências extras (sem Celery/RQ); retomável via campo `status` na tabela |
 
 ---
 

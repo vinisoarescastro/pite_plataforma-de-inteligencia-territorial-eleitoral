@@ -37,15 +37,22 @@ Fonte: **Tribunal Superior Eleitoral (TSE)** — dados abertos em `dados.tse.jus
 
 ### Geocodificação dos Locais de Votação
 
-O endereço de cada local de votação (`DS_LOCAL_VOTACAO_ENDERECO`) é extraído do CSV do TSE e convertido em coordenadas lat/lng via Nominatim (API gratuita do OpenStreetMap). O processo é:
+O endereço de cada local de votação (`DS_LOCAL_VOTACAO_ENDERECO`) é extraído de `votacao_secao` e convertido em coordenadas lat/lng via Nominatim (API gratuita do OpenStreetMap). O processo roda em **background** sem bloquear a API:
 
 ```
-1. Extrair endereço do CSV do TSE
-2. Consultar Nominatim: https://nominatim.openstreetmap.org/search?q=<endereço>&format=json
-3. Salvar lat/lng no campo local_votacao.latitude / local_votacao.longitude
-4. Marcar local_votacao.geocodificado = true
-5. Executar PostGIS para vincular ao bairro: ST_Within(ponto, polígono_bairro)
+1. POST /geo/geocoding/municipio → dispara BackgroundTask no FastAPI
+2. Coletar endereços únicos de votacao_secao para o município
+3. Fazer upsert em local_votacao_geo com status='pendente' (ON CONFLICT DO NOTHING)
+4. Para cada pendente: GET https://nominatim.openstreetmap.org/search?q=<endereço>&format=json
+5. Estratégia de fallback: tenta ds_endereco; se não encontrar, tenta nm_local_votacao
+6. Salvar GEOMETRY(POINT, 4326) + atualizar status ('geocodificado' ou 'erro')
+7. Rate limit obrigatório: sleep(1.1s) entre chamadas (ToS do Nominatim)
+8. Frontend faz polling em GET /geo/geocoding/status a cada 3 s enquanto em_andamento=true
 ```
+
+**Tabela de resultado:** `local_votacao_geo` com campos `sg_uf`, `cd_municipio_tse`, `nr_local_votacao` (PK composta), `geom`, `status`, `geocodificado_em`.
+
+**Vínculo espacial com bairros:** Após geocodificação, o endpoint `POST /geo/bairros/{id}/sugerir-locais` usa `ST_Within(geom, bairro.geom)` para sugerir automaticamente quais locais estão dentro de um polígono de bairro desenhado pelo usuário.
 
 **Alternativas se Nominatim não encontrar:** Google Maps Geocoding API (pago, mais preciso), ViaCEP + conversão por CEP.
 

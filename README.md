@@ -14,7 +14,7 @@ Todas as análises são de natureza **territorial, estatística e agregada** —
 
 ## Status do Projeto
 
-> **Fase 1 — Funcional** — Backend FastAPI com autenticação JWT, modelos eleitorais, importação TSE via interface web e API completa. Frontend com mapa territorial interativo (Leaflet), filtros eleitorais em cascata, visualização de votos por município/zona/seção, CRUD de candidatos, eleições, partidos e usuários. Deploy via Docker Compose.
+> **Fase 1 — Funcional** — Backend FastAPI com autenticação JWT, modelos eleitorais, importação TSE via interface web e API completa. Frontend com mapa territorial interativo (Leaflet), filtros eleitorais em cascata, visualização de votos por município/zona/seção, CRUD de candidatos, eleições, partidos e usuários. Módulo de Geografia com gerenciamento de bairros, polígonos desenhados via Leaflet-Geoman e geocodificação automática de locais de votação via Nominatim. Deploy via Docker Compose.
 
 ---
 
@@ -24,6 +24,7 @@ Todas as análises são de natureza **territorial, estatística e agregada** —
 |---|---|---|
 | Front-end | React + Vite + TypeScript | 19 / Latest |
 | Mapas | Leaflet (vanilla, sem react-leaflet) | 1.9+ |
+| Desenho de polígonos | Leaflet-Geoman | 2.18+ |
 | Estilização | CSS Modules | — |
 | Back-end | Python + FastAPI | 3.12 / Latest |
 | Validação | Pydantic | 2.0+ |
@@ -32,6 +33,7 @@ Todas as análises são de natureza **territorial, estatística e agregada** —
 | Banco de dados | PostgreSQL + PostGIS | 16+ |
 | Autenticação | JWT — python-jose + passlib | Latest |
 | Scripts de dados | Pandas | Latest |
+| Geocodificação | Nominatim (OpenStreetMap) | — |
 | Infraestrutura | Docker + Docker Compose + nginx | Latest |
 
 ---
@@ -43,9 +45,9 @@ O sistema é **single-tenant** (uma organização por instalação) e roda via D
 ```
 Internet
     └── frontend (nginx :80)
-            ├── /                    → arquivos estáticos React
-            └── /auth, /resultados…  → proxy → backend:8000 (FastAPI)
-                                                    └── db:5432 (PostgreSQL + PostGIS)
+            ├── /                             → arquivos estáticos React
+            └── /auth, /geo, /resultados…     → proxy → backend:8000 (FastAPI)
+                                                              └── db:5432 (PostgreSQL + PostGIS)
 ```
 
 Controle de acesso por **4 perfis RBAC**: `administrador`, `gestor`, `analista`, `assessor`.
@@ -84,6 +86,7 @@ pite/
 │   ├── eleicoes/               # GET/POST/DELETE /eleicoes
 │   ├── resultados/             # /candidatos, /candidaturas, /partidos, /resultados, /secoes
 │   ├── importacao/             # POST /importar/* (streaming SSE)
+│   ├── geo/                    # /geo/bairros, /geo/geocoding, /geo/locais-votacao
 │   └── migrations/             # Alembic versions
 │
 └── frontend/                   # React 19 + Vite + TypeScript
@@ -99,9 +102,11 @@ pite/
     │       └── estados_outline.json
     └── src/
         ├── pages/              # LoginPage, HomePage, MapaPage, CandidatosPage,
-        │                       # EleioesPage, PartidosPage, ImportacaoPage, UsuariosPage
+        │                       # EleioesPage, PartidosPage, ImportacaoPage,
+        │                       # UsuariosPage, GeografiaPage
         ├── components/         # Sidebar, Topbar, painel/, candidatos/, usuarios/
-        └── services/           # auth.ts, eleitoral.ts, candidatos.ts, users.ts, etc.
+        └── services/           # auth.ts, eleitoral.ts, candidatos.ts, users.ts,
+                                #  importacao.ts, geo.ts
 ```
 
 ---
@@ -117,7 +122,8 @@ pite/
 | `partidos` | ✅ Implementado | Partidos políticos |
 | `resultados` | ✅ Implementado | Resultados eleitorais (70+ endpoints) |
 | `importacao` | ✅ Implementado | Import de CSVs do TSE via interface web (SSE) |
-| `mapa` | ✅ Implementado | Mapa territorial interativo com Leaflet |
+| `mapa` | ✅ Implementado | Mapa territorial interativo com Leaflet, ranking por cargo, perfil de candidato por escopo |
+| `geografia` | ✅ Implementado | Gerenciamento de bairros, polígonos (Leaflet-Geoman), geocodificação de locais de votação |
 | `pesquisas` | 🔜 Planejado | Pesquisas eleitorais próprias |
 | `comparacao` | 🔜 Planejado | Comparação entre eleições/candidatos |
 

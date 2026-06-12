@@ -54,6 +54,11 @@
 - [x] Adicionar coluna `sg_uf` em `votacao_secao` para eliminar JOIN com `municipio_tse_ibge` nas queries de resumo e detalhe.
 - [x] Corrigir mapa territorial: remover hardcode `'GO'` em `UF_COM_DADOS` e `buscarVotacaoMapaUF`; colorização de estados e busca de votos agora dinâmicas por UF selecionada.
 - [x] Aplicar migration `k8f9a0b1c2d3` — tabela `eleicao_resumo_cache` criada; endpoint `GET /eleicoes/resumo` funcional.
+- [x] Mapa territorial — escopo territorial por cargo: aba Município/Estado/Brasil no painel do candidato; lista de candidatos do município clicável com ranking completo ("Ver todos"); perfil do candidato com votos por escopo.
+- [x] Módulo de Geografia — **Fase 1**: tabelas `bairro` e `bairro_local_votacao` (migrations `l9a0b1c2d3e4`), CRUD de bairros, vínculo manual com locais de votação.
+- [x] Módulo de Geografia — **Fase 2**: coluna `geom` em `bairro` (migration `m0b1c2d3e4f5`), página GeografiaPage com mapa Leaflet + Leaflet-Geoman, desenho e salvamento de polígonos de bairros.
+- [x] Módulo de Geografia — **Fase 3**: tabela `local_votacao_geo` (migration `n1c2d3e4f5g6`), geocodificação via Nominatim em background, sugestão automática de locais ao desenhar polígono (`ST_Within`).
+- [x] Fix nginx: adicionar `/geo` à lista de prefixos proxiados (requests para `/geo/*` chegavam ao SPA em vez do backend).
 - [ ] Implementar painel analítico principal com indicadores.
 - [ ] Implementar exportação de dados em CSV.
 - [ ] Testes com usuários representativos dos perfis definidos.

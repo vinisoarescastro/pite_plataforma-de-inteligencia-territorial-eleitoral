@@ -12,9 +12,11 @@
 | `uf` | Unidade federativa brasileira | Entidade | GO, SP, MG |
 | `municipio` | Município brasileiro com polígono geográfico (IBGE) | Entidade | Goiânia — código TSE 09200 |
 | `municipio_tse_ibge` | Tabela de correspondência entre código TSE e código IBGE do município | Entidade | cd_tse=09200 → cd_ibge=5208707 |
-| `bairro` | Região urbana dentro de um município com polígono geográfico | Entidade | Setor Bueno, Goiânia |
+| `bairro` | Região urbana dentro de um município; polígono geográfico `GEOMETRY(POLYGON, 4326)` desenhado via Leaflet-Geoman | Entidade | Setor Bueno, Goiânia |
+| `bairro_local_votacao` | Tabela de vínculo N:N entre `bairro` e `local_votacao_geo` — associa locais de votação a um bairro | Entidade | Bairro Setor Bueno ↔ Escola Estadual X |
+| `local_votacao_geo` | Coordenadas geográficas (lat/lng) de cada local de votação, geocodificadas via Nominatim; inclui campo `status` (pendente/geocodificado/erro) | Entidade | Escola Estadual X — POINT(-49.28, -16.68) |
 | `zona_eleitoral` | Unidade de organização eleitoral do TSE dentro de um município | Entidade | 1ª Zona Eleitoral de Goiânia |
-| `local_votacao` | Local físico onde ocorre a votação — geocodificado com lat/lng | Entidade | Escola Estadual X — Rua Y, nº Z |
+| `local_votacao` | Local físico onde ocorre a votação — referenciado nos dados TSE pelo `nr_local_votacao` | Entidade | Escola Estadual X — Rua Y, nº Z |
 | `secao_eleitoral` | Menor unidade eleitoral — equivale a uma urna de votação | Entidade | Seção 0042 da Zona 01 |
 | `candidato` | Pessoa que disputou ou disputa uma eleição, registrada na plataforma | Entidade | JOÃO DA SILVA |
 | `partido` | Partido político cadastrado na plataforma — vinculado às candidaturas por eleição | Entidade | PT — Partido dos Trabalhadores (13) |
@@ -159,8 +161,10 @@
 | `media_percentual_votos` | Média do percentual de votos válidos nas últimas N eleições em um território |
 | `tendencia_crescimento` | Variação percentual de votos entre a última e a penúltima eleição em um território |
 | `consistencia_historica` | Medida de regularidade do desempenho: `1 - (desvio_padrão / média)`, normalizado entre 0 e 1 |
-| `geocodificacao` | Processo de converter um endereço textual em coordenadas geográficas (lat/lng). Realizado via Nominatim (OpenStreetMap, gratuito) sobre o campo `DS_LOCAL_VOTACAO_ENDERECO` do TSE. |
-| `vinculo_spatial` | Processo PostGIS que determina automaticamente em qual bairro um local de votação está, via `ST_Within(ponto, polígono)` |
+| `geocodificacao` | Processo de converter um endereço textual em coordenadas geográficas (lat/lng). Realizado via Nominatim (OpenStreetMap, gratuito) sobre o campo `DS_LOCAL_VOTACAO_ENDERECO` do TSE. Resultado armazenado em `local_votacao_geo`. |
+| `vinculo_spatial` | Consulta PostGIS que determina quais locais de votação estão dentro de um polígono de bairro, via `ST_Within(ponto, polígono)`. Usado no endpoint `POST /geo/bairros/{id}/sugerir-locais`. |
+| `Leaflet-Geoman` | Plugin `@geoman-io/leaflet-geoman-free` que adiciona ferramentas de desenho vetorial ao Leaflet. Na plataforma é usado sem toolbar nativa — controlado programaticamente via `map.pm.enableDraw('Polygon')` e evento `pm:create`. |
+| `sugestao_espacial` | Funcionalidade que, após o usuário desenhar um polígono de bairro, retorna automaticamente os locais de votação geocodificados que estão dentro desse polígono (via `ST_Within`), pré-selecionados para vínculo em lote. |
 | `WGS84` | Sistema de coordenadas geográficas padrão (EPSG:4326) utilizado pelo Leaflet e pelo TSE |
 | `PostGIS` | Extensão do PostgreSQL para dados geoespaciais — habilita polígonos, cálculos de área e consultas espaciais |
 | `GeoJSON` | Formato de dados geográficos baseado em JSON — padrão para polígonos no Leaflet |

@@ -75,8 +75,10 @@
 | T32 | ✅ Camada de municípios com dados eleitorais — colorização por degradê multi-cor (amarelo → laranja → vermelho escuro) proporcional ao % de votos; legenda horizontal no canto inferior esquerdo | MVP | HU-C01 |
 | T33 | Camada de zonas eleitorais | MVP | HU-CC01, HU-CC02 |
 | T34 | Camada de seções eleitorais | MVP | HU-CC02 |
-| T35 | Camada de bairros | Importante | HU-CC02 |
-| T36 | Camada de locais de votação (marcadores) | Importante | HU-CC06 |
+| T35 | ✅ Camada de bairros — página GeografiaPage com painel de listagem/detalhe (painel esquerdo) e mapa Leaflet + Leaflet-Geoman para desenhar polígonos (painel direito); vínculo manual de locais de votação; tabelas `bairro` e `bairro_local_votacao` | Importante | HU-CC02 |
+| T35a | ✅ Geocodificação de locais de votação — `local_votacao_geo` + serviço Nominatim em background (1 req/s, retomável); barra de progresso no mapa com polling automático | Importante | HU-CC06 |
+| T35b | ✅ Sugestão automática de locais ao desenhar polígono — painel de sugestões com checkboxes pré-selecionados via `ST_Within`; vínculo em lote | Importante | HU-CC02 |
+| T36 | Camada de locais de votação no mapa principal (marcadores Leaflet) | Importante | HU-CC06 |
 | T37 | Classificação automática de territórios | MVP | HU-CC01, HU-PP01 |
 | T38 | Camadas de classificação territorial (cores temáticas) | MVP | HU-CC01 |
 | T39 | ✅ Painel lateral de detalhes ao clicar no município — votos por zona (com candidato) ou ranking por cargo (sem candidato); corrigida duplicação de zonas causada por `GROUP BY` incluindo `nm_votavel`/`ds_cargo` (resolvido com `func.max()`) | MVP | HU-CC01 |

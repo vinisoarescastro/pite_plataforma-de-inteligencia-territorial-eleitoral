@@ -742,6 +742,55 @@ def ranking_municipio(
     return _ranking_por_tse(cd_municipio_tse, eleicao_id, nr_turno, ds_cargo, limit, db)
 
 
+@router.get("/secoes/mapa/brasil")
+def votacao_mapa_brasil(
+    eleicao_id: UUID = Query(...),
+    nr_votavel: str  = Query(None),
+    nm_votavel: str  = Query(None),
+    nr_turno: int    = Query(None),
+    db: Session = Depends(get_db),
+    _: object = Depends(get_current_user),
+):
+    """Total de votos por UF para um candidato — visão nacional."""
+    q = (
+        db.query(
+            VotacaoSecao.sg_uf,
+            func.sum(VotacaoSecao.qt_votos).label("total_votos"),
+        )
+        .filter(VotacaoSecao.eleicao_id == eleicao_id, VotacaoSecao.sg_uf.isnot(None))
+    )
+    if nr_votavel: q = q.filter(VotacaoSecao.nr_votavel == nr_votavel)
+    if nm_votavel: q = q.filter(func.upper(VotacaoSecao.nm_votavel) == nm_votavel.upper())
+    if nr_turno is not None: q = q.filter(VotacaoSecao.nr_turno == nr_turno)
+
+    rows = q.group_by(VotacaoSecao.sg_uf).order_by(func.sum(VotacaoSecao.qt_votos).desc()).all()
+    if not rows:
+        return []
+    max_votos = max(r.total_votos for r in rows) or 1
+    return [
+        {"sg_uf": r.sg_uf, "total_votos": r.total_votos, "pct_relativo": round(r.total_votos / max_votos * 100, 2)}
+        for r in rows
+    ]
+
+
+@router.get("/secoes/ufs-com-dados", response_model=list[str])
+def ufs_com_dados(
+    eleicao_id: UUID = Query(...),
+    db: Session = Depends(get_db),
+    _: object = Depends(get_current_user),
+):
+    """Lista as UFs que possuem dados de votação por seção para uma eleição."""
+    from sqlalchemy import text
+    sql = text("""
+        SELECT DISTINCT sg_uf
+        FROM votacao_secao
+        WHERE eleicao_id = :eleicao_id AND sg_uf IS NOT NULL
+        ORDER BY sg_uf
+    """)
+    rows = db.execute(sql, {"eleicao_id": str(eleicao_id)}).fetchall()
+    return [r[0] for r in rows]
+
+
 @router.get("/secoes/cargos", response_model=list[str])
 def listar_cargos(
     eleicao_id: UUID = Query(...),
